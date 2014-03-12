@@ -1,0 +1,202 @@
+#!/usr/bin/perl -w
+use POSIX;
+use Getopt::Long qw(:config bundling require_order auto_version);
+use Pod::Usage;
+use FAST;
+use FAST::Bio::SeqIO;
+use FAST::Bio::SeqUtils;
+use strict;
+
+use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
+$VERSION = $FAST::VERSION; 
+$DESC    = "Reverse complements nucleotide sequences and alignments.";
+
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+$COMMAND = join " ",$NAME,@ARGV;
+$DATE = POSIX::strftime("%c",localtime());
+
+use constant { true => 1, false => 0 };
+
+## DEFAULT OPTION VALUES
+my $def_format  = $FAST::DEF_FORMAT;  # "fasta";
+my $def_logname = $FAST::DEF_LOGNAME; # "FAST.log.txt";
+
+## OPTION VARIABLES
+my $man                  = undef;  # --man
+my $help                 = undef;  # -h
+
+my $format               = $def_format;  # -f
+my $log                  = undef;        # -l
+my $logname              = $def_logname; # -L
+my $comment              = undef;        # -C
+my $moltype              = undef;        # -m, force moltype
+my $nobrand              = undef;        # -n, don't add "-rc" to identifier
+
+GetOptions('help|h'         		 => \$help, 
+	   'man'            		 => \$man,
+	   'format=s'                    => \$format,
+	   'log|l'                       => \$log,
+	   'logname|L=s'                 => \$logname,
+	   'comment|C=s'                 => \$comment,
+	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\"" 
+						    unless $val =~ /dna|rna/i; 
+						  $moltype = $val;
+						},
+	   'nobrand|n'                     => \$nobrand,
+	  )
+  or pod2usage(2);
+		  
+pod2usage(1) if $help;
+pod2usage(-verbose => 2) if $man;
+#pod2usage("$0: Requires zero arguments when reading from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 0));
+
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+my $IN;
+unless (@ARGV) {
+    if ($moltype) {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
+    }
+    else {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
+    }
+}
+
+while ($IN or @ARGV) {
+  if (@ARGV) {
+    my $file = shift (@ARGV);
+    unless (-e $file) {
+      warn "$NAME: Could not find file $file. Skipping.\n";
+      next;1
+    }
+    elsif ($moltype) {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
+    }
+    else {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
+    }
+  }
+  if ($IN) { 
+    while (my $seq = $IN->next_seq()) {
+      my $revcom = FAST::Bio::SeqUtils->revcom_with_features($seq);
+      unless ($nobrand) {
+	my $id = join '-',$seq->display_id,'rc';
+	$revcom->display_id($id);
+      }
+      print $OUT $revcom; 
+    }
+    undef $IN;
+  }
+}
+
+
+__END__
+
+=head1 NAME
+
+fasrc - reverse complement nucleotide sequences and alignments.
+
+=head1 SYNOPSIS
+
+fasrc [options] [MULTIFASTA-FILE...]
+
+=head1 DESCRIPTION
+
+fasrc takes multifasta format DNA or RNA codon sequences or alignments
+as input, and generates reverse complements of those sequences as
+output.
+
+Options specific to fasrc:
+  -n, --nobrand                       don't "brand" sequence ids with "-rc" extension 
+
+Options general to FAST:
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input
+  --moltype=<[dna|rna|protein]>     specify input sequence type
+
+=head1 INPUT AND OUTPUT
+
+fasrc is part of FAST, the FAST Analysis of Sequences Toolbox, based
+on Bioperl. Most core FAST utilities expect input and return output in
+multifasta format. Input can occur in one or more files or on
+STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
+reformat other formats to and from multifasta.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-h>,
+      B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+=item B<--version>
+
+Print version information and exit.
+
+=item B<-b>,
+      B<--brand>
+
+"Brands" output sequences with "-rc" suffix on the sequence
+identifiers on output to signal that they have been reverse
+complemented.
+
+=item B<-l>,
+      B<--log>
+
+Creates, or appends to, a generic FAST logfile in the current working
+directory. The logfile records date/time of execution, full command
+with options and arguments, and an optional comment.
+
+=item B<-L [string]>,
+      B<--logname=[string]>
+
+Use [string] as the name of the logfile. Default is "FAST.log.txt".
+
+=item B<-C [string]>,
+      B<--comment=[string]>
+
+Include comment [string] in logfile. No comment is saved by default.
+
+=item B<-m>,
+      B<--moltype=[dna|rna|protein]> 		  
+
+Specify the type of sequence on input (should not be needed in most
+cases, but sometimes Bioperl cannot guess and complains when
+processing data).
+
+=back
+
+=head1 SEE ALSO
+
+=over 8
+
+=item C<man FAST>
+
+=item C<perldoc FAST>
+
+Introduction and cookbook for FAST
+
+=item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
+
+=back 
+
+=head1 CITING
+
+If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+
+=cut

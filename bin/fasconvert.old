@@ -1,0 +1,144 @@
+#!/usr/bin/perl -w
+use Getopt::Std;
+use FAST::Bio::SeqIO;
+use FAST::Bio::AlignIO;
+use File::Basename;
+use vars qw($VERSION $DESC $tag);
+$VERSION = 0.1;
+$DESC    = "Convert sequences and alignments either to or from from fasta format.\n";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+
+#abi ace agave alf asciitree bsml bsml_sax chadoxml chaos chaosxml ctf
+#embl embldriver entrezgene excel exp fasta fastq flybase_chadoxml game
+#gbdriver gbxml gcg genbank interpro kegg largefasta lasergene
+#locuslink mbsout metafasta msout nexml phd pir pln qual raw scf seqxml
+#strider swiss swissdriver tab table tigr tigrxml tinyseq ztr
+
+
+$seq_ext = {
+   	    fasta     => 'fas',
+              embl    =>  'embl',
+              genbank =>  'gbk',
+              swiss   =>  'swiss',
+              pir     =>  'pir',
+              gcg     =>  'gcg',
+              raw     =>  'raw'
+};
+
+$aln_ext = {
+	       bl2seq    => 'bl2seq',
+	       clustalw  => 'aln',
+	       fasta     => 'fas',
+	       maf       => 'maf',
+	       mega      => 'mega',
+	       meme      => 'meme',
+	       msf       => 'msf',
+	       nexus     => 'nex',
+	       pfam      => 'pfam',
+	       phylip    => 'phy',
+#	       psiblast  => 'psi',
+	       selex     => 'slx'  
+};
+
+$in_only_aln_ext = {
+	       prodom    => 'prodom',
+	       mase      => 'mase',
+	       stockholm => 'sto',
+	       emboss    => 'emboss'
+};
+
+
+$opt_i    = undef;
+$opt_o    = undef;
+$opt_h    = undef; #help
+$opt_f    = undef;
+$opt_s    = undef; #sequential phylip output format
+$opt_l    = undef; #max id-length for phylip output format
+&getopts('hi:o:fsl:');
+
+if ($opt_h or ($opt_f and (@ARGV < 1)) or (!$opt_f and (@ARGV != 0)) or ($opt_i and $opt_o) or (!$opt_i and !$opt_o)){ 
+  print "\n$NAME $VERSION\n\n$DESC\n";
+  print "Usage:\n"; 
+  print "\t$NAME -o <format> < fasta-file > other-format file\n";  
+  print "\t$NAME -i <format> < other-format-file > fasta-file\n";
+  print "\t$NAME -fo <format> fasta-file1 fasta-file2 ... \n";
+  print "\t$NAME -fi <format> other-format-file1 other-format-file2 ... \n";
+  print "\nAllowed formats: ",(join ", ",(keys %$seq_ext),"\n",(keys %$aln_ext)),"\n";
+  print "\nAllowed formats (input only): ",(join ", ",(keys %$in_only_aln_ext)),"\n";
+  print "\n\n-i <format> and -o <format> options cannot be used simultaneously.\n";
+  print "\n-s together with -o phylip selects sequential phylip output  (default interleaved)\n";
+  print "-l <int> together with -o phylip specifies maximum id length (default is 10)\n";
+  die "\n";
+}
+
+
+$mode = ($opt_i ? 'input' : 'output');
+$format{'input'}  = lc ($opt_i) || 'fasta';
+$format{'output'} = lc ($opt_o) || 'fasta';
+
+my %attributes = ();
+if ($format{'output'} eq 'phylip') {
+  $attributes{'-interleaved'} = ($sequential ? 0 : 1);
+  $attributes{'-idlength'}    = ($maxlength || 10);
+  $attributes{'-wrap_sequential'} = 1; 
+  $attributes{'-line_length'}  = 80;
+}
+
+my $extension = undef;
+$files and $input and do {
+  $extension = 'fas';
+};
+
+my ($module, $read, $write);
+if (exists $$seq_ext{$format{$mode}}){
+  $module = FAST::Bio::SeqIO;
+  $read =  "next_seq";
+  $write = "write_seq";
+  if ($opt_f and $mode eq 'output') {
+    $extension = $$seq_ext{$format{$mode}};
+  } 
+}
+elsif(exists $$aln_ext{$format{$mode}}) {
+  $module = FAST::Bio::AlignIO;
+  $read =  "next_aln";
+  $write = "write_aln";
+  if ($opt_f and $mode eq 'output') {
+    $extension = $$aln_ext{$format{$mode}};
+  } 
+}
+elsif ($mode eq 'input' and exists $$in_only_aln_ext{$format{$mode}}){
+  $module = FAST::Bio::AlignIO;
+  $read =  "next_aln";
+  $write = "write_aln";
+}
+else{
+  die "Fatal error in $NAME: $format{$mode} not recognized as an $mode format.\n"
+}
+
+
+if ($opt_f) { ## IN AND OUT FROM FILE, ONE FOR EACH
+  foreach my $infile (@ARGV) {
+    my($filename, $directories, $suffix) = fileparse($infile,qr/\.[^.]*/);
+    my $outfile = join '',$directories,$filename,'.',$extension;
+    my $IN   = $module->new('-format' => $format{'input'},  -file => $infile);
+    my $OUT  = $module->new('-format' => $format{'output'}, %attributes, -file => ">$outfile");
+    while (my $obj = $IN->$read()) {
+      if ($obj and ref $obj eq 'FAST::Bio::SimpleAlign') {
+	$obj->set_displayname_flat();
+      }
+      $OUT->$write($obj);
+    }
+  }
+}
+else { ## STDIN AND STDOUT
+  my $IN   = $module->newFh(-fh => *STDIN{IO}, '-format' => $format{'input'});
+  my $OUT  = $module->newFh('-format' => $format{'output'}, %attributes);
+  while (<$IN>) {
+    if ($_ and ref $_ eq 'FAST::Bio::SimpleAlign') {
+      $_->set_displayname_flat();
+    }
+    print $OUT $_;
+  }
+}
+

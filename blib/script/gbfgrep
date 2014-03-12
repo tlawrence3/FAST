@@ -1,0 +1,105 @@
+#!/usr/bin/perl -w
+
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
+use FAST::Bio::SeqIO;
+use Getopt::Std;
+use vars qw($VERSION $DESC $tag);
+$VERSION = 0.2;
+$DESC    = "Extract neighboring features from Genbank files corresponding to reg-ex match on tags.\n";
+
+# Command-line options:
+$opt_h      = undef;
+$opt_t      = undef;
+$opt_i      = undef;
+$opt_r      = 1;
+$opt_b      = undef;
+$opt_e      = undef;
+&getopts('hit:r:b:e:');
+
+$opt_h and do { 
+    &print_help;
+    die;
+};
+
+$tag = 'note';
+$opt_t and $tag = $opt_t;
+
+$begin = $end = undef;
+$opt_b and $begin = $opt_b;
+$opt_e and $end = $opt_e;
+
+if (scalar(@ARGV) != 1) {
+    die "Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file\nuse option -h for help.\n";
+}
+
+my $seqin = FAST::Bio::SeqIO->newFh('-format' => 'Genbank'); ##READ FROM STDIN
+my $re = ($opt_i ? qr/$ARGV[0]/i : qr/$ARGV[0]/);
+
+while(my $seqobj = <$seqin>) {
+  @feat = grep {$_->primary_tag eq 'CDS' or $_->primary_tag =~ /RNA/} $seqobj->top_SeqFeatures();
+  for $i (0 .. $#feat) {
+    my $feat = $feat[$i];
+    next if ($begin and $begin > $feat->start);
+    next if ($end   and $end <   $feat->end);
+    if ($feat->has_tag($tag)) {
+      foreach $value ( $feat->each_tag_value($tag) ) {
+	if ($value =~ $re) {
+	  ++$k;
+	  print "\n\nMatch $k:\n";
+	  for $j (($i - $opt_r) .. ($i + $opt_r)) {
+	    my $lfeat = $feat[$j];
+	    $start = $lfeat->start;
+	    $stop  = $lfeat->end;
+	    $gene     = $lfeat->has_tag('gene')    ? join ' + ',$lfeat->each_tag_value('gene')    : ' '; 
+	    $product  = $lfeat->has_tag('product') ? join ' + ',$lfeat->each_tag_value('product') : ' '; 
+	    $note     = $lfeat->has_tag('note')    ? join ' + ',$lfeat->each_tag_value('note')    : ' '; 
+	    write;
+	  }
+	}
+      }
+    }
+  }
+}
+
+format STDOUT = 
+@>>>>>>>>  @>>>>>>>>  @>>>>>>  @>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  @>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+$start,$stop,$gene,$product,$note
+.
+
+#-----------------------
+sub print_help {
+#-----------------------
+    print STDERR << "QQ_HELP_QQ";
+    
+$0 version $VERSION
+$DESC
+Usage: $0 [-hri] [-t <tag>] 'perl-reg-exp'
+ args: -h        this help 
+       -r        raw sequence (otherwise reverse complements features on negative strand)
+       -i        case insensitive pattern matching (corresponds to m//i)
+       -t <tag>  match genbank feature <tag>. 
+                  Default is 'note.' 
+                  Examples of alternatives: 'product', 'gene'
+input: from <stdin>
+outpt: multifasta file
+
+    Do 'man perlre' for help on perl regular expressions.
+
+        ## Print all subsequences from files ending in *.gb for features with '/product' =~ m/.+RNA/i 
+    Ex: cat *.gb | $0 -it product '.+RNA' 
+
+QQ_HELP_QQ
+}
+
+
+
+
+
+
+
+
+
+
+

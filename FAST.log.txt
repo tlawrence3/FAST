@@ -1,0 +1,6 @@
+fasgrep --log ^AF t/data/ArdellEtAl03_ncbi_popset_32329588.fas 
+ # FAST 0.04 Wed Jun 26 14:53:44 2013 
+fasgrep --log ^AF t/data/ArdellEtAl03_ncbi_popset_32329588.fas # FAST 0.04 Wed Jun 26 14:55:07 2013 
+fasgrep -ls ^AF t/data/ArdellEtAl03_ncbi_popset_32329588.fas # FAST 0.04 Wed Jun 26 14:58:06 2013 
+fasgrep -ls \|AF t/data/ArdellEtAl03_ncbi_popset_32329588.fas # FAST 0.04 Wed Jun 26 14:58:57 2013 
+fasgrep -C This is a test -ls \|AF t/data/ArdellEtAl03_ncbi_popset_32329588.fas # FAST 0.04 Wed Jun 26 14:59:06 2013 This is a test

@@ -1,0 +1,198 @@
+#!/usr/bin/perl -w
+
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+use FAST::Bio::SeqIO;
+use FAST::Bio::Seq;
+use Getopt::Std;
+use FAST::Bio::Tools::CodonTable;
+
+$opt_t = 1; ## Genetic code
+$opt_h = undef;
+$opt_f = "fasta";
+$opt_v = undef; ## output stats for all genes individually
+$opt_s = undef; ## suppress errors
+$opt_b = undef; ## base ordering of output
+$opt_o = undef; ## amino acid ordering of output
+$opt_a = undef; ## order by amino acids
+
+# Command-line options:
+&getopts('hab:o:vsf:t:');
+
+$opt_h and die "count_codons [-f format (default: fasta)] [-v individual genes (default: aggregate)] [-t genetic code (default: standard, see perldoc FAST::Bio::Tools::CodonTable)]\ninput standard in\n"; 
+
+$code = FAST::Bio::Tools::CodonTable->new(-id => $opt_c);
+$in = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
+
+if ($opt_b) {
+    die "-b option requires a base ordering of T,C,A, and G separated by colons (:), as in T:C:A:G (the default)\n" if ($opt_b =~ /[^TCAG:]/);
+    @bases = split /:/, $opt_b;
+}
+else {
+    @bases = qw/T C A G/;   
+}
+
+
+foreach my $aa (split //, "ARNDCQEGHILKMFPSTWYV*") {
+    push @{ $synonyms{$aa}},  map {uc $_} $code->revtranslate($aa);
+}
+
+%count = ();
+%startcount = (); ## start codons
+$middlecodons = $startcodons = $stopcodons = $ambiguous_middle = $ambiguous_start = $ambiguous_stop = $bad_length = $numseqs = $stop_at_middle = $stop_at_start = $nonstop = 0;
+
+while (my $seq=$in->next_seq() ) {
+    if ($opt_v) {
+	%count = ();
+	%startcount = (); ## start codons
+    }
+
+    my $id=$seq->id();
+    my $length = $seq->length(); ## is this slow?
+    if ($length % 3) {
+	warn "count_codons error_4: $id has length not of modulo 3, skipping this sequence.\n" unless ($opt_s);
+	$bad_length++;
+    }	
+    $numseqs++;
+    
+    my $seqseq = uc $seq->seq();
+    ##    $seqseq =~ y/T/U/;
+    my @bases = split//,$seqseq; 
+
+    ## count start codons separately
+    my $startcodon = join "",splice(@bases, 0, 3);
+    my $aa = $code->translate($startcodon); 
+    if ($aa eq "X") { ## ambiguous amino acid from ambiguous base, bioperl can resolve IUPAC codes
+	$ambiguous_start++;
+    }
+    elsif ($aa eq "*") {
+	warn "count_codons error_5: $id starts in a stop codon.\n" unless ($opt_s);
+	$stop_at_start++;
+    }
+    else { 
+	$startcount{$startcodon}++;
+	$startcodons++;
+    }
+
+
+    
+    ## count stop codons together with others, but control them
+    my $stopcodon = join "",splice(@bases, -3);
+    $aa = $code->translate($stopcodon); 
+    if ($aa eq "X") {
+	$ambiguous_stop++ 
+    }
+    else {
+	if ($aa ne "*") {
+	    warn "count_codons error_1: $id does not end in a stop codon, it ends in $stopcodon.\n" unless ($opt_s);
+	    $nonstop++;
+	}
+	else {
+	    $stopcodons++
+	}
+	$middlecodons++;
+	$count{$stopcodon}++; 
+    }
+
+    
+    while (@bases) {
+	my $codon = join "",splice(@bases, 0, 3);
+	$aa = $code->translate($codon);
+	if ($aa eq "X") {
+	    $ambiguous_middle++ 
+	}
+	elsif ($aa eq "*") {
+	    warn "count_codons error_2: $id has a premature stop codon.\n" unless ($opt_s); 
+	    $stop_at_middle++;
+	    $count{$codon}++;
+	    $middlecodons++;
+	}
+	else { ## ambiguous amino acid from ambiguous base, bioperl can resolve IUPAC codes
+	    $count{$codon}++;
+	    $middlecodons++;
+	}
+
+    }
+    if ($opt_v) {
+	&print_output;
+    }
+}
+unless ($opt_v) {
+    &print_output;
+}
+&print_end_totals;
+
+sub print_output {
+    # calculate RCSU for middle codons
+    my %rcsu = ();
+    my %startrcsu = ();
+    foreach my $aa (split //, "ARNDCQEGHILKMFPSTWYV*") {
+	my @syns = @{$synonyms{$aa}};
+	for (@syns) {
+	    $count{$_} ||= 0;
+	}
+	@rcsu{@syns} = @count{@syns};
+	my $sum;
+	foreach my $syn (@syns) { 
+	    $sum += $rcsu{$syn};
+	}
+	$sum ||= 1;
+	foreach my $syn (@syns) { 
+	    $rcsu{$syn} /= $sum;
+	}
+    }
+    
+    # calculate RCSU for start codons
+    # only consider start codons actually seen
+    %startrcsu  = %startcount;
+    $sum = 0;
+    foreach my $codon (keys %startrcsu) { 
+	$sum += $startrcsu{$codon};
+    }
+    $sum ||= 1;
+    foreach my $codon (keys %startrcsu) { 
+	$startrcsu{$codon} /= $sum;
+    }
+    map {$sum+=$_} values %startrcsu;
+    map {$_/$sum}  values %startrcsu;
+    
+    if ($opt_a) { ## group output by amino acid
+	foreach my $aa (split //, ($opt_o || "ARNDCQEGHILKMFPSTWYV*")) {
+	    foreach my $codon (@{$synonyms{$aa}}) {
+		$rcsu{$codon} ||= 0;
+		$startrcsu{$codon} ||= 0;
+		$count{$codon} ||= 0;
+		$startcount{$codon} ||= 0;
+		printf("%s %s %5.3f %5.3f %10u %10u\n",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});
+	    }
+	}
+    }
+    else {
+	foreach my $first (@bases) { 
+	    foreach my $second (@bases) { 
+		foreach my $third (@bases) { 
+		    my $codon = join "",$first,$second,$third;
+		    $rcsu{$codon} ||= 0;
+		    $startrcsu{$codon} ||= 0;
+		    $count{$codon} ||= 0;
+		    $startcount{$codon} ||= 0;
+		    printf("%s %s %5.3f %5.3f %10u %10u\n",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});
+		}
+	    }
+	}
+    }
+
+}
+
+sub print_end_totals {    
+    printf "::--------------------------------------------------\n";
+    printf ":1                %10u %10u            | unambiguous codons at tail (middle+end) and at start\n",$middlecodons,$startcodons;
+    printf ":2                %10u %10u %10u | ambiguous   codons in middle, at start, and at end\n",$ambiguous_middle,$ambiguous_start,$ambiguous_stop;
+    printf "::                                                 | (ambiguous codons are skipped)\n";
+    printf ":3                %10u %10u            | stop        codons in middle and at start\n",$stop_at_middle,$stop_at_start;
+    printf ":4                                      %10u | stop        codons at end (included in line 1)\n",$stopcodons;
+    printf ":4                                      %10u | sense       codons at end (included in line 1)\n",$nonstop;
+    printf "::--------------------------------------------------\n";
+    printf ":5 %-10u of %-10lu sequences had a length non-modulo 3 and were skipped.\n",$bad_length,$numseqs;
+}
+

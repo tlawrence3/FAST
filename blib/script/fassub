@@ -1,0 +1,128 @@
+#!/usr/bin/perl -w
+
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+use Getopt::Std;
+use FAST::Bio::SeqIO;
+use FAST::Bio::Tools::SeqPattern ();
+use vars qw($VERSION $DESC);
+$VERSION = 0.3;
+$DESC    = "Substitute strings by perl regular expression match on IDs, sequences, or descriptions.\n";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+
+# Command-line options:
+$opt_s      = undef;
+$opt_i      = undef;
+$opt_e      = undef;
+$opt_p      = undef;
+$opt_r      = undef;
+$opt_d      = undef;
+$opt_f      = 'fasta';
+$opt_h      = undef;
+$opt_g      = undef;
+
+&getopts('sieprdf:hg');
+
+if ($opt_h or scalar(@ARGV) < 2) {
+  print STDERR <<"QQ_HELP_QQ";
+ 
+  $NAME $VERSION
+  $DESC
+  Copyleft 2001-2009 David H. Ardell
+  All wrongs reversed.
+
+  Usage: $NAME [options] \'perl-regex\' \'replacement string\' fasta-file1 fasta-file2 ... > fasta-file.
+         $NAME [options] \'perl-regex\' \'replacement string\' < fasta-file1 > fasta-file.
+
+  Options: 
+     -s match on sequence [default: match on ID]
+     -d match on description [default: match on ID]
+     -i case-insensitive-match 
+     -e IUPAC ambiguity expand regex for DNA/RNA sequence match (implies -s)
+     -p IUPAC ambiguity expand regex for protein sequence match (implies -s)
+     -r reverse complement IUPAC ambiguity expanded regex for DNA/RNA match (implies -s)
+     -f <format> read <format> on input instead of default fasta. <format>
+                 may be one of: embl,exp,fastq,gcg,genbank,pir,scf
+                                ace,game,locuslink,phd,qual,raw,swiss
+                 <format> is case-insensitive; google "FAST::Bio::SeqIO" for more info.
+     -g replace matches "globally", all matches per line. 
+        Default is to replace only left-most match. 
+
+  $NAME
+  sequence-matching, there is support for expanding IUPAC ambiguities
+  in the regex pattern.
+
+  Like UNIX filters, $NAME can open files for input or take its input
+  from STDIN. It expects fasta format on input, but you can change
+  this (with the "-f" option). It always puts fasta-format to STDOUT.
+
+  Examples:
+
+ 
+QQ_HELP_QQ
+exit 1;
+}
+
+$arg = shift @ARGV;
+
+if ($opt_e and !$opt_r) {
+  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->expand;
+}
+elsif ($opt_p) {
+  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Protein')->expand;
+}
+elsif ($opt_r) {
+  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->revcom(1)->str;
+}
+else {
+  $re_string = $arg;
+}
+
+if ($opt_i) {
+  $re = qr/$re_string/i;
+}
+else {
+  $re = qr/$re_string/;
+}
+
+$string = shift @ARGV;
+
+$OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+unless (@ARGV) {
+  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
+}
+
+$component = 'id';
+$component = 'desc' if ($opt_d);
+$component = 'seq'  if ($opt_s);
+
+while ($IN or @ARGV) {
+  if (@ARGV) {
+    my $file = shift (@ARGV);
+    unless (-e $file) {
+      warn "Could not find file $file. Skipping.\n";
+      next;
+    }
+    else {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $opt_f);
+    }
+  }
+  if ($IN) { 
+    while (my $seq = $IN->next_seq()) {
+      $matchfield = $seq->$component();
+      if ($opt_g) {
+	$matchfield =~ s/$re/$string/g;
+      }
+      else {
+	$matchfield =~ s/$re/$string/;
+      }
+      $seq->$component($matchfield);
+      print $OUT $seq;
+    }
+    undef $IN;
+  }
+}
+
+
+

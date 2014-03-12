@@ -1,0 +1,57 @@
+#!/usr/bin/perl -w
+
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+use Getopt::Std;
+use FAST::Bio::SeqIO;
+use vars qw($VERSION $DESC $tag);
+$VERSION = 0.1;
+$DESC    = "Concatenates IDs of records with identical sequences in a Fasta file.\n";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+
+# Command-line options:
+$opt_d      = ':';
+$opt_h      = undef;
+
+&getopts('d:h');
+
+if ($opt_h or scalar(@ARGV) != 0) {
+  print STDERR <<"QQ_HELP_QQ";
+ 
+  $NAME $VERSION
+  $DESC
+  Copyleft 2001-2009 David H. Ardell
+  All wrongs reversed.
+
+  Usage:  $0 < fasta-file > fasta-file
+
+  Options: 
+     -d <char> use <char> to join sequence IDs for redundant sequences ([:]) 
+     -h this help 
+
+  Sequences need not be sorted in input. Sequences should be 
+  transliterated to all be in the same case; see 'fastr'
+
+  Description information is lost.
+ 
+QQ_HELP_QQ
+exit 1;
+}
+
+$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => "fasta");
+while (my $seq = $IN->next_seq()) {
+  my $seqseq = $seq->seq;
+  if (exists $uniq{$seqseq}){
+    $uniq{$seqseq} = join $opt_d,$uniq{$seqseq},$seq->id;
+  }
+  else {
+    $uniq{$seqseq} = $seq->id;
+  }
+}
+
+foreach my $seq (keys %uniq) {
+  print ">$uniq{$seq}\n$seq\n";
+}
+
+

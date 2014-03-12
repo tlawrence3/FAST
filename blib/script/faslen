@@ -1,0 +1,75 @@
+#!/usr/bin/perl -w
+
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+use Getopt::Std;
+use FAST::Bio::SeqIO;
+use FAST::Bio::Tools::SeqPattern ();
+use vars qw($VERSION $DESC);
+$VERSION = 0.3;
+$DESC    = "Print lengths of sequences.\n";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+
+# Command-line options:
+$opt_f      = 'fasta';
+$opt_h      = undef;
+
+&getopts('f:h');
+
+if ($opt_h or scalar(@ARGV) != 0) {
+  print STDERR <<"QQ_HELP_QQ";
+ 
+  $NAME $VERSION
+  $DESC
+  Copyleft 2001-2009 David H. Ardell
+  All wrongs reversed.
+
+  Usage: $NAME [options] fasta-file1 fasta-file2 ... > fasta-file.
+         $NAME [options] < fasta-file1 > fasta-file.
+
+  Options: 
+     -i this help
+     -f <format> read <format> on input instead of default fasta. <format>
+                 may be one of: pir, gcg, genbank, fasta, embl, raw, swiss
+                 <format> is case-insensitive; google "FAST::Bio::SeqIO" for more info.
+
+  $NAME prints the lengths of sequences. The lengths
+  are appended to the description with the prefix: "faslen:"
+
+  Like UNIX filters, $NAME can open files for input takes its input
+  from STDIN. It expects fasta format on input, but you can change
+  this (with the "-f" option). It always puts fasta-format to STDOUT.
+
+QQ_HELP_QQ
+exit 1;
+}
+
+$OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+unless (@ARGV) {
+  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
+}
+
+while ($IN or @ARGV) {
+  if (@ARGV) {
+    my $file = shift (@ARGV);
+    unless (-e $file) {
+      warn "Could not find file $file. Skipping.\n";
+      next;
+    }
+    else {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $opt_f);
+    }
+  }
+  if ($IN) { 
+    while (my $seq = $IN->next_seq()) {
+      $olddesc = $seq->desc();
+      $seq->desc(join '',"$olddesc faslen:",$seq->length());     
+      print $OUT $seq;
+    }
+    undef $IN;
+  }
+}
+
+
+

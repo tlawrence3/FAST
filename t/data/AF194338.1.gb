@@ -1,0 +1,481 @@
+LOCUS       AF194338                4986 bp    DNA     linear   INV 28-MAY-2003
+DEFINITION  Stylonychia lemnae macronuclear DNA polymerase catalytic subunit
+            alpha gene, complete cds.
+ACCESSION   AF194338
+VERSION     AF194338.1  GI:7341069
+KEYWORDS    .
+SOURCE      Stylonychia lemnae
+  ORGANISM  Stylonychia lemnae
+            Eukaryota; Alveolata; Ciliophora; Intramacronucleata; Spirotrichea;
+            Stichotrichia; Sporadotrichida; Oxytrichidae; Stylonychinae;
+            Stylonychia.
+REFERENCE   1  (bases 1 to 4986)
+  AUTHORS   Landweber,L.F., Kuo,T.C. and Curtis,E.A.
+  TITLE     Evolution and assembly of an extremely scrambled gene
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 97 (7), 3298-3303 (2000)
+   PUBMED   10725348
+REFERENCE   2  (bases 1 to 4986)
+  AUTHORS   Ardell,D.H., Lozupone,C.A. and Landweber,L.F.
+  TITLE     Polymorphism, recombination and alternative unscrambling in the DNA
+            polymerase alpha gene of the ciliate Stylonychia lemnae
+  JOURNAL   Unpublished
+REFERENCE   3  (bases 1 to 4986)
+  AUTHORS   Landweber,L.F., Kuo,T.-C. and Curtis,E.A.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (08-SEP-1999) Ecology and Evolutionary Biology, and
+            Molecular Biology, Princeton University, Guyot Hall, Washington
+            Road, Princeton, NJ 08544, USA
+FEATURES             Location/Qualifiers
+     source          1..4986
+                     /organism="Stylonychia lemnae"
+                     /macronuclear
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:5949"
+     misc_feature    1..20
+                     /note="telomere"
+     mRNA            join(21..277,327..515,585..4966)
+                     /product="DNA polymerase catalytic subunit alpha"
+     misc_feature    21..357
+                     /note="macronuclear destined sequence M1; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     5'UTR           21..145
+     CDS             join(146..277,327..515,585..4838)
+                     /inference="non-experimental evidence, no additional
+                     details recorded"
+                     /note="similar to Swiss-Prot Accession Number P28040"
+                     /codon_start=1
+                     /transl_table=6
+                     /product="DNA polymerase catalytic subunit alpha"
+                     /protein_id="AAO73537.1"
+                     /db_xref="GI:29251556"
+                     /translation="MSDNYTTQSGXEIKKIGQKSGVKNALAQLRAAREGGDKRTDQYQ
+                     VEEAKRIFEEIDADEYERIXDQRKNDDFIVXDDGXGYRDHGGEIWERDDNEEVGGKKK
+                     KRKLDPNEQHITBFMMPASTIRKNKGXGNSSNIQIKQKPKVTAEQSMDIMNNLLQELD
+                     NKDVDELEDVNASAVMAELNKPIAFXKNEELLNKYGVTLESKQEIQVKRQLEQQQXEQ
+                     TIGQHQQNANVFSKKRKLDEIQQPQIKKEHQGLNKSRQTETIIHQSSNTSYFDAKSQL
+                     SHDQSMEYQSAVDDSKMSESSSAQKNAMNEGPIAFSKNQTNMSASKNDEWAQIKHQNQ
+                     QAHQEFKTMEQKSAMDIQEFALPLNQDGSLSFYWIDAHGENNGADLFIFGKIYQPEIN
+                     QYVSCSMKVNGMQREIYALPKMQKGKARGTLTREEENQLVRGVQLELEDIRKKRFQGI
+                     TKWRCKPVTRKYAFEMLIQHGEHLFLKIKYDATFIPLPSTVQGNTFECLFGSNQSMLE
+                     LFILKRKIKGPCWMTIKNPKKVTDFKKTWCRQEIEIDNPKNAEVTLDDLNKTDIPPLT
+                     SLTFAFKTARSQNNTNEIAMISCLVHNNVNQEGPSQTDKFQTFTLVRKLDGKPMPFDF
+                     DQKLRQKKENIQYFTNERQMIDLFVTRIFQIDPDLIVAHNLCGGIFDLLLARIQILKI
+                     NHWSRIGRFKKGNIPTKKFDTGGANYGGSQWIPRQVTCGRLLVDTFLSAKELIRETNY
+                     DLTHLTKVQLKKDRQDFDDDLLPQFYLASERIFQLIEHSEKDSYYTFMLMPHLSIIPL
+                     TKQLTNIAGNLWFRSLQNARAERNEMLLLHEFKKKKFILPDKKPPNAKDLRRGFMGDE
+                     YEENDTKGGGKKGGKRKKAKYAGGLVIEPKAGFYDNIILLLDFNSLYPSIIQEYNLCF
+                     TTVNRRPTKNYDGSELKNQXKSADNAEGDEVEDVDLPDKNVNIKDAVLPXVLRDLVQK
+                     RKAVKEKMKNEXDQXKLQQLEIRQKAIKLTANSMYGCLGFSSSRFHASAIAALITKTG
+                     RETLLRTKDIAENKLGFNVVYGXTDSIMINTGTNQLQQSLEMGKKLKVEVNCLYKCLE
+                     IEIDGXFKSLLLLKKKKYAXLRYEGVGSNEVKVIQEMKGLDMVRRXWCPLSKSIGNYV
+                     LSQILSGKQXEDVVFNLNEYLSDIGEKMKSNRITLDQFIITKQLTRAISEYSDIKGQP
+                     HVAVAQRLKNQGKSEADLVNNFIPYVIGAQAFDTAKSNPQLSDKAYHPDELLSSKGKI
+                     TLDIDWYIXTQILXPITRLIEHIDGINIEFVAQCLGVDPKKYKYHSEKKNTDEIGDDG
+                     GSIQNPILQTETEKSLKHRSIAELKVKCPSCTHNYDFPGIYQEGKDVSGLICTKCNAK
+                     IPEKYVMNRVNLFLKQLLALYYQGKYECQEPSCKSMTRQLLYHNKCVNLTCKGKMVPE
+                     YSEHQTNXTLRYLQGLFXIKKHLHEDSKNDSLKVETDIPFYNEYNVLQTKVDELMNRS
+                     KYTKVDLGSIFGFMRQSNNKMAVSSTATAQ"
+     misc_feature    402..449
+                     /note="Region: conserved region A"
+     misc_feature    1410..1418
+                     /note="Region: conserved region E"
+     misc_feature    1815..1826
+                     /note="Region: conserved region D"
+     misc_feature    2166..2291
+                     /note="Region: conserved region IV"
+     misc_feature    2679..2786
+                     /note="Region: conserved region B"
+     misc_feature    2892..3014
+                     /note="Region: conserved region II"
+     misc_feature    3141..3191
+                     /note="Region: conserved region VI"
+     misc_feature    3240..3365
+                     /note="Region: conserved region III"
+     misc_feature    3408..3431
+                     /note="Region: conserved region I"
+     misc_feature    3522..3563
+                     /note="Region: conserved region C"
+     misc_feature    3570..3584
+                     /note="Region: conserved region VII"
+     misc_feature    3627..3671
+                     /note="Region: conserved region V"
+     exon            146..277
+                     /inference="non-experimental evidence, no additional
+                     details recorded"
+                     /number=1
+     exon            327..515
+                     /inference="non-experimental evidence, no additional
+                     details recorded"
+                     /number=2
+     misc_recomb     358..359
+                     /note="pointer P1-2"
+     misc_feature    360..1222
+                     /note="macronuclear destined sequence M2; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     exon            585..4838
+                     /inference="non-experimental evidence, no additional
+                     details recorded"
+                     /number=3
+     misc_recomb     1223..1237
+                     /note="pointer P2-3"
+     misc_feature    1238..1263
+                     /note="macronuclear destined sequence M3; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1264..1270
+                     /note="pointer P3-4"
+     misc_feature    1271..1283
+                     /note="macronuclear destined sequence M4; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1284..1291
+                     /note="pointer P4-5"
+     misc_feature    1292..1329
+                     /note="macronuclear destined sequence M5; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_feature    1330..1341
+                     /note="macronuclear destined sequence M6; micronuclear
+                     source missing"
+     misc_feature    1342..1364
+                     /note="macronuclear destined sequence M7; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1365..1374
+                     /note="pointer P7-8"
+     misc_feature    1375..1384
+                     /note="macronuclear destined sequence M8; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1385..1392
+                     /note="pointer P8-9"
+     misc_feature    1393..1433
+                     /note="macronuclear destined sequence M9; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1434..1444
+                     /note="pointer P9-10"
+     misc_feature    1445..1456
+                     /note="macronuclear destined sequence M10; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1457..1469
+                     /note="pointer P10-11"
+     misc_feature    1470..1497
+                     /note="macronuclear destined sequence M11; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1498..1504
+                     /note="pointer P11-12"
+     misc_feature    1505..1519
+                     /note="macronuclear destined sequence M12; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1520..1527
+                     /note="pointer P12-13"
+     misc_feature    1528..1545
+                     /note="macronuclear destined sequence M13; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1546..1555
+                     /note="pointer P13-14"
+     misc_feature    1556..1666
+                     /note="macronuclear destined sequence M14; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1667..1677
+                     /note="pointer P14-15"
+     misc_feature    1678..1687
+                     /note="macronuclear destined sequence M15; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1688..1699
+                     /note="pointer P15-16"
+     misc_feature    1700..1778
+                     /note="macronuclear destined sequence M16; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1779..1790
+                     /note="pointer P16-17"
+     misc_feature    1791..1862
+                     /note="macronuclear destined sequence M17; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1863..1870
+                     /note="pointer P17-18"
+     misc_feature    1871..1926
+                     /note="macronuclear destined sequence M18; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     1927..1934
+                     /note="pointer P18-19"
+     misc_feature    1935..2005
+                     /note="macronuclear destined sequence M19; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2006..2012
+                     /note="pointer P19-20"
+     misc_feature    2013..2027
+                     /note="macronuclear destined sequence M20; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2028..2036
+                     /note="pointer P20-21"
+     misc_feature    2037..2108
+                     /note="macronuclear destined sequence M21; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2109..2118
+                     /note="pointer P21-22"
+     misc_feature    2119..2161
+                     /note="macronuclear destined sequence M22; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2162..2173
+                     /note="pointer P22-23"
+     misc_feature    2174..2243
+                     /note="macronuclear destined sequence M23; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     variation       2202
+                     /note="as compared to micronuclear M23 sequence in GenBank
+                     Accession Number AF194337; results in reading frame shift"
+                     /replace=""
+     misc_recomb     2244..2251
+                     /note="pointer P23-24"
+     misc_feature    2252..2361
+                     /note="macronuclear destined sequence M24; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2362..2368
+                     /note="pointer P24-25"
+     misc_feature    2369..2391
+                     /note="macronuclear destined sequence M25; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2392..2398
+                     /note="pointer P25-26"
+     misc_feature    2399..2407
+                     /note="macronuclear destined sequence M26; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2408..2414
+                     /note="pointer P26-27"
+     misc_feature    2415..2502
+                     /note="macronuclear destined sequence M27; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2503..2512
+                     /note="pointer P27-28"
+     misc_feature    2513..2524
+                     /note="macronuclear destined sequence M28; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     2525..2537
+                     /note="pointer P28-29"
+     misc_feature    2538..2887
+                     /note="macronuclear destined sequence M29"
+     misc_recomb     2888..2899
+                     /note="pointer P29-30"
+     misc_feature    2900..3279
+                     /note="macronuclear destined sequence M30"
+     misc_recomb     3280..3292
+                     /note="pointer P30-31"
+     misc_feature    3293..3352
+                     /note="macronuclear destined sequence M31; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     3353..3361
+                     /note="pointer P31-32"
+     misc_feature    3362..3378
+                     /note="macronuclear destined sequence M32; may derive from
+                     micronuclear minor locus deposited in GenBank Accession
+                     Number AF194336"
+     misc_recomb     3379..3385
+                     /note="pointer P32-33"
+     misc_feature    3386..3431
+                     /note="macronuclear destined sequence M33; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     3432..3443
+                     /note="pointer P33-34"
+     misc_feature    3444..3543
+                     /note="macronuclear destined sequence M34; may derive from
+                     micronuclear minor locus deposited in GenBank Accession
+                     Number AF194336"
+     misc_recomb     3544..3555
+                     /note="pointer P34-35"
+     misc_feature    3556..3611
+                     /note="macronuclear destined sequence M35; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     3612..3619
+                     /note="pointer P35-36"
+     misc_feature    3620..3690
+                     /note="macronuclear destined sequence M36; may derive from
+                     micronuclear minor locus deposited in GenBank Accession
+                     Number AF194336"
+     misc_recomb     3691..3699
+                     /note="pointer P36-37"
+     misc_feature    3700..3768
+                     /note="macronuclear destined sequence M37; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     3769..3778
+                     /note="pointer P37-38"
+     misc_feature    3779..3807
+                     /note="macronuclear destined sequence M38; may derive from
+                     micronuclear minor locus deposited in GenBank Accession
+                     Number AF194336"
+     misc_recomb     3808..3814
+                     /note="pointer P38-39"
+     misc_feature    3815..3909
+                     /note="macronuclear destined sequence M39; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     3910..3915
+                     /note="pointer P39-40"
+     misc_feature    3916..3930
+                     /note="macronuclear destined sequence M40; may derive from
+                     micronuclear minor locus deposited in GenBank Accession
+                     Number AF194336"
+     misc_recomb     3931..3940
+                     /note="pointer P40-41"
+     misc_feature    3941..3958
+                     /note="macronuclear destined sequence M41; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     3959..3969
+                     /note="pointer P41-42"
+     misc_feature    3970..3976
+                     /note="macronuclear destined sequence M42; may derive from
+                     micronuclear minor locus deposited in GenBank Accession
+                     Number AF194336"
+     misc_recomb     3977..3988
+                     /note="pointer P42-43"
+     misc_feature    3989..4218
+                     /note="macronuclear destined sequence M43; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     4219..4227
+                     /note="pointer P43-44"
+     misc_feature    4228..4235
+                     /note="macronuclear destined sequence M44; may derive from
+                     micronuclear minor locus deposited in GenBank Accession
+                     Number AF194336"
+     misc_recomb     4236..4248
+                     /note="pointer P44-45"
+     misc_feature    4249..4320
+                     /note="macronuclear destined sequence M45; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     4321..4332
+                     /note="pointer P45-46"
+     misc_feature    4333..4345
+                     /note="macronuclear destined sequence M46; may derive from
+                     micronuclear minor locus deposited in GenBank Accession
+                     Number AF194336"
+     misc_recomb     4346..4357
+                     /note="pointer P46-47"
+     misc_feature    4358..4639
+                     /note="macronuclear destined sequence M47; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     misc_recomb     4640..4644
+                     /note="pointer P47-48"
+     misc_feature    4645..4966
+                     /note="macronuclear destined sequence M48; may derive from
+                     micronuclear major locus deposited in GenBank Accession
+                     Number AF194337"
+     3'UTR           4839..4966
+     misc_feature    4967..4986
+                     /note="telomere"
+ORIGIN      
+        1 aaaaccccaa aaccccaaaa tcccaaatca aattaatagt tgagraataa raattgaata
+       61 atrataccgc gtttaatctw agtgggaatc aaagaatgag tttataattt taaacttagt
+      121 ctaaacaaar cttgcawata agaskatgag tgayaattac acaacacaaa gtggcasaga
+      181 aatcaagaaa atcggctaaa aatcaggtgt taaaaacgct ctagcttaac tcagagctgc
+      241 tagagagggt ggagataaga gaactgatta atattaagtm aggaactaaa tttaaagctt
+      301 gcagragatg ctaatctttt acttaggtcg aagaggcaaa gagaattttt gaagagatag
+      361 atgcygatga atatgaaaga atttawgatc aaaggaaaaa tgatgatttc attgtkkatg
+      421 atgatggyty tggctacaga gatcatggag gtgaaatctg ggaaagagat gacaacgaag
+      481 aggttggcgg taaaaagaaa aagagaaagc ttgatgtaag tataaaccaa gtcttagtct
+      541 attktatcat ttaaattccg caattyactt acattactct atagccaaat gaacagcaca
+      601 ttactractt tatgatgccm gcttcaacwa tcagaaagaa caaaggaavm ggcaattcta
+      661 gcaatatata gataaagcaa aarcctaagg ttacwgctga gcaatctatg gacattatga
+      721 acaatttgct ataagaacta gataataaag atgtygatga gttggargat gtaaaygcat
+      781 cagcagttat ggctgagctt aacaaaccaa tagcctttar caaaaatgaa gaacttttga
+      841 acaaatacgg agtaacttta gagtcwaagc aagaaattta agtgaaaaga caacttgaat
+      901 agcarcarya tgaacagact attggctaac actaataaaa cgcgaatgta ttttcaaaga
+      961 aaagaaagct agatgaaatt taacaacctt aaataaaaaa agagcattaa ggactaaata
+     1021 aaagtaggta gactgaaact attattcatt aatcaagtaa cactagttat ttcgatgcta
+     1081 aaagttagct atctcatgac taatctatgg aatatcaatc agctgttgat gattctaaga
+     1141 tgtcagaaag tagctcagca cagaaaaatg caatgaatga aggtcctata gcattcagta
+     1201 aaaattaaac taatatgtct gcatctaaga atgatgaatg ggcttaaatc aaacatcaga
+     1261 actaataagc tcattaagag ttcaaaacta tggagtaaaa atcagctatg gatatttaag
+     1321 aatttgctct cccgttaaat caagatggct cattatcatt ctactggatt gatgcacatg
+     1381 gggaaaataa tggcgctgat ttattcatat tcggaaaaat ctatcaacca gagatcaatt
+     1441 aatacgtatc ctgctcaatg aaagtaaatg gaatgtaaag agagatatat gcgcttccta
+     1501 aaatgcaaaa gggtaaagct agaggaactt tgacaagaga agaggaaaat caactagtta
+     1561 gaggtgtaca actagaacta gaagatatta gaaagaaaag attccagggt attactaaat
+     1621 ggagatgcaa gccagttacc aggaaatatg cattcgaaat gcttattcaa catggagagc
+     1681 atttgttctt gaaaatcaag tatgatgcaa catttatccc tctaccaagt actgtttaag
+     1741 gaaatacatt tgaatgctta tttggctcta actaaagcat gcttgaactc ttcattctta
+     1801 aaaggaaaat taaaggtccc tgctggatga cgataaaaaa tccaaagaaa gttactgact
+     1861 tcaagaaaac atggtgtaga taagagattg aaattgataa tcctaaaaat gcagaggtta
+     1921 cattggatga tcttaacaaa actgatatcc caccactaac ctccttaaca ttcgcattca
+     1981 agactgccag atctcagaat aacacaaatg agattgctat gatttcttgc ttggttcata
+     2041 acaatgttaa tcaggaagga ccatcttaga ctgacaaatt ttagacattt actttagtca
+     2101 ggaagctcga tggcaaacca atgccatttg attttgacta aaagcttaga tagaagaaag
+     2161 agaatattta atacttcact aatgaaagat aaatgataga cttatttgta actagaattt
+     2221 tctaaattga tccagatctt attgtggctc acaatctatg tgggggaata ttcgatctct
+     2281 tactagctag aatttaaata cttaaaatta accactggag cagaattggt agatttaaga
+     2341 aaggaaacat tcctactaag aagtttgata ctggtggtgc taattacgga ggatcctaat
+     2401 ggattccaag ataagttact tgtggtagat tgttagttga tactttcctc tctgccaagg
+     2461 agctgatcag agaaaccaac tatgacctta ctcatttgac aaaagtctag ctcaagaaag
+     2521 acagataaga ttttgatgat gatttgctac ctcagttcta tttagcatct gaacgcatat
+     2581 tttagctcat cgagcattct gagaaagatt cctactatac ttttatgctt atgcctcatc
+     2641 tatcaattat ccccttaacc aaacaactaa ctaacattgc aggtaactta tggtttaggt
+     2701 ctctctaaaa cgccagagct gaaagaaacg agatgctttt gttgcatgaa ttcaagaaga
+     2761 agaaattcat tttaccagat aaaaagccac ctaatgctaa agaccttaga agaggattta
+     2821 tgggagatga atatgaagag aacgatacca aaggaggagg taaaaaggga ggtaagagaa
+     2881 agaaggcgaa gtatgctgga ggtctcgtta tagagccaaa agcaggtttc tatgacaaca
+     2941 ttatcttgct tttggatttc aacagtttgt atccctcaat tattcaagag tacaacctct
+     3001 gctttactac agtaaacaga agaccaacca agaactacga tggcagtgaa ttgaaaaatc
+     3061 aatdcaaatc tgctgataac gctgarggag aygaagtcga agatgttgat cttccagata
+     3121 agaatgtgaa catcaaggat gctgtacttc caartgtact cagagatttg gtttaaaaga
+     3181 gaaaagctgt maaggaaaag atgaagaatg aaraggatca ggygaarctc taacaacttg
+     3241 aaatcagata gaaagctatt aagytgactg ctaacagtat gtatggttgc ttrggtttta
+     3301 gttcctccag attccacgct tcagctattg cagctctgat tacaaagact ggtagagaaa
+     3361 cccttctaag aacaaaagat attgctgaga ataagytagg ctttaacgtt gtgtatggtg
+     3421 awactgattc tattatgatc aatactggta ctaaycaact tcagtaatca cttgagatgg
+     3481 gcaaaaaact taaagttgaa gttaattgyc tctataaatg ccttgaaatw gaaatwgatg
+     3541 gtgktttcaa gagtttactt ttactaaaga aaaagaaata tgctrctttg agrtatgaag
+     3601 gtgttggytc yaatgaagtc aaagtaattc aagaaatgaa aggtcttgat atggtyagaa
+     3661 gagaktggtg tcctctctcr aagtctattg gaaattatgt tctcagccaa attttatcag
+     3721 gcaaryaarg rgargatgta gtattcaacc tgaaygaata cttatctgat attggagaga
+     3781 aaatgaagag caatagaatc actctagatc aattcatcat aacaaagcaa cttacwagag
+     3841 cyatttcaga gtattctgat atcaaaggat aaccmcatgt ggcagttgct caaagactta
+     3901 aaaattaagg aaagagtgag gcagatcttg tcaataattt catcccttat gttattggag
+     3961 ctcaagcatt tgatacagct aagtcaaacc cacaattatc agataaggct tatcatccag
+     4021 atgagctctt atcctccaag ggtaagatta cycttgatat tgattggtat attrctactc
+     4081 agattcttcy tccaattact agacttattg arcacatcga tggkattaat atcgagttcg
+     4141 ttgctcaatg ccttggtgtt gacccaaaga agtataaata tcactctgag aaaaagaata
+     4201 cagatgaaat aggtgatgat ggtggatcaa tctagaatcc tattctttaa actgaaactg
+     4261 aaaaaagtct taaacacaga tcaattgccg agcttaaagt kaaatgccca tcttgcactc
+     4321 ataattatga cttcccaggt atttaccaag aaggaaaaga tgtgtctggc ttratttgya
+     4381 ctaaatgcaa tgctaagata ccagaaaaat atgtgatgaa cagagtkaat ctatttttga
+     4441 agcagctatt agcyctatat tactagggta aatatgagtg ctargagcct tcttgcaaga
+     4501 gtatgactcg ttaactcctc tatcataaca aatgtgttaa tctaacttgt aagggyaara
+     4561 tggtaccaga atactcagag catcaaacya acgmcacact cagatatctt caaggcctat
+     4621 ttamcattaa aaaacacctt catgaagaca gcaaaaatga ttcattraag gttgaaaccg
+     4681 acatcccatt ctataatgaa tataatgttt tacagacaaa agtwgatgaa ctaatgaata
+     4741 gaagtaaata taccaaggtt gacytaggaa gtatattygg cttcatgagg tagagcaata
+     4801 ataaaatggc tgtaagtagt acggcaactg cttaatgaaa agattttcag tcaaattaag
+     4861 tacttatatt tatgtgttgm gaaaaaggag tattttttgg aaagatatat gatttattaa
+     4921 taataaaaga gtawtttaat ctttgcttgc agggttttag cattttgggg ttttggggtt
+     4981 ttgggg
+//
+

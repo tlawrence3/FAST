@@ -1,0 +1,113 @@
+#!/usr/bin/perl -w
+use Getopt::Std;
+use FAST::Bio::AlignIO;
+use FAST::Bio::SeqIO;
+use FAST::Bio::UnivAln;
+use Carp;
+use vars qw($opt_a $VERSION $DESC $opt_h);
+$VERSION = 0.1;
+$DESC    = "Remove gap-containing sites from a sequence alignment.\n";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+
+## DEFAULT BEHAVIOR: REMOVE SITES THAT CONTAIN GAPS IN EVERY SEQUENCE "ALL-GAP SITES"
+$opt_g = undef; ## REMOVE SITES THAT CONTAIN GAPS WITH A SITE-FREQUENCY GREATER THAN OR EQUAL TO frequency f, 0 < f < 1. 
+$opt_a = undef; ## REMOVE SITES THAT CONTAIN ANY GAPS AT ALL (EQUIVALENT TO "-f 1/n" WHERE n IS >= NUMBER OF SEQUENCES IN ALN)
+$opt_s = undef; ## REMOVE ANY GAP FROM ANY SEQUENCE; DESTROYING THE ALIGNMENT
+$opt_f = 'fasta'; ## FORMAT OF INPUT ALIGNMENT
+$opt_i = undef; ## PRINT INDICES OF SITES MATCHING CRITERIA
+
+
+# Command-line options:
+&getopts('hasf:ig:');
+
+if (scalar(@ARGV) != 0 || $opt_h) {
+  die "\n$NAME $VERSION\n$DESC\nCopyleft 2001-2009 David H. Ardell\nAll wrongs reversed.\n\nUsage: $0 < alignment-file > degapped-fasta-align-file\n  By default only all-gap sites are removed. Outputs in fasta format.\nOptions:\n -a removes sites containing at least one gap.\n -g <fraction> removes sites containing gaps with frequency <frequency> or greater.\n -s removes all gaps from each sequence, destroying the alignment.\n -f input sequence format (default fasta, other are phylip, fasta, selex, bl2seq, pfam, mega, meme, nexus, clustalw, maf, msf).\n -i don't alter alignment, show only indices to be kept\n";
+}
+
+if ($opt_g) {
+  if ($opt_g < 0 or $opt_g > 1) {
+    croak "ERROR: $NAME -g <number> expects <number> to be a positive fraction gap frequency threshold between 0 and 1.\n"; 
+  }
+  elsif ($opt_g == 0) {
+    undef $opt_g;
+    $opt_a = 1;
+  }
+  elsif ($opt_g == 1) {
+    undef $opt_g;
+  }
+}  
+
+$stream = FAST::Bio::AlignIO->newFh(-fh => *STDIN{IO}, -format => "$opt_f"); # read from standard input
+while ( my $saln = <$stream> ) {
+  my @seqs = $saln->each_seq();
+  my $aln  = FAST::Bio::UnivAln->new('-seqs' => \@seqs);
+  if ($opt_i) { ## DON'T REMOVE SITES; PRINT INDICES
+    if ($opt_g) {
+      croak "ERROR: $NAME -g <number> doesn't work with -i. Sorry.\n";
+    }
+    elsif ($opt_a) { ## CONSIDER SITES CONTAINING AT LEAST ONE GAP
+      $index_selection_fxn = "gap_free_inds";
+    }
+    else {
+      $index_selection_fxn = "no_allgap_inds";
+    }
+    @sites = @{$aln->$index_selection_fxn()};
+    @coords = ();
+    do {
+      my $first = shift @sites;
+      my $second = $first;
+      do {
+	$last = $second;
+	$second = shift @sites;
+      } until (!$second or $second > ($last + 1));
+      unshift @sites, $second if ($second);
+      if ($first == $last) {
+	push @coords, "$first";
+      }
+      else {
+	push @coords, "$first-$last";
+      }
+    }	
+      until (!@sites);
+    print "@coords \n";
+    exit;
+  }
+  elsif ($opt_s) {
+    my $out = FAST::Bio::SeqIO->newFh(-format => "fasta");
+    foreach my $seq (@seqs) {
+      my $seqseq = $seq->seq;
+      $seqseq =~ s/[^A-Za-z]+//g;
+      $seq->seq($seqseq);
+      print $out $seq;
+    }
+    exit;
+  }
+  elsif ($opt_g) {
+    sub _setup_gap_frequency_filter {
+      my $threshold = shift;
+      return sub {
+	my @chars = @{ $_[0] };
+	my $gf = grep {$_ eq "-"} @chars;
+	return ($gf/@chars < $threshold);
+      }
+    }
+    my $gap_freq_filter = _setup_gap_frequency_filter($opt_g);
+    $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->seqs([],$gap_freq_filter)), -row_ids=>$aln->row_ids);
+  }
+  else {
+    if ($opt_a) { ## CONSIDER SITES CONTAINING AT LEAST ONE GAP
+      $site_selection_fxn = "gap_free_sites";
+    }
+    else { ## DEFAULT, REMOVE SITES CONTAINING ALL GAPS
+      $site_selection_fxn = "no_allgap_sites";    
+    }
+    $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->$site_selection_fxn()), -row_ids=>$aln->row_ids);
+  }
+  $layout = $subaln->layout();
+  ## FIX FASTA PRINT BUG (IDs SHOULD GO RIGHT AFTER '>') 
+  if ($opt_f =~ /fasta/i) {
+    $layout =~ s/^>\s+/>/gm;
+  }
+  print "$layout\n";
+}
