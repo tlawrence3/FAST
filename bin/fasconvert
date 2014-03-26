@@ -129,7 +129,7 @@ if ($files and $input) {
 
 my ($module, $read, $write);
 if (exists $$seq_ext{$format{$mode}}){
-  $module = FAST::Bio::SeqIO;
+  $module = "FAST::Bio::SeqIO";
   $read =  "next_seq";
   $write = "write_seq";
   if ($files and $mode eq 'output') {
@@ -137,7 +137,7 @@ if (exists $$seq_ext{$format{$mode}}){
   } 
 }
 elsif(exists $$aln_ext{$format{$mode}}) {
-  $module = FAST::Bio::AlignIO;
+  $module = "FAST::Bio::AlignIO";
   $read =  "next_aln";
   $write = "write_aln";
   if ($files and $mode eq 'output') {
@@ -145,7 +145,7 @@ elsif(exists $$aln_ext{$format{$mode}}) {
   } 
 }
 elsif ($mode eq 'input' and exists $$in_only_aln_ext{$format{$mode}}){
-  $module = FAST::Bio::AlignIO;
+  $module = "FAST::Bio::AlignIO";
   $read =  "next_aln";
   $write = "write_aln";
 }
