@@ -83,7 +83,7 @@ GetOptions('help|h'         		 => \$help,
 						   pod2usage(1) if ($output); 
 						   $input = $val; 
 						 },
-	   'output|i=s'                  => sub {  my (undef,$val) = @_; 
+	   'output|o=s'                  => sub {  my (undef,$val) = @_; 
 						   pod2usage(1) if ($input); 
 						   $output = $val; 
 						 },
