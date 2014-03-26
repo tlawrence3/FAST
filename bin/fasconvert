@@ -169,9 +169,9 @@ if ($files) { ## IN AND OUT FROM FILE, ONE FOR EACH
   }
 }
 else { ## STDIN AND STDOUT
-  my $IN   = $module->newFh(-fh => *STDIN{IO}, '-format' => $format{'input'});
-  my $OUT  = $module->newFh('-format' => $format{'output'}, %attributes);
-  while (<$IN>) {
+  my $IN   = $module->newFh(-fh => \*STDIN, '-format' => $format{'input'});
+  my $OUT  = $module->newFh(-fh => \*STDOUT, '-format' => $format{'output'}, %attributes);
+  for (<$IN>){
     if ($_ and ref $_ eq 'FAST::Bio::SimpleAlign') {
       $_->set_displayname_flat();
     }
