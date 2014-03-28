@@ -3,6 +3,7 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -44,22 +45,24 @@ GetOptions('help|h'         		 => \$help,
 	  ) 
   or pod2usage(2);
 		  
+$format = lc ($format);
+
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
-pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
+#pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
+#pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh(-fh => \*STDOUT, '-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => \*STDIN, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
+	$IN = FAST::Bio::SeqIO->new(-fh => \*STDIN, '-format' => $format);
     }
 }
 
@@ -71,14 +74,16 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
+      my $olddesc = $seq->desc();
+      $seq->desc(join '',"$olddesc faslen:",$seq->length());     
       print $OUT $seq;
     }
     undef $IN;
@@ -91,17 +96,22 @@ __END__
 
 =head1 NAME
 
-name - what it does
+ faslen - Prints the lengths of sequences. The lengths are appended
+          to the description with the prefix: "faslen:"
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+ faslen [options] fasta-file1 fasta-file2 ... > fasta-file                 
+ faslen [options] < fasta-file > fasta-file
+ faslen [options] --format <format> other-format-file1 other-format-file2 ... > fasta-file
+ faslen [options] --format <format> < other-format-file > fasta-file
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
-
-Options specific to name:
+faslen takes multisequence data as input and prints the lengths of sequences. The lengths are appended
+to the description with the prefix: "faslen:" and output is in fasta format to STDOUT. Input can occur in 
+one or more files or on STDIN. The format specifier is a single all-lower-case word
+corresponding to formats supported by the Bioperl Seq::IO.
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -115,11 +125,12 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+faslen is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
-STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
-reformat other formats to and from multifasta.
+STDIN. Output occurs to STDOUT. The FAST utility B<faslen> can print the lengths of 
+sequences contained in fasta and other formats. The lengths are appended to the description 
+with the prefix: "faslen:"
 
 =head1 OPTIONS
 
@@ -157,7 +168,7 @@ Include comment [string] in logfile. No comment is saved by default.
 
 =item B<--format=[format]> 		  
 
-Use alternative format for input. See man page for "fasconvert" for
+Use alternative format for input. See man page for "faslen" for
 allowed formats. This is for convenience; the FAST tools are designed
 to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
@@ -173,13 +184,13 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Print length of all sequences:
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+faslen < test.fas > known_length.fas
 
-=back
+
 
 
 =back
@@ -187,12 +198,6 @@ cat data.fas | fasgrep "-DNA" > data.dna.fas
 =head1 SEE ALSO
 
 =over 8
-
-=item C<man perlre>
-
-=item C<perldoc perlre>
-
-Documentation on perl regular expressions.
 
 =item C<man FAST>
 
