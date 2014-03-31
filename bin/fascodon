@@ -18,7 +18,7 @@ $opt_a = undef; ## order by amino acids
 
 $opt_h and die "count_codons [-f format (default: fasta)] [-v individual genes (default: aggregate)] [-t genetic code (default: standard, see perldoc FAST::Bio::Tools::CodonTable)]\ninput standard in\n"; 
 
-$code = FAST::Bio::Tools::CodonTable->new(-id => $opt_c);
+$code = FAST::Bio::Tools::CodonTable->new(-id => $opt_t);
 $in = FAST::Bio::SeqIO->new(-fh => /*STDIN, '-format' => $opt_f);
 
 if ($opt_b) {
