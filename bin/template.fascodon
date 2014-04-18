@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "";
+$DESC    = "counts codon usage";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -91,11 +91,11 @@ __END__
 
 =head1 NAME
 
-name - what it does
+fascodon - counts codon usage
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+fascodon [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
