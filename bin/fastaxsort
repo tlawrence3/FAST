@@ -1,0 +1,186 @@
+#!/usr/bin/perl -w
+use Getopt::Std;
+use Bio::SeqIO;
+use Bio::Tools::SeqPattern ();
+use vars qw($VERSION $DESC %childaddress);
+$VERSION = 0.3;
+$DESC    = "Sort and identify sequences based on NCBI taxonomy.\n";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+
+# Command-line options:
+$opt_I      = undef; ## match on identifer, not description
+$opt_S      = undef; ## split mode
+$opt_F      = undef; ## reg-ex for split, default is \t
+$opt_n      = undef; ## no-name mode
+$opt_f      = 'fasta';
+$opt_h      = undef;
+$opt_i      = undef; ## print indices
+$opt_m      = '#'; ## Address marker glyph, default is #
+
+&getopts('IS:F:nf:hi');
+
+if ($opt_h or @ARGV < 2) {
+  print STDERR <<"QQ_HELP_QQ";
+  $NAME $VERSION
+  $DESC
+  Copyleft 2010 David H. Ardell
+  All wrongs reversed.
+
+  Usage: $NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file fasta-file1 fasta-file2 ... > fasta-file.
+         $NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file < fasta-file1 > fasta-file.  
+         $NAME [options] -n NCBI-taxonomy-nodes-file fasta-file1 fasta-file2 ... > fasta-file.
+         $NAME [options] -n NCBI-taxonomy-nodes-file < fasta-file1 > fasta-file.
+
+
+  Options: 
+         -h   this help 
+         -I   taxa are searched over sequence identifiers (default is over descriptions)
+         -S   <int>   split-mode (sequence descriptions or identifers are split into fields and field <int> (0-based) is searched for taxonomic identifiers) 
+         -F   <regex> (in split-mode (-S) split on perl-regex <regex> instead of default separator, which is a tab character \t. Do "man perlre" and "man perlfunc" for split.)
+         -n   no-name mode (only uses NCBI taxonomic IDs, which are integer strings) 
+         -f   <format> read <format> on input instead of default fasta. <format>
+                 may be one of: pir, gcg, genbank, fasta, embl, raw, swiss
+                 <format> is case-insensitive; google "Bio::SeqIO" for more info.
+         -i   print addresses for taxonomic IDs
+
+  Examples:
+
+
+QQ_HELP_QQ
+exit 1;
+}
+
+unless ($opt_n){
+  ($nodesfile,$namesfile) = splice @ARGV,0,2;
+}
+else {
+  ($nodesfile) = shift @ARGV;
+  $nonamemode = 1; ## numerical ID query and numerical ID data
+}
+
+if ($namesfile) {
+  die "NCBI-taxonomy-names-file $namesfile cannot be found\n" unless (-e $namesfile);
+  open (NAMES,$namesfile) or die "Can't open NCBI-taxonomy-names-file $namesfile\n";
+  while (<NAMES>) {
+    my ($id,$name,@stuff) = split /\t\|\t/,$_;
+    $id{$name} = $id;
+    if ($opt_i) {
+      unless (exists $name{$id}) { ## take the first name from names.dmp
+	$name{$id} = $name;
+      }
+    }
+  }
+  close NAMES;
+}
+
+die "NCBI-taxonomy-nodes-file $nodesfile cannot be found\n" unless (-e $nodesfile);
+open (NODES,$nodesfile) or die "Can't open NCBI-taxonomy-nodes-file $nodesfile\n";
+while (<NODES>) {
+  my ($tax,$parent,@stuff) = split /\t\|\t/,$_;
+  $parent{$tax} = $parent;
+  unless ($parent == $tax) { ## both equal to one at top of nodes.dmp
+    $children{$parent}{$tax} = 1;
+  }
+}
+close NODES;
+
+## create addresses
+$address{ 1 } = "00";
+if ($opt_i) {
+  print $opt_m,join " ",$address{ 1 },$name{1},"\n";
+}
+&address_DFS(1);
+sub address_DFS(){
+  my $tax = shift;
+  $childaddress{$tax} = 0;
+  foreach my $child (sort {$a <=> $b} keys %{ $children{$tax} } ) { 
+    $address{ $child } = join "",(join ".",$address{ $tax },(sprintf "%02s",$childaddress{ $tax }++));
+    if ($opt_i) {
+      print $opt_m,join " ",$address{ $child },$name{$child},"\n";
+    }
+    if (exists $children{$child}) {  
+      &address_DFS($child);
+    }
+  }
+}
+
+die if $opt_i;
+
+  $re = qr/$opt_F/ if ($opt_F);
+
+  unless (@ARGV) {
+    $IN = Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
+  }
+
+  while ($IN or @ARGV) {
+    if (@ARGV) {
+      my $file = shift (@ARGV);
+      unless (-e $file) {
+	warn "Could not find file $file. Skipping.\n";
+	next;
+      }
+      else {
+	$IN = Bio::SeqIO->new(-file => $file, '-format' => $opt_f);
+      }
+    }
+    if ($IN) { 
+      while (my $seq = $IN->next_seq()) {
+	$data = $seq->desc();
+	$data = $seq->id() if ($opt_I);
+	if (defined $opt_S) {
+	  @data = split $re,$data;
+	  $data = $data[$opt_S];
+	}
+	next unless $data;
+	if ($nonamemode) {
+	  push @{ $seq{$data} },$seq;
+	  $id = $data;
+	}
+	else {
+	  next unless (exists $id{$data});
+	  push @{ $seq{$id{$data}} },$seq;
+	  $id = $id{$data};
+	}
+	while($id != 1) {
+	  my $parent = $parent{$id};
+	  $childrenseen{$parent}{$id} = 1; 
+	  $id = $parent;
+	}
+      }
+      undef $IN;
+    }
+  }
+  
+  $OUT = Bio::SeqIO->newFh('-format' => 'fasta');
+  &DFS_seq(1);
+
+
+
+  sub DFS_seq {
+    my $node = shift;
+    if (exists $seq{$node} ) {
+      foreach my $seq (@{ $seq{$node} }){
+	$seq->desc(join " ",$seq->desc,(join "",$opt_m,$address{$node}));
+	print $OUT $seq;      
+      }
+    }
+    if (exists $childrenseen{$node} ) {
+      foreach my $child (map { $_->[0] } sort address_sort map {[$_,$address{$_}]} keys %{ $childrenseen{$node} }) {
+	&DFS_seq($child);
+      }
+    }
+  }
+
+sub address_sort {
+  return 0 if ($a->[1] eq $b->[1]);
+  my @a = split /\./, $a->[1];
+  my @b = split /\./, $b->[1];
+  while (@a) {
+    my $aa = shift @a or return -1;
+    my $bb = shift @b or return  1;
+    return -1 if ($aa < $bb);
+    return  1 if ($aa > $bb);
+  }
+  warn "ERROR IN $NAME ADDRESS_SORT: invalid condition. Please contact author.\n";
+}
