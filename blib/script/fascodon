@@ -21,8 +21,8 @@ $opt_a = undef; ## order by amino acids
 
 $opt_h and die "count_codons [-f format (default: fasta)] [-v individual genes (default: aggregate)] [-t genetic code (default: standard, see perldoc FAST::Bio::Tools::CodonTable)]\ninput standard in\n"; 
 
-$code = FAST::Bio::Tools::CodonTable->new(-id => $opt_c);
-$in = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
+$code = FAST::Bio::Tools::CodonTable->new(-id => $opt_t);
+$in = FAST::Bio::SeqIO->new(-fh => /*STDIN, '-format' => $opt_f);
 
 if ($opt_b) {
     die "-b option requires a base ordering of T,C,A, and G separated by colons (:), as in T:C:A:G (the default)\n" if ($opt_b =~ /[^TCAG:]/);

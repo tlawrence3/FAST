@@ -34,7 +34,7 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $moltype              = undef;        # -m, force moltype
-my $brand                = undef;        # -b, add "-rc" to identifier
+my $nobrand              = undef;        # -n, don't add "-rc" to identifier
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -47,7 +47,7 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val =~ /dna|rna/i; 
 						  $moltype = $val;
 						},
-	   'brand|b'                     => \$brand,
+	   'nobrand|n'                     => \$nobrand,
 	  )
   or pod2usage(2);
 		  
@@ -85,7 +85,7 @@ while ($IN or @ARGV) {
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
       my $revcom = FAST::Bio::SeqUtils->revcom_with_features($seq);
-      if ($brand) {
+      unless ($nobrand) {
 	my $id = join '-',$seq->display_id,'rc';
 	$revcom->display_id($id);
       }
@@ -113,7 +113,7 @@ as input, and generates reverse complements of those sequences as
 output.
 
 Options specific to fasrc:
-  -b, --brand                       "brand" sequence ids with "-rc" 
+  -n, --nobrand                       don't "brand" sequence ids with "-rc" extension 
 
 Options general to FAST:
   -h, --help                  	 print a brief help message

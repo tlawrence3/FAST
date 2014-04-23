@@ -109,6 +109,15 @@ else {
   $re = qr/$re_string/;
 }
 
+
+my $index;
+if ($match_field > 0) {
+  $index = $match_field - 1;
+}
+else { # $match_field < 0
+  $index = $match_field;
+}
+
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
@@ -151,13 +160,6 @@ while ($IN or @ARGV) {
 	else {
 	  @fields = split ' ',$desc;
 	  # @fields = split ' ',$match_data;
-	}
-	my $index;
-	if ($match_field > 0) {
-	  $index = $match_field - 1;
-	}
-	else { # $match_field < 0
-	  $index = $match_field;
 	}
 	$match_data = $fields[$index];
       }

@@ -15,7 +15,7 @@
 #     AUTHOR => [q[David H. Ardell <dhard@cpan.org>]]
 #     BUILD_REQUIRES => { Test::More=>q[0] }
 #     CONFIGURE_REQUIRES => { ExtUtils::MakeMaker=>q[0] }
-#     EXE_FILES => [q[bin/alndegap], q[bin/alnpi], q[bin/alnseg], q[bin/fascodon], q[bin/fascomp], q[bin/fasconvert], q[bin/fascut], q[bin/fasfilter], q[bin/fasgrep], q[bin/faslen], q[bin/fasposcomp], q[bin/fasrc], q[bin/fasstrict], q[bin/fassub], q[bin/fastr], q[bin/fasuniq], q[bin/fasxl], q[bin/gbf2fas], q[bin/gbfcut], q[bin/gbfgrep]]
+#     EXE_FILES => [q[bin/alndegap], q[bin/alnpi], q[bin/alnseg], q[bin/fascodon], q[bin/fascomp], q[bin/fasconvert], q[bin/fascut], q[bin/fasfilter], q[bin/fasgrep], q[bin/faslen], q[bin/fasposcomp], q[bin/fasrc], q[bin/fasstrict], q[bin/fassub], q[bin/fastr], q[bin/fasuniq], q[bin/fasxl], q[bin/fassort]]
 #     INSTALLMAN3DIR => q[none]
 #     LICENSE => q[Perl]
 #     MIN_PERL_VERSION => q[5.006]
@@ -165,7 +165,11 @@ XS_FILES =
 C_FILES  = 
 O_FILES  = 
 H_FILES  = 
-MAN1PODS = bin/fasgrep \
+MAN1PODS = bin/fasconvert \
+	bin/fasgrep \
+	bin/fasrc \
+	bin/fassort \
+	bin/fasuniq \
 	bin/fasxl
 MAN3PODS = 
 
@@ -1320,11 +1324,19 @@ POD2MAN = $(POD2MAN_EXE)
 
 
 manifypods : pure_all  \
+	bin/fasuniq \
+	bin/fasrc \
 	bin/fasxl \
-	bin/fasgrep
+	bin/fasconvert \
+	bin/fasgrep \
+	bin/fassort
 	$(NOECHO) $(POD2MAN) --section=1 --perm_rw=$(PERM_RW) \
+	  bin/fasuniq $(INST_MAN1DIR)/fasuniq.$(MAN1EXT) \
+	  bin/fasrc $(INST_MAN1DIR)/fasrc.$(MAN1EXT) \
 	  bin/fasxl $(INST_MAN1DIR)/fasxl.$(MAN1EXT) \
-	  bin/fasgrep $(INST_MAN1DIR)/fasgrep.$(MAN1EXT) 
+	  bin/fasconvert $(INST_MAN1DIR)/fasconvert.$(MAN1EXT) \
+	  bin/fasgrep $(INST_MAN1DIR)/fasgrep.$(MAN1EXT) \
+	  bin/fassort $(INST_MAN1DIR)/fassort.$(MAN1EXT) 
 
 
 
@@ -1334,20 +1346,19 @@ manifypods : pure_all  \
 
 # --- MakeMaker installbin section:
 
-EXE_FILES = bin/alndegap bin/alnpi bin/alnseg bin/fascodon bin/fascomp bin/fasconvert bin/fascut bin/fasfilter bin/fasgrep bin/faslen bin/fasposcomp bin/fasrc bin/fasstrict bin/fassub bin/fastr bin/fasuniq bin/fasxl bin/gbf2fas bin/gbfcut bin/gbfgrep
+EXE_FILES = bin/alndegap bin/alnpi bin/alnseg bin/fascodon bin/fascomp bin/fasconvert bin/fascut bin/fasfilter bin/fasgrep bin/faslen bin/fasposcomp bin/fasrc bin/fasstrict bin/fassub bin/fastr bin/fasuniq bin/fasxl bin/fassort
 
-pure_all :: $(INST_SCRIPT)/alnseg $(INST_SCRIPT)/fassub $(INST_SCRIPT)/fasrc $(INST_SCRIPT)/alndegap $(INST_SCRIPT)/fasposcomp $(INST_SCRIPT)/gbfgrep $(INST_SCRIPT)/gbfcut $(INST_SCRIPT)/fasconvert $(INST_SCRIPT)/fascodon $(INST_SCRIPT)/fascomp $(INST_SCRIPT)/fasuniq $(INST_SCRIPT)/gbf2fas $(INST_SCRIPT)/fasgrep $(INST_SCRIPT)/fastr $(INST_SCRIPT)/fascut $(INST_SCRIPT)/fasxl $(INST_SCRIPT)/alnpi $(INST_SCRIPT)/fasfilter $(INST_SCRIPT)/faslen $(INST_SCRIPT)/fasstrict
+pure_all :: $(INST_SCRIPT)/alnseg $(INST_SCRIPT)/fassub $(INST_SCRIPT)/fasrc $(INST_SCRIPT)/alndegap $(INST_SCRIPT)/fasposcomp $(INST_SCRIPT)/fasconvert $(INST_SCRIPT)/fascodon $(INST_SCRIPT)/fascomp $(INST_SCRIPT)/fasuniq $(INST_SCRIPT)/fasgrep $(INST_SCRIPT)/fassort $(INST_SCRIPT)/fastr $(INST_SCRIPT)/fascut $(INST_SCRIPT)/fasxl $(INST_SCRIPT)/alnpi $(INST_SCRIPT)/fasfilter $(INST_SCRIPT)/faslen $(INST_SCRIPT)/fasstrict
 	$(NOECHO) $(NOOP)
 
 realclean ::
 	$(RM_F) \
 	  $(INST_SCRIPT)/alnseg $(INST_SCRIPT)/fassub \
 	  $(INST_SCRIPT)/fasrc $(INST_SCRIPT)/alndegap \
-	  $(INST_SCRIPT)/fasposcomp $(INST_SCRIPT)/gbfgrep \
-	  $(INST_SCRIPT)/gbfcut $(INST_SCRIPT)/fasconvert \
+	  $(INST_SCRIPT)/fasposcomp $(INST_SCRIPT)/fasconvert \
 	  $(INST_SCRIPT)/fascodon $(INST_SCRIPT)/fascomp \
-	  $(INST_SCRIPT)/fasuniq $(INST_SCRIPT)/gbf2fas \
-	  $(INST_SCRIPT)/fasgrep $(INST_SCRIPT)/fastr \
+	  $(INST_SCRIPT)/fasuniq $(INST_SCRIPT)/fasgrep \
+	  $(INST_SCRIPT)/fassort $(INST_SCRIPT)/fastr \
 	  $(INST_SCRIPT)/fascut $(INST_SCRIPT)/fasxl \
 	  $(INST_SCRIPT)/alnpi $(INST_SCRIPT)/fasfilter \
 	  $(INST_SCRIPT)/faslen $(INST_SCRIPT)/fasstrict 
@@ -1382,18 +1393,6 @@ $(INST_SCRIPT)/fasposcomp : bin/fasposcomp $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFS
 	$(FIXIN) $(INST_SCRIPT)/fasposcomp
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasposcomp
 
-$(INST_SCRIPT)/gbfgrep : bin/gbfgrep $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbfgrep
-	$(CP) bin/gbfgrep $(INST_SCRIPT)/gbfgrep
-	$(FIXIN) $(INST_SCRIPT)/gbfgrep
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbfgrep
-
-$(INST_SCRIPT)/gbfcut : bin/gbfcut $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbfcut
-	$(CP) bin/gbfcut $(INST_SCRIPT)/gbfcut
-	$(FIXIN) $(INST_SCRIPT)/gbfcut
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbfcut
-
 $(INST_SCRIPT)/fasconvert : bin/fasconvert $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasconvert
 	$(CP) bin/fasconvert $(INST_SCRIPT)/fasconvert
@@ -1418,17 +1417,17 @@ $(INST_SCRIPT)/fasuniq : bin/fasuniq $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).ex
 	$(FIXIN) $(INST_SCRIPT)/fasuniq
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasuniq
 
-$(INST_SCRIPT)/gbf2fas : bin/gbf2fas $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbf2fas
-	$(CP) bin/gbf2fas $(INST_SCRIPT)/gbf2fas
-	$(FIXIN) $(INST_SCRIPT)/gbf2fas
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbf2fas
-
 $(INST_SCRIPT)/fasgrep : bin/fasgrep $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasgrep
 	$(CP) bin/fasgrep $(INST_SCRIPT)/fasgrep
 	$(FIXIN) $(INST_SCRIPT)/fasgrep
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasgrep
+
+$(INST_SCRIPT)/fassort : bin/fassort $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fassort
+	$(CP) bin/fassort $(INST_SCRIPT)/fassort
+	$(FIXIN) $(INST_SCRIPT)/fassort
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fassort
 
 $(INST_SCRIPT)/fastr : bin/fastr $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fastr

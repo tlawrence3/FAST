@@ -1,11 +1,22 @@
 #!/usr/bin/perl -w
+
+## April 23, 2014: DHA completed new implementation of fassort
+## uses Mergesort when going over a memory limit
+
+## TODO: test, update documentation
+
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
-use UNICODE::Collate;
 use strict;
+use Sort::Key qw/ keysort_inplace nkeysort_inplace rkeysort_inplace rnkeysort_inplace / ;
+use Devel::Size qw/ total_size /;
+use Sort::MergeSort;
+use File::Temp qw/ tempfile /;
+use Storable qw/ store_fd /; 
+use constant { true => 1, false => 0 };
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
@@ -15,8 +26,6 @@ $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
 $DATE = POSIX::strftime("%c",localtime());
 
-use constant { true => 1, false => 0 };
-n
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
@@ -36,10 +45,12 @@ my $split_on_regex       = undef;        # -S
 my $sort_description    = undef;  # -d
 my $sort_sequence       = undef;  # -s
 my $sort_field          = undef;  # -f
+my $sort_regex          = undef;  # -t
 
-my $reverse             = undef   # -r
-my $numeric             = undef   # -n
-my $insensitive         = undef   # -i
+my $reverse             = undef;  # -r
+my $numeric             = undef;  # -n
+
+my $memory_limit        = 1048576;  # -M; one-half GB
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -63,10 +74,11 @@ GetOptions('help|h'         		 => \$help,
 						  $sort_field = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
+	   'sort-regex|t=s'              => \$sort_regex,
 
 	   'reverse|r'                   => \$reverse,
-	   'numeric|n'                   => undef   
-	   'insensitive|i'               => undef   
+	   'numeric|n'                   => \$numeric,   
+	   'memory_limit|M=i'            => \$memory_limit
 
 	  ) 
   or pod2usage(2);
@@ -82,19 +94,74 @@ elsif ((-t STDIN) and (@ARGV != 1)) {
 }
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
+my $split_re;
+if ($split_on_regex) {
+  $split_re = qr/$split_on_regex/;
+}
+else {
+  $split_re = ' ';
+}
 
-my $OUT = FAST::Bio::SeqIO->newFh(-fh => \*STDOUT, '-format' => 'fasta');
+my $index;
+if ($sort_field and $sort_field > 0) {
+  $index = $sort_field - 1;
+}
+elsif ($sort_field and $sort_field < 0) { # $match_field < 0
+  $index = $sort_field;
+}
+
+
+my $keysort;
+if ($numeric){
+  if ($reverse) {
+    $keysort = sub {my $ar = shift; return rnkeysort_inplace { $_->[0] } @$ar; }
+  }
+  else {
+    $keysort = sub {my $ar = shift; return  nkeysort_inplace { $_->[0] } @$ar; }
+  }
+}
+else {
+  if ($reverse) {
+    $keysort = sub {my $ar = shift; return  rkeysort_inplace { $_->[0] } @$ar; }
+  }
+  else {
+    $keysort = sub {my $ar = shift; return    keysort_inplace { $_->[0] } @$ar; }
+  }
+}
+
+my $keyf;
+if ($sort_regex) {
+  $keyf = sub { my $s = shift; my $re = qr/$sort_regex/; my $d = $s->desc(); $d =~ $re; my $o = $1; $o; };
+}
+elsif ($sort_field) {
+  $keyf = sub { my $s = shift; my @fields = split $split_re,$s->desc(); $fields[$index]};
+}
+elsif ($sort_description) {
+  $keyf = sub { my $s = shift; $s->desc() };
+}
+elsif ($sort_sequence) {
+  $keyf = sub { my $s = shift; $s->seq() };
+}
+else {
+  $keyf = sub { my $s = shift; $s->id() };
+}
+
+
+
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => \*STDIN, '-format' => $format, '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => \*STDIN, '-format' => $format);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
     }
 }
 
-my @seqs = ();
+my $seqs = [];
+my $merge;
+my @fnames = ();
 while ($IN or @ARGV) {
   if (@ARGV) {
     my $file = shift (@ARGV);
@@ -110,21 +177,77 @@ while ($IN or @ARGV) {
     }
   }
   if ($IN) { 
-    while ($seq = $IN->next_seq()) {
-      push @seqs, $seq;
+    while (my $seq = $IN->next_seq()) {
+      my $key = &$keyf($seq);
+      push @$seqs, [$key,$seq];
+      if (Devel::Size::total_size($seqs) > $memory_limit) {
+	$merge = 1;                                     ## PREPARE TO MERGE SORT
+	&$keysort(\@$seqs);                              ## SORT DATA IN MEMORY
+	my ($fh, $filename) = File::Temp::tempfile();   ## OPEN TEMPFILE 
+	push @fnames, $filename;                        ## REMEMBER NAME                 
+	store_fd($seqs, $fh)                   ## STORE DATA
+	    or die("$NAME: Could not write data to $filename with Storable");                 
+	$seqs = [];                                     ## FREE MEMORY
+      }
+      
     }
     undef $IN;
   }
 }
 
+&$keysort(\@$seqs); 
 
+unless ($merge) {
+  foreach my $seq (@$seqs) {
+    print $OUT $seq->[1];
+  }
+}
+else {
+  my $last_iter_coderef = sub { return shift @$seqs };
+  my $last_iter = Sort::MergeSort::Iterator->new($last_iter_coderef);
+  my @iters = ();
+  push @iters,$last_iter;
+  while (@fnames) {
+    my $fname = shift (@fnames);
+    my $arrayref = Storable::retrieve($fname) 
+      or die ("$NAME: Could not retrieve data from $fname with Storable");  
+    my $iter_coderef = sub { return shift @$arrayref };
+    my $iter = Sort::MergeSort::Iterator->new($iter_coderef);
+    push @iters, $iter;
+  }
+  my $comparefunc = &return_compare_function();
+  my $iterator = Sort::MergeSort::mergesort($comparefunc, @iters);
+  while (<$iterator>) {
+    print $OUT $_->[1];
+  }
+}
+
+
+sub return_compare_function () {
+  if ($numeric){
+    if ($reverse) {
+      return sub { my($a,$b)=@_; return ($b->[0] <=> $a->[0]); };
+    }
+    else {
+      return sub { my($a,$b)=@_; return ($a->[0] <=> $b->[0]); };
+    }
+  }
+  else {
+    if ($reverse) {
+      return sub { my($a,$b)=@_; return ($b->[0] cmp $a->[0]); };
+    }
+    else {
+      return sub { my($a,$b)=@_; return ($a->[0] cmp $b->[0]); };
+    }
+  }
+}
 
 
 __END__
 
 =head1 NAME
 
-fasuniq - Concatenates IDs of adjacent duplicate sequence records in a
+fassort - Concatenates IDs of adjacent duplicate sequence records in a
 multifasta datastream.
 
 =head1 SYNOPSIS
