@@ -65,7 +65,7 @@ GetOptions('help|h'         		 => \$help,
 	   'match-description|d'         => \$match_description,
 	   'match-sequence|s'            => \$match_sequence,
 	   'match-field|f=i'             => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --match-field or -f option takes an integer argument, any but 0." 
+						  die "$NAME: --match-field or -f option takes a positive integer argument." 
 						    unless $val != 0; 
 						  $match_field = $val;
 						},
@@ -112,6 +112,15 @@ else {
   $re = qr/$re_string/;
 }
 
+
+my $index;
+if ($match_field > 0) {
+  $index = $match_field - 1;
+}
+else { # $match_field < 0
+  $index = $match_field;
+}
+
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
@@ -142,22 +151,18 @@ while ($IN or @ARGV) {
       my $match_data = $seq->id();
       $match_data = $seq->desc() if ($match_description);
       $match_data = $seq->seq()  if ($match_sequence);
+      ## This could be generalized so $match_field does not imply $match_description
       if ($match_field) {
-	my $desc = $seq->desc();
-	my @fields;
-	if ($split_on_regex) {
-	  my $split_re = qr/$split_on_regex/;
-	  @fields = split $split_re,$desc;
+	 my $desc = $seq->desc();
+	 my @fields;
+	 if ($split_on_regex) {
+	   my $split_re = qr/$split_on_regex/;
+	   @fields = split $split_re,$desc;
+	   # @fields = split $split_re,$match_data;
 	}
 	else {
 	  @fields = split ' ',$desc;
-	}
-	my $index;
-	if ($match_field > 0) {
-	  $index = $match_field - 1;
-	}
-	else { # $match_field < 0
-	  $index = $match_field;
+	  # @fields = split ' ',$match_data;
 	}
 	$match_data = $fields[$index];
       }
