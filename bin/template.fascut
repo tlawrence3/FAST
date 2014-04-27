@@ -3,6 +3,7 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -27,7 +28,9 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-
+my $opt_t                = undef;	 # -t
+my $opt_i                = undef;        # -i
+my $strict               = undef;        # -s
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -40,13 +43,16 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-
+           't'                           => \$opt_t,
+           'i=s'                         => \$opt_i,
+           's'                           => \$strict,
+	
 	  ) 
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
+pod2usage("$0: Requires exactly one argument (a coordinate) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
 pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
@@ -54,35 +60,95 @@ pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARG
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
-unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
-    }
+
+##FASCUT Code
+
+## Needed due to 'use strict'
+my @COORDS = ();
+
+##PARSE MULTICOORDS
+if ($ARGV[0] =~ /,/) {
+    @COORDS = split /,/,$ARGV[0];
+  }
+else {
+  $COORDS[0] = $ARGV[0];
 }
 
-while ($IN or @ARGV) {
-  if (@ARGV) {
-    my $file = shift (@ARGV);
-    unless (-e $file) {
-      warn "$NAME: Could not find file $file. Skipping.\n";
-      next;
+if ($moltype) {
+  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
+}
+else {
+  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
+}
+$OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
+sequence: while (my $seq = $IN->next_seq()) {
+  my @seqs = ();
+    my $seqlen = $seq->length;
+    my $seqid  = $seq->id;  
+    my $seqseq = '';
+    my $subseq = undef;
+    foreach my $coord (@COORDS) {
+	my ($b,$e);
+	if ($coord =~ /([\d-]+)\.\.([\d-]+)/) {
+	    $b = $1 + 0;
+	    $e = $2 + 0;	
+	}
+	else {
+	    $coord =~ /([\d-]+)/;
+	    $b = $1 + 0;
+	    $e = $b + 0;	
+	}
+	## interpret negative coords
+	$b = ($b < 0 ? $seqlen + $b + 1 : $b);
+	$e = ($e < 0 ? $seqlen + $e + 1 : $e);
+	## check length bounds
+	if ($strict) { ## strict; warns and skips sequence if coords are out of bounds,
+	    if ($e < $b) {
+		warn "Skipped sequence $seqid with length $seqlen: bad range with end $e less than $b.\n";
+		next sequence;
+	    }
+	    if ($b < 1 or $e < 1 or $b > $seqlen or $e > $seqlen) {
+		warn "Skipped sequence $seqid with length $seqlen: coord $coord out-of-bounds.\n";
+		next sequence;
+	    }
+	}
+	else {        ## otherwise, returns longest possible non-null subsequence within range
+	    if ($e < $b) {
+		next;
+	    }
+	    if ($b < 1) {
+		$b = 1;
+	    }	
+	    elsif ($b > $seqlen) {
+		next;
+	    }
+	    if ($e > $seqlen) {
+		$e = $seqlen;
+	    } 
+	    elsif ($e < 0) {
+		next;
+	    }
+	}
+	if ($opt_t) {
+	    my $trunc = $seq->trunc($b,$e);
+	    $trunc->display_id($opt_i || $seq->id);
+	    $trunc->desc(join "-",$seq->desc,"$b..$e");
+	    print $OUT $trunc;
+	}
+	else {
+	  push @seqs, $seq->subseq($b,$e);#$seqseq .= $seq->subseq($b,$e);
+	}
     }
-    elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
+    unless ($opt_t or not @seqs) {
+      my $seqseq = join "",@seqs;
+      if ($moltype) {
+	$subseq = new FAST::Bio::Seq(-seq => $seqseq,-id => ($opt_i || $seq->id),-desc => $seq->desc, -alphabet => $moltype);
+      }
+      else {
+	$subseq = new FAST::Bio::Seq(-seq => $seqseq,-id => ($opt_i || $seq->id),-desc => $seq->desc);
+      }
+      print $OUT $subseq;
     }
-    else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
-    }
-  }
-  if ($IN) { 
-    while (my $seq = $IN->next_seq()) {
-      print $OUT $seq;
-    }
-    undef $IN;
-  }
 }
 
 
@@ -91,31 +157,76 @@ __END__
 
 =head1 NAME
 
-name - what it does
+fascut - extract subsequences from fasta input by coordinate
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+fascut COORDS [options] < fasta-file > fasta-file
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+  COORDS: {POSITION|RANGE} | {POSITION|RANGE},COORDS
+   RANGE: POSITION..POSITION with certain rules, see below
+POSITION: nonzero integer 
+              positive integers are sequence based (bioperl) position coordinates
+              negative integers count from the end of each sequence starting with -1
+              
+              In a range "a..b" on a sequence of length L, the following rule must hold 
+              for every sequence on input: 
+                 a <= b or 
+                 a <= (L - b + 1) or 
+                 (L - a + 1) <= b or
+                 (L - a + 1) <= (L - b + 1)  
 
-Options specific to name:
+           That is, after converting negative positions to positions from the end of the sequence, 
+           the begin position must be less than the end position to be legal. If this rule is violated
+           for a given range and sequence, that range will be skipped for that sequence. If strict-mode (-s) 
+           is used, such a bad range specification will cause that sequence to be skipped entirely.
+
+OUTPUT:
+         * a range corresponds to the subsequence occuring from the begin to the end 
+              positions __inclusively__
+         * Comma-separated positions and ranges in the coordinate argument are arbitrary with
+              respect to one another, e.g. they may overlap, be redundant, or be out of order.
+              The result is not simplified or reduced.
+         * Unless the (-m) option is used, for each sequence in the input, 
+              the subsequences specified by every 
+              position or range are concatenated in the order of the coordinate argument 
+              and, if the result is non-empty, output with the same id and description
+         * Unless the strict option (-s) is used, the longest overlapping non-null subsequence
+              will be chopped for each position or range (ie end-positions greater than the 
+	      length of the sequence will reduce to the end of the sequence)
+         * If the strict option is used, when any position or range in the coordinate argument 
+              is out-of-bounds for a sequence, it will cause that sequence to be skipped 
+              with a warning to standard error.
+         * Unless the strict option (-s) is used, a coordinate argument resulting in a 
+              a null sequence will cause that sequence to be silently skipped on output
+         * If the coordinate argument begins with a negative POSITION or RANGE, precede 
+             it with "--" to stop parsing the command-line for options 
+
+Options specific to fascut:
+  -t                                output each comma-separated range or position
+                                      to a new sequence (stated in description)
+  -i <string>                       rename id of sequence to <string>
+  -s                                strict range-checking on coords; skips a
+                                      sequence with warning if coords are
+                                      out-of-bounds on that sequence. 
+                                      (default behavior is to give longest
+                                      possible subsequence within range)
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
+  -h, --help                  	    print a brief help message
+  --man             	            print full documentation
   --version                         print version
   -l, --log                         create/append to logfile	
   -L, --logname=<string>            use logfile name <string>
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  --moltype=<[dna|rna|protein]>     specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+fascut is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -169,18 +280,69 @@ Specify the type of sequence on input (should not be needed in most
 cases, but sometimes Bioperl cannot guess and complains when
 processing data).
 
+=item B<-i [string]>
+
+Rename the id of sequence to [string].
+
+=item B<-t>
+
+Output each comma-separated range or position to a new sequence (stated in description).
+
+=item B<-s>
+
+Strict range-checking on coords; skips a sequence with warning if coords are out-of-bounds 
+on that sequence. 
+(default behavior is to give longest possible subsequence within range)
+
 =back
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Example 1:
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+fascut 4 < in.fas > out.fas
 
 =back
 
+Example 2:
+
+=over 8
+
+fascut 1..8 < in.fas > out.fas
+
+=back
+
+Get all but the first 3 bases/aas:
+
+=over 8
+
+fascut 4..-1 < in.fas > out.fas
+
+=back
+
+Get the last 3 bases/aas:
+
+=over 8
+
+fascut -- -3..-1 < in.fas > out.fas
+
+=back
+
+Get the last 3 bases/aas to position 1000 if possible:
+
+=over 8
+
+fascut -- -3..1000 < in.fas > out.fas
+
+=back
+
+Example 3:
+
+=over 8
+
+fascut 1..4,2..6,-1 < in.fas > out.fas
 
 =back
 
