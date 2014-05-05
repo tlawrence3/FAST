@@ -101,8 +101,8 @@ if ($man) {
   print_help_header();
   pod2usage(-verbose => 2); 
 }
-pod2usage("$0: Requires exactly zero arguments when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 0) && (!$files));
-pod2usage("$0: Requires at least one argument when using with --files or -f option. Try $NAME -h for help.") if ($files and @ARGV == 0);
+pod2usage("$0: Requires exactly zero arguments when taking input from STDIN. Try $NAME -h for help.") if (!(-t STDIN) and (@ARGV != 0));
+pod2usage("$0: Requires at least one argument when using with --files or -f option. Try $NAME -h for help.") if ((-t STDIN) and $files and @ARGV == 0);
 pod2usage("$0: Either option --input <format>/-i <format> or option --output <format>/-o <format> must be used. Try $NAME -h for help.") unless ($input or $output);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
@@ -110,8 +110,9 @@ pod2usage("$0: Either option --input <format>/-i <format> or option --output <fo
 
 my $mode = ($input ? 'input' : 'output');
 my %format = ();
-$format{'input'}  = lc ($input)  || 'fasta';
-$format{'output'} = lc ($output) || 'fasta';
+if (defined $input) {$format{'input'} = lc ($input)} else {$format{'input'} = 'fasta'}
+if (defined $output) {$format{'output'} = lc ($output)} else {$format{'output'} = 'fasta'}
+
 
 my %attributes = ();
 if ($format{'output'} eq 'phylip') {
@@ -205,8 +206,8 @@ STDOUT. With the --files/-f option, input files are converted
 one-by-one to corresponding output files using extensions.
 
 Options specific to fasconvert:
-  -i <format>, --input <format>   convert from fasta to <format>
-  -o <format>, --output <format>  convert from <format> to fasta
+  -i <format>, --input <format>   convert from <format> to fasta
+  -o <format>, --output <format>  convert from fasta to <format>
   -f, --files                      convert files in place 
   -s, --sequential                    for phylip output, don't interleave sequences
   -M <integer>, --maxlength=<integer>   for phylip output, truncate identifiers to specified length                                      
