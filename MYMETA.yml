@@ -3,21 +3,21 @@ abstract: 'FAST Analysis of Sequences Toolbox'
 author:
   - 'David H. Ardell <dhard@cpan.org>'
 build_requires:
-  Test::More: 0
+  Test::More: '0'
 configure_requires:
-  ExtUtils::MakeMaker: 0
+  ExtUtils::MakeMaker: '0'
 dynamic_config: 0
-generated_by: 'ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150'
+generated_by: 'ExtUtils::MakeMaker version 6.96, CPAN::Meta::Converter version 2.140640'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: FAST
 no_index:
   directory:
     - t
     - inc
 requires:
-  GetOpt::Long: 2.32
-  perl: 5.006
-version: 0.04
+  GetOpt::Long: '2.32'
+  perl: '5.006'
+version: '0.04'

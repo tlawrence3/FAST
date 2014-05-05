@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w
 
 ## April 23, 2014: DHA completed new implementation of fassort
 ## uses Mergesort when going over a memory limit

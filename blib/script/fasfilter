@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w 
+#!/Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w 
 
-eval 'exec /usr/bin/perl -w  -S $0 ${1+"$@"}'
+eval 'exec /Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w  -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 use Getopt::Std;
 use FAST::Bio::SeqIO;
