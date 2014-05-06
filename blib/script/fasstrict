@@ -42,7 +42,7 @@ $ambig{'protein'} = 'X';
 
 
 my $IN   = FAST::Bio::AlignIO->newFh(-fh => \*STDIN, '-format' => "fasta");
-$OUT  = FAST::Bio::AlignIO->newFh('-format' => "fasta");
+my $OUT  = FAST::Bio::AlignIO->newFh('-format' => "fasta");
 
 while(my $aln = <$IN>) {
   my @seqs = $aln->each_seq();

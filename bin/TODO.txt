@@ -1,11 +1,14 @@
 Updated Monday April 21, 2014 13:00 by DHA
+Updated Monday May 5, 2014 by TJL
 
 TESTING 
 fasgrep
 fasconvert
+fastr
 
 DOCUMENTATION NEEDS WRITING
 fassort
+fastr
 
 I/O -- FIX TO CURRENT INTERFACE
 alndegap
@@ -21,7 +24,6 @@ fassort
 fassub
 fastax
 fastaxsort
-fastr
 fasxl
 fasuniq
 gb2fas -- rename to gbfeat2fas
