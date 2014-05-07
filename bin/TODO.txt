@@ -16,7 +16,6 @@ alndegap
 alnpi
 alnseg
 fascodon
-fascomp
 fascut
 fasfilter
 faslen
