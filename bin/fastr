@@ -77,7 +77,7 @@ GetOptions('help|h'         		 => \$help,
      'iupac'                       => \$iupac,
      's'                           => \$seq_match,
      'd'                           => \$desc_match,
-     'N'                           => \$append_info,
+     'append|a'                           => \$append_info,
 	  ) 
   or pod2usage(2);
 		  

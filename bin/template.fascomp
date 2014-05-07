@@ -3,6 +3,9 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
+use FAST::Bio::PrimarySeq;
+use FAST::Bio::Tools::MySeqStats;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -23,10 +26,22 @@ my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 my $man                  = undef;  # --man
 my $help                 = undef;  # -h
 my $moltype              = undef;  # -m, in case bioperl can't tell
-my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
+my $norm                 = undef; #-n
+my $total                = undef; #-t
+my $append               = undef; #-a
+my $strict               = undef;
+my $iupac                = undef;
+my $case                 = undef;
+
+my $warned;
+my $job_alphabet;
+my $alphabet;
+my %sum;
+my $filter;
+my $mono;
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -36,10 +51,15 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
-	   'format=s'                    => \$format,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+     'norm|n'                      => \$norm,
+     'total|t'                     => \$total,
+     'append|a'                    => \$append,
+     'iupac|i'                     => \$iupac,
+     'strict|s'                    => \$strict,
+     'ignore|c'                    => \$case,
 
 	  ) 
   or pod2usage(2);
@@ -49,21 +69,30 @@ pod2usage(-verbose => 2) if $man;
 pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
 pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
+
+my %alpha_hash;
+$alpha_hash{'dnastrict'}     = qr/[ACTGactg]/;
+$alpha_hash{'dnaiupac'}      = qr/[ACTGactgMRWSYKVHDBXNmrwsykvhdbxn]/;
+$alpha_hash{'rnastrict'}     = qr/[ACUGacug]/;
+$alpha_hash{'rnaiupac'}      = qr/[ACUGacugMRWSYKVHDBXNmrwsykvhdbxn]/;
+$alpha_hash{'proteinstrict'} = qr/[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy]/;
+$alpha_hash{'proteiniupac'}  = qr/[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwyBZX\.bzx\*]/; 
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
     }
 }
 
 while ($IN or @ARGV) {
+  
   if (@ARGV) {
     my $file = shift (@ARGV);
     unless (-e $file) {
@@ -77,17 +106,140 @@ while ($IN or @ARGV) {
       $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
     }
   }
+  
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      print $OUT $seq;
+
+      if ($moltype){
+        $seq->alphabet($moltype);
+      }
+
+      unless ($warned) {
+      $job_alphabet and do {
+        if ($seq->alphabet ne $job_alphabet) {
+        warn "Sequences appear not to be of the same type.\n";
+        }
+        $warned = 1;
+       };
+      }
+    
+    unless ($job_alphabet) {
+      $job_alphabet = $seq->alphabet;
     }
+ 
+    $filter = qr/./; ## MATCH ANY CHARACTER
+    
+    $strict and do {
+      $alphabet = ($seq->alphabet . "strict"); 
+      $filter = $alpha_hash{$alphabet};
+    };
+    
+    $iupac and do {
+      $alphabet = ($seq->alphabet . "iupac"); 
+      $filter = $alpha_hash{$alphabet};
+    };
+  
+    my $hash_ref = FAST::Bio::Tools::MySeqStats->count_monomers($seq);
+
+  if ($total) {
+    foreach $mono (keys %$hash_ref) {
+      $sum{$mono} += $$hash_ref{$mono};
+    }
+  } 
+  elsif ($append){
+    my $old_desc = $seq->desc();
+    $seq->desc(join '',"$old_desc fascomp:",&print_mono($hash_ref,$seq->display_id,$filter));     
+    print $OUT $seq;
+
+  }
+  else {
+    &print_mono($hash_ref,$seq->display_id,$filter);
+  }
+    }
+
+  }
+
     undef $IN;
   }
+
+$total and do {
+  &print_mono(\%sum,"",$filter);
+};   
+
+
+#-----------------------
+sub print_mono {
+#-----------------------
+  my ($hashref,$id,$filterprint) = @_;
+  my ($normalizer,@keys);
+  my $key;
+  my $allowed;
+  my $append_desc;
+
+  if ($strict or $iupac) {
+    foreach $key (keys %$hashref) {
+      if ($key !~ $filterprint) {
+       warn "Sequence", ($id ? " $id" : '(s)'), " contained excluded character \'$key\'.\n";
+      }
+    }
+    unless ($case) {$filterprint =~ tr/a-z\\//d;}
+    $filterprint =~ /\[(.+)\]/; ## REGEXP A REGEXP
+    $allowed = $1;
+    @keys = split (//,$allowed);
+  } 
+  else {
+    @keys = sort keys %$hashref;
+  }
+  
+  if (!$append){
+  print '> ';
+  foreach $key (@keys) {
+    printf ("%8s",$key);
+  }
+  print " TOTAL";
+  print " // $id\n  "; ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
+  if ($norm) {
+    foreach $key (@keys) {
+      $normalizer += $$hashref{$key} ? $$hashref{$key} : 0;
+    }
+    foreach $key (@keys) {
+      printf ("%8.3f", ($$hashref{$key} && $normalizer) ? ($$hashref{$key}/$normalizer) : 0);
+    }
+  } 
+  else {
+    foreach $key (@keys) {
+      $normalizer += $$hashref{$key} ? $$hashref{$key} : 0;
+      printf ("%8d", $$hashref{$key} ? $$hashref{$key} : 0);
+    }
+      printf ("%8d", $normalizer);
+  }
+  print "\n";
+ }
+
+  else{ #If append is true
+    if ($norm) { #append and normalize
+      foreach $key (@keys) {
+      $normalizer += $$hashref{$key} ? $$hashref{$key} : 0;
+      }
+      foreach $key (@keys) {
+      $append_desc .= sprintf ("%s:%.3f|", $key, ($$hashref{$key} && $normalizer) ? ($$hashref{$key}/$normalizer) : 0);
+      }
+      return $append_desc;
+    }
+    else{ #append abs
+      foreach $key (@keys) {
+      $append_desc .= sprintf ("%s:%d|",$key, $$hashref{$key} ? $$hashref{$key} : 0);
+      }
+      return $append_desc
+    }
+    
+
+  }
+
 }
 
-
-
 __END__
+
 
 =head1 NAME
 
