@@ -5,6 +5,7 @@ TESTING
 fasgrep
 fasconvert
 fastr
+fascomp
 
 DOCUMENTATION NEEDS WRITING
 fassort
@@ -33,7 +34,7 @@ gbcut -- rename to gbalncut
 CODING
 fasfilter -- generalize for numerical filtering by description
 fascomp -- put fasposcomp functionality in fascomp. 
-fascomp, alnpi, fascodon -- enable output in description for use with fasfilter
+alnpi, fascodon -- enable output in description for use with fasfilter
 fassort -- implement new sorting routine
 fasuniq -- fix to work on sorted data
 fasxl -- verify gapped translation functionality
