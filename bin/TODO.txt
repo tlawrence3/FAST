@@ -1,15 +1,18 @@
 Updated Monday April 21, 2014 13:00 by DHA
 Updated Monday May 5, 2014 by TJL
+Updated Wednesday May 6, 2014 16:00 by TJL
 
 TESTING 
 fasgrep
 fasconvert
 fastr
 fascomp
+faslen
 
 DOCUMENTATION NEEDS WRITING
 fassort
 fastr
+faslen
 
 I/O -- FIX TO CURRENT INTERFACE
 alndegap
@@ -18,7 +21,6 @@ alnseg
 fascodon
 fascut
 fasfilter
-faslen
 fasrc
 fassort
 fassub
