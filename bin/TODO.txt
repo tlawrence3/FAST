@@ -33,8 +33,8 @@ fastax
 fastaxsort
 fasxl
 fasuniq
-gb2fas -- rename to gbfeat2fas
-gbcut -- rename to gbalncut
+gbfeat2fas
+gbalncut
 
 
 CODING
