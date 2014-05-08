@@ -13,6 +13,7 @@ faslen
 fascut
 fasrc
 fassub
+fastax -needs a lot
 
 DOCUMENTATION NEEDS WRITING
 fassort
@@ -20,6 +21,7 @@ fastr
 faslen
 fascut
 fassub
+fastax
 
 DOCUMENTATION NEEDS REVIEW
 
@@ -31,7 +33,6 @@ alnseg
 fascodon
 fasfilter
 fassort
-fastax
 fastaxsort
 fasxl
 fasuniq
