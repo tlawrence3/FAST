@@ -15,9 +15,10 @@ DOCUMENTATION NEEDS WRITING
 fassort
 fastr
 faslen
+fascut
 
 DOCUMENTATION NEEDS REVIEW
-fascut
+
 
 I/O -- FIX TO CURRENT INTERFACE
 alndegap
