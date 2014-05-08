@@ -155,7 +155,7 @@ sequence: while (my $seq = $IN->next_seq()) {
 	if ($opt_t) {
 	    my $trunc = $seq->trunc($b,$e);
 	    $trunc->display_id($opt_i || $seq->id);
-	    $trunc->desc(join "|",$seq->desc,"$b..$e");
+	    $trunc->desc(join "-",$seq->desc,"$b..$e");
 	    print $OUT $trunc;
 	}
 	else {
@@ -174,7 +174,6 @@ sequence: while (my $seq = $IN->next_seq()) {
     }
 }
 
-=over 8
 
 
 
@@ -189,107 +188,3 @@ sequence: while (my $seq = $IN->next_seq()) {
 
 
 
-Use alternative format for input. See man page for "fasconvert" for
-allowed formats. This is for convenience; the FAST tools are designed
-to exchange data in Fasta format, and "fasta" is the default format
-for this tool.
-
-=item B<-m [dna|rna|protein]>,
-      B<--moltype=[dna|rna|protein]> 		  
-
-Specify the type of sequence on input (should not be needed in most
-cases, but sometimes Bioperl cannot guess and complains when
-processing data).
-
-=item B<-i [string]>
-
-Rename the id of sequence to [string].
-
-=item B<-t>
-
-Output each comma-separated range or position to a new sequence (stated in description).
-
-=item B<-s>
-
-Strict range-checking on coords; skips a sequence with warning if coords are out-of-bounds 
-on that sequence. 
-(default behavior is to give longest possible subsequence within range)
-
-=back
-
-=head1 EXAMPLES
-
-Example 1:
-
-=over 8
-
-fascut 4 < in.fas > out.fas
-
-=back
-
-Example 2:
-
-=over 8
-
-fascut 1..8 < in.fas > out.fas
-
-=back
-
-Get all but the first 3 bases/aas:
-
-=over 8
-
-fascut 4..-1 < in.fas > out.fas
-
-=back
-
-Get the last 3 bases/aas:
-
-=over 8
-
-fascut -- -3..-1 < in.fas > out.fas
-
-=back
-
-Get the last 3 bases/aas to position 1000 if possible:
-
-=over 8
-
-fascut -- -3..1000 < in.fas > out.fas
-
-=back
-
-Example 3:
-
-=over 8
-
-fascut 1..4,2..6,-1 < in.fas > out.fas
-
-=back
-
-=head1 SEE ALSO
-
-=over 8
-
-=item C<man perlre>
-
-=item C<perldoc perlre>
-
-Documentation on perl regular expressions.
-
-=item C<man FAST>
-
-=item C<perldoc FAST>
-
-Introduction and cookbook for FAST
-
-=item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
-
-=back 
-
-=head1 CITING
-
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
-Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
-
-=cut
