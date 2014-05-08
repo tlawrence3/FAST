@@ -1,7 +1,8 @@
 Updated Monday April 21, 2014 13:00 by DHA
 Updated Monday May 5, 2014 by TJL
-Updated Wednesday May 6, 2014 16:00 by TJL
-Updated Wednesday May 6, 2014 21:00 by KK
+Updated Wednesday May 7, 2014 16:00 by TJL
+Updated Wednesday May 7, 2014 21:00 by KK
+Updated Thursday May 8, 2014 9:40 by TJL
 
 TESTING 
 fasgrep
@@ -10,6 +11,7 @@ fastr
 fascomp
 faslen
 fascut
+fasrc
 
 DOCUMENTATION NEEDS WRITING
 fassort
@@ -26,7 +28,6 @@ alnpi
 alnseg
 fascodon
 fasfilter
-fasrc
 fassort
 fassub
 fastax
