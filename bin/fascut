@@ -144,7 +144,7 @@ sequence: while (my $seq = $IN->next_seq()) {
   if ($append) {
       my $trunc = $seq->trunc($b,$e);
       $trunc->display_id($rename || $seq->id);
-      $trunc->desc(join "-",$seq->desc,"$b..$e");
+      $trunc->desc(join "fascut:",$seq->desc,"$b..$e");
       print $OUT $trunc;
   }
   else {

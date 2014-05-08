@@ -52,7 +52,7 @@ $format = lc ($format);
 
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires atleast one argument [fasta-file1...fasta-fileN] or input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV == 0));
+pod2usage("$0: Requires at least one argument [fasta-file1...fasta-fileN] or input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV == 0));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
