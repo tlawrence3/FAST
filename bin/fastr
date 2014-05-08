@@ -140,7 +140,7 @@ while ($IN or @ARGV) {
       eval "\$count = \$matchfield =~ tr/$search/$replace/$options";
       $seq->$component($matchfield);
       if ($append_info) {
-  $seq->desc(join ' ',$seq->desc(),"fastr|$search|$replace|$options:$count");
+  $seq->desc(join ' ',$seq->desc(),"fastr: $search|$replace|$options:$count");
       }
       print $OUT $seq;
     }
