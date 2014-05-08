@@ -158,7 +158,7 @@ sequence: while (my $seq = $IN->next_seq()) {
 	if ($opt_t) {
 	    my $trunc = $seq->trunc($b,$e);
 	    $trunc->display_id($opt_i || $seq->id);
-	    $trunc->desc(join "-",$seq->desc,"$b..$e");
+	    $trunc->desc(join "|",$seq->desc,"$b..$e");
 	    print $OUT $trunc;
 	}
 	else {
