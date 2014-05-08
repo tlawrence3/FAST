@@ -1,6 +1,7 @@
 Updated Monday April 21, 2014 13:00 by DHA
 Updated Monday May 5, 2014 by TJL
 Updated Wednesday May 6, 2014 16:00 by TJL
+Updated Wednesday May 6, 2014 21:00 by KK
 
 TESTING 
 fasgrep
@@ -8,18 +9,21 @@ fasconvert
 fastr
 fascomp
 faslen
+fascut
 
 DOCUMENTATION NEEDS WRITING
 fassort
 fastr
 faslen
 
+DOCUMENTATION NEEDS REVIEW
+fascut
+
 I/O -- FIX TO CURRENT INTERFACE
 alndegap
 alnpi
 alnseg
 fascodon
-fascut
 fasfilter
 fasrc
 fassort
