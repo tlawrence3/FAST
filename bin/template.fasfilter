@@ -3,6 +3,7 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -51,15 +52,24 @@ pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARG
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
+my @BANDS = undef;
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+if ($ARGV[0] =~ /,/) {
+    @BANDS = split /,/,$ARGV[0];
+  }
+else {
+  $BANDS[0] = $ARGV[0];
+}
+shift @ARGV;
+
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
     }
 }
 
@@ -79,7 +89,24 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      print $OUT $seq;
+      my $seqlen = $seq->length;
+      my $pass   = undef;
+      foreach my $band (@BANDS) {
+        my ($b,$e,$l);
+        if ($band =~ /([\d-]+)\.\.([\d-]+)/) {
+	  $b = $1;
+	  $e = $2;	
+	  $pass = 1 if ($b <= $seqlen && $e >= $seqlen);
+	}
+	elsif ($band =~ /([\d-]+)\.\./) {
+	  $l = $1;	
+	  $pass = 1 if ($l <= $seqlen);
+	}
+	else {
+	  die "Bad band specification $band.\nTry $0 -h\n";
+	}
+      }
+      print $OUT $seq if ($pass);
     }
     undef $IN;
   }
@@ -91,15 +118,21 @@ __END__
 
 =head1 NAME
 
-name - what it does
+fasfilter - Filter sequences in a fasta file by length
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+fasfilter SPECTRUM [fasta-file...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+ SPECTRUM : BAND | BAND,SPECTRUM
+     BAND : { LOWER_BOUND.. | LOWER_BOUND..UPPER_BOUND}
+    BOUND : positive integer, sequence based (bioperl) position coordinates
+
+  OUTPUT: 
+         * sequences whose length falls within at least one BAND in the SPECTRUM are output
+         * BOUND specification is always inclusive of the bound.
 
 Options specific to name:
 
@@ -115,7 +148,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+fasfilter is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -173,11 +206,35 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Output all sequences of length 400 or less
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+fasfilter 1..400 < in.fas > out.fas
+
+=back
+
+Output all sequences of length between 400 and 800 inclusively
+
+=over 8
+
+fasfilter 400..800 < in.fas > out.fas
+
+=back
+
+Output all sequences of length 800 or more
+
+=over 8
+
+fasfilter 800.. < in.fas > out.fas
+
+=back
+
+Output all sequences of length 400 or less or 800 or more
+
+=over 8
+
+fasfilter 1..400,800.. < in.fas > out.fas
 
 =back
 
