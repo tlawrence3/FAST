@@ -3,6 +3,10 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::AlignIO;
+use FAST::Bio::SeqIO;
+use FAST::Bio::UnivAln;
+use Carp;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -23,10 +27,13 @@ my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 my $man                  = undef;  # --man
 my $help                 = undef;  # -h
 my $moltype              = undef;  # -m, in case bioperl can't tell
-my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
+my $gap                  = undef;
+my $degap                = undef;
+my $remove_gapped        = undef;
+my $indices              = undef;
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -36,31 +43,41 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
-	   'format=s'                    => \$format,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+     'gap-freq|g=i'                => \$gap,
+     'remove-gapped|a'             => \$remove_gapped,
+     'degap|d'                     => \$degap,
+     'indices|i'                   => \$indices,
 
 	  ) 
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
-pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
+pod2usage("$0: Requires at least one argument (a fasta-file). Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 0));
+pod2usage("$0: Requires zero arguments when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV != 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
+if ($gap) {
+  if ($gap < 0 or $gap > 1) {
+    croak "ERROR: $NAME -g <number> expects <number> to be a positive fraction gap frequency threshold between 0 and 1.\n"; 
+  }
+  elsif ($gap == 0) {
+    undef $gap;
+    $remove_gapped = 1;
+  }
+  elsif ($gap == 1) {
+    undef $gap;
+  }
+}  
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+#my $OUT = FAST::Bio::AlignIO->newFh('-format' => $def_format);
 my $IN;
-unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
-    }
+unless (@ARGV) {   
+	$IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
 }
 
 while ($IN or @ARGV) {
@@ -71,15 +88,86 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
+      $IN = FAST::Bio::AlignIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
+      $IN = FAST::Bio::AlignIO->new(-file => $file, '-format' => $def_format);
     }
   }
   if ($IN) { 
-    while (my $seq = $IN->next_seq()) {
-      print $OUT $seq;
+    while (my $saln = $IN->next_aln) {
+      my $index_selection_fxn;
+      my $site_selection_fxn;
+      my $last;
+      my $subaln;
+      my @seqs = $saln->each_seq();
+      my $aln  = FAST::Bio::UnivAln->new('-seqs' => \@seqs);
+      if ($indices) { ## DON'T REMOVE SITES; PRINT INDICES
+    if ($gap) {
+      croak "ERROR: $NAME -g <number> doesn't work with -i. Sorry.\n";
+    }
+    elsif ($remove_gapped) { ## CONSIDER SITES CONTAINING AT LEAST ONE GAP
+      $index_selection_fxn = "gap_free_inds";
+    }
+    else {
+      $index_selection_fxn = "no_allgap_inds";
+    }
+    my @sites = @{$aln->$index_selection_fxn()};
+    my @coords = ();
+    do {
+      my $first = shift @sites;
+      my $second = $first;
+      do {
+  $last = $second;
+  $second = shift @sites;
+      } until (!$second or $second > ($last + 1));
+      unshift @sites, $second if ($second);
+      if ($first == $last) {
+  push @coords, "$first";
+      }
+      else {
+  push @coords, "$first-$last";
+      }
+    } 
+      until (!@sites);
+    print "@coords \n";
+    exit;
+  }
+  elsif ($degap) {
+    my $out = FAST::Bio::SeqIO->newFh(-format => $def_format);
+    foreach my $seq (@seqs) {
+      my $seqseq = $seq->seq;
+      $seqseq =~ s/[^A-Za-z]+//g;
+      $seq->seq($seqseq);
+      print $out $seq;
+    }
+    exit;
+  }
+  elsif ($gap) {
+    sub _setup_gap_frequency_filter {
+      my $threshold = shift;
+      return sub {
+  my @chars = @{ $_[0] };
+  my $gf = grep {$_ eq "-"} @chars;
+  return ($gf/@chars < $threshold);
+      }
+    }
+    my $gap_freq_filter = _setup_gap_frequency_filter($gap);
+    $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->seqs([],$gap_freq_filter)), -row_ids=>$aln->row_ids);
+  }
+  else {
+    if ($remove_gapped) { ## CONSIDER SITES CONTAINING AT LEAST ONE GAP
+      $site_selection_fxn = "gap_free_sites";
+    }
+    else { ## DEFAULT, REMOVE SITES CONTAINING ALL GAPS
+      $site_selection_fxn = "no_allgap_sites";    
+    }
+    $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->$site_selection_fxn()), -row_ids=>$aln->row_ids);
+  }
+  my $layout = $subaln->layout();
+  ## FIX FASTA PRINT BUG (IDs SHOULD GO RIGHT AFTER '>') 
+  $layout =~ s/^>\s+/>/gm;
+  print "$layout";
     }
     undef $IN;
   }
