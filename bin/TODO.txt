@@ -20,6 +20,7 @@ fassub
 fastax -needs someone to debug
 fasfilter
 fassort
+fasuniq
 
 DOCUMENTATION NEEDS WRITING
 alndegap
@@ -38,7 +39,6 @@ alnpi
 fascodon
 fastaxsort
 fasxl
-fasuniq
 gbfeat2fas
 gbalncut
 
