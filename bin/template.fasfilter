@@ -63,7 +63,7 @@ else {
 shift @ARGV;
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
-my $IN;
+my $IN; 
 unless (@ARGV) {
     if ($moltype) {
 	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
