@@ -3,6 +3,7 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -133,14 +134,14 @@ while (@queue){
 }
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
     }
 }
 
@@ -152,10 +153,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
     }
   }
   if ($IN) { 
