@@ -15,7 +15,8 @@ faslen
 fascut
 fasrc
 fassub
-fastax -needs a lot
+fastax -needs someone to debug
+fasfilter
 
 DOCUMENTATION NEEDS WRITING
 alndegap
@@ -25,15 +26,12 @@ faslen
 fascut
 fassub
 fastax
-
-DOCUMENTATION NEEDS REVIEW
-
+fasfilter
 
 I/O -- FIX TO CURRENT INTERFACE
 alnpi
 alnseg
 fascodon
-fasfilter
 fassort
 fastaxsort
 fasxl
