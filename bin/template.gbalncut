@@ -3,11 +3,16 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
+use FAST::Bio::AlignIO;
+use FAST::Bio::UnivAln;
+use FAST::Bio::SimpleAlign;
+use FAST::Bio::Location::NarrowestCoordPolicy;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "";
+$DESC    = "Extract subalignments based on reg-ex matching on features in an annotated genbank file.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -27,6 +32,16 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
+my $case                 = undef; #-i
+my $negate               = undef; #-n
+my $tag_match            = undef; #-t
+my $slice_match          = undef; #-s
+my $intersect_match      = undef; #-x
+my $primary_match        = undef; #-P
+my $delete_gap           = undef; #-g
+my $gap_intron           = undef; #-r Currently not implemented
+my $vebose               = undef; #-v
+my $opt_C                = 0; #Currently not implemented
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -40,52 +55,156 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+     'case-insensitive|i'          => \$case,
+     'negate|n'                    => \$negate,
+     'tag|t=s'                     => \$tag_match,
+     'slice|s=s'                   => \$slice_match,
+     'intersect|x=s'               => \$intersect_match,
+     'primary|P=s'                 => \$primary_match,
+     'gap-delete|g'                => \$delete_gap,
+     'vebose|v'                    => \$vebose,
 
 	  ) 
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
-pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
+pod2usage("$0: Requires three arguments: $NAME [options] alignment-file genbank-file \'perl-reg-exp\'. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 3));
+
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
+my @colslice;   
+my @x_colslice;
+my $subaln;      
+my $rex;
+my $value;
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
-my $IN;
-unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
-    }
+my $tag = 'note';
+$tag_match and $tag = $tag_match;
+
+## PROCESS ARGUMENTS
+my $aln_file_nm = shift @ARGV;
+my $gb   = FAST::Bio::SeqIO->new(   -file =>  shift @ARGV , '-format' => 'genbank')->next_seq();
+my $aln  = FAST::Bio::UnivAln->new('-file' => $aln_file_nm);
+my $saln = FAST::Bio::AlignIO->new( -file =>  $aln_file_nm)->next_aln();
+my $rearg = shift @ARGV;
+my $re = ($case ? qr/$rearg/i : qr/$rearg/);
+
+die "Genbank sequence ID not found in alignment\n" unless ( $saln->each_seq_with_id($gb->id()) ); 
+
+## PROCESS INTERSECTION RESTRICTION FEATURE ARG IF FOUND
+if ($intersect_match) {
+  $rearg = $intersect_match;
+  $rex = ($case ? qr/$rearg/i : qr/$rearg/);
 }
 
-while ($IN or @ARGV) {
-  if (@ARGV) {
-    my $file = shift (@ARGV);
-    unless (-e $file) {
-      warn "$NAME: Could not find file $file. Skipping.\n";
-      next;
-    }
-    elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
-    }
-    else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
+## SET POLICY TO NARROW
+my $narrow_policy = FAST::Bio::Location::NarrowestCoordPolicy->new();
+
+## GET COLUMNS MATCHING FEATURE REGEX
+foreach my $feat ( $gb->top_SeqFeatures() ) {
+  next if ($primary_match and $feat->primary_tag() ne $primary_match);
+  $feat->location->coordinate_policy($narrow_policy);
+  if ($feat->has_tag($tag)) {
+    foreach $value ( $feat->each_tag_value($tag) ) {
+      if ((!$negate and $value =~ $re) or ($negate and $value !~ $re)) {
+  if ($vebose) {
+    print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring()," with $tag $value.\n";
+  }
+  if (ref($feat->location) eq 'FAST::Bio::Location::Simple') {
+    my $start = $saln->column_from_residue_number($gb->id(),$feat->start);
+    my $stop  = $saln->column_from_residue_number($gb->id(),$feat->end);
+    push @colslice, ($start < $stop ? ($start-$opt_C)..($stop+$opt_C) : ($stop-$opt_C)..($start+$opt_C)); 
+  }
+  elsif (ref($feat->location) eq 'FAST::Bio::Location::Split') {
+    foreach my $subloc ($feat->location->sub_Location) {
+      my $start = $saln->column_from_residue_number($gb->id(),$subloc->start);
+      my $stop  = $saln->column_from_residue_number($gb->id(),$subloc->end);
+    push @colslice, ($start < $stop ? ($start-$opt_C)..($stop+$opt_C) : ($stop-$opt_C)..($start+$opt_C)); 
     }
   }
-  if ($IN) { 
-    while (my $seq = $IN->next_seq()) {
-      print $OUT $seq;
+      }
+      ## GET COLUMNS MATCHING INTERSECTION REGEX IF EXISTS
+      if ($intersect_match and $value =~ $rex) {
+  if (ref($feat->location) eq 'FAST::Bio::Location::Simple') {
+    my $start = $saln->column_from_residue_number($gb->id(),$feat->start);
+    my $stop  = $saln->column_from_residue_number($gb->id(),$feat->end);
+    push @x_colslice, ($start < $stop ? ($start-$opt_C)..($stop+$opt_C) : ($stop-$opt_C)..($start+$opt_C)); 
+  }
+  elsif (ref($feat->location) eq 'FAST::Bio::Location::Split') {
+    foreach my $subloc ($feat->sub_Location) {
+      my $start = $saln->column_from_residue_number($gb->id(),$subloc->start);
+      my $stop  = $saln->column_from_residue_number($gb->id(),$subloc->end);
+      push @x_colslice, ($start < $stop ? ($start-$opt_C)..($stop+$opt_C) : ($stop-$opt_C)..($start+$opt_C)); 
     }
-    undef $IN;
+  }
+      }
+    }
   }
 }
 
+if ($gap_intron) { ## match introns and gap them into alignment
+  foreach my $feat ( $gb->top_SeqFeatures() ) {
+    next if ($primary_match and $feat->primary_tag() ne $primary_match);
+    $feat->location->coordinate_policy($narrow_policy);
+    if ($feat->has_tag($tag)) {
+      foreach $value ( $feat->each_tag_value($tag) ) {
+  if ($value =~ /intron/) {
+    if ($vebose) {
+      print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring()," with $tag $value.\n";
+    }
+    my $start = $saln->column_from_residue_number($gb->id(),$feat->start);
+    my $stop  = $saln->column_from_residue_number($gb->id(),$feat->end);
+    ##    push @intronslice, ($start < $stop ? ($start)..($stop) : ($stop)..($start)); 
+  }
+      }
+    }
+  }
+  
+  ## MAP INTRON TO GAP
+  
+}
 
+
+
+## SORT AND COMPRESS THE COLUMN LIST
+my %seen = ();
+my @sc_colslice =  sort {$a <=> $b} grep { ! $seen{$_} ++ } @colslice;
+
+if ($intersect_match) {
+  ## SORT AND COMPRESS THE INTERSECTION COL SLICE
+  %seen = ();
+  my @x_sc_colslice = sort {$a <=> $b} grep { ! $seen{$_} ++ } @x_colslice;
+  
+  ## FIND THE INTERSECTION OF THE TWO LISTS
+  my %union = my %isect = ();
+  foreach (@sc_colslice, @x_sc_colslice) { $union{$_}++ && $isect{$_}++ }
+
+  @sc_colslice = keys %isect;
+}
+
+## SUBSET AND PRINT ALIGNMENT
+## SUBSET SEQUENCES IN ALIGNMENT IF DESIRED
+if ($slice_match) {
+  my $re = qr/$slice_match/;
+  my @seqs = grep /$re/, @{ $aln->row_ids };
+  my $seq_names = join ' ',@seqs; 
+  $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->seqs({ids => $seq_names},\@sc_colslice)), -row_ids=>\@seqs);
+}
+else {
+  $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->seqs([],\@sc_colslice)), -row_ids=>$aln->row_ids);
+}
+
+if ($delete_gap) {
+  $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($subaln->no_allgap_sites()), -row_ids=>$subaln->row_ids);
+}
+
+$subaln->ffmt($def_format); 
+my $layout = $subaln->layout();
+## FIX FASTA PRINT BUG (IDs SHOULD GO RIGHT AFTER '>') 
+$layout =~ s/^>\s+/>/gm;
+print "$layout";
 
 __END__
 
