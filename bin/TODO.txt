@@ -5,6 +5,7 @@ Updated Wednesday May 7, 2014 21:00 by KK
 Updated Thursday May 8, 2014 9:40 by TJL
 Updated Thursday May 8, 2014 23:30 by TJL
 Updated Friday May 9, 2014 14:35 by TJL
+Updated Friday May 9, 2014 19:06 by TJL
 
 TESTING 
 alndegap
@@ -21,6 +22,7 @@ fastax -needs someone to debug
 fasfilter
 fassort
 fasuniq
+gbfeat2fas
 
 DOCUMENTATION NEEDS WRITING
 alndegap
@@ -33,13 +35,13 @@ fassub
 fastax
 fasfilter
 fassort
+gbfeat2fas
 
 I/O -- FIX TO CURRENT INTERFACE
 alnpi
 fascodon
 fastaxsort
 fasxl
-gbfeat2fas
 gbalncut
 
 
@@ -47,5 +49,5 @@ CODING
 fasfilter -- generalize for numerical filtering by description
 fascomp -- put fasposcomp functionality in fascomp. 
 alnpi, fascodon -- enable output in description for use with fasfilter
-fasuniq -- fix to work on sorted data
+fasuniq -- fix to work on sorted data (currently works on sequence information; needs to work on id and desc.)
 fasxl -- verify gapped translation functionality
