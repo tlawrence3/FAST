@@ -6,6 +6,7 @@ Updated Thursday May 8, 2014 9:40 by TJL
 Updated Thursday May 8, 2014 23:30 by TJL
 Updated Friday May 9, 2014 14:35 by TJL
 Updated Friday May 9, 2014 19:06 by TJL
+Updated Friday May 9, 2014 22:00 by TJL
 
 TESTING 
 alndegap
@@ -23,6 +24,7 @@ fasfilter
 fassort
 fasuniq
 gbfeat2fas
+gbalncut
 
 DOCUMENTATION NEEDS WRITING
 alndegap
@@ -36,13 +38,13 @@ fastax
 fasfilter
 fassort
 gbfeat2fas
+gbalncut
 
 I/O -- FIX TO CURRENT INTERFACE
 alnpi
 fascodon
 fastaxsort
 fasxl
-gbalncut
 
 
 CODING
