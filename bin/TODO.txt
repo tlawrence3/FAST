@@ -25,6 +25,7 @@ fastax -needs someone to debug
 fasfilter
 fassort
 fasuniq
+fasxl
 gbfeat2fas
 gbalncut
 
@@ -40,14 +41,14 @@ fassub
 fastax
 fasfilter
 fassort
+fasxl
+fasuniq
 gbfeat2fas
 gbalncut
 
 I/O -- FIX TO CURRENT INTERFACE
 alnpi
 fastaxsort
-fasxl
-
 
 CODING
 fasfilter -- generalize for numerical filtering by description
