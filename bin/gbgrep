@@ -74,7 +74,7 @@ $0 version $VERSION
 $DESC
 Usage: $0 [-hri] [-t <tag>] 'perl-reg-exp'
  args: -h        this help 
-       -r        raw sequence (otherwise reverse complements features on negative strand)
+       -r        radius around match
        -i        case insensitive pattern matching (corresponds to m//i)
        -t <tag>  match genbank feature <tag>. 
                   Default is 'note.' 
