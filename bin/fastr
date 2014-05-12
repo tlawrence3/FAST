@@ -2,6 +2,7 @@
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
+use FAST;
 use FAST::Bio::SeqIO;
 use strict;
 no warnings 'once';
