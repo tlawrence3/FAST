@@ -8,10 +8,12 @@ Updated Friday May 9, 2014 14:35 by TJL
 Updated Friday May 9, 2014 19:06 by TJL
 Updated Friday May 9, 2014 22:00 by TJL
 Updated Sunday May 11, 2014 12:18 by TJL
+Updated Sunday May 11, 2014 18:06 by TJL
 
 TESTING 
 alndegap
 alnseg
+alnpi
 fasgrep
 fasconvert
 fastr
@@ -32,6 +34,7 @@ gbalncut
 DOCUMENTATION NEEDS WRITING
 alndegap
 alnseg
+alnpi
 fassort
 fastr
 faslen
@@ -47,7 +50,6 @@ gbfeat2fas
 gbalncut
 
 I/O -- FIX TO CURRENT INTERFACE
-alnpi
 fastaxsort
 
 CODING

@@ -379,7 +379,7 @@ $nseq,$Num_alleles,$L,$S,$Theta_w,$Pi,$eta_S,$eta,$label
 .
 
 format STDOUT_LATEX =
-@<<<<<< & @>> & @>>>> (@>>>>) & @>>>> & @#.#### &  \(@#.#### \pm @#.#### \) &  \(@#.#### \pm   @#.#### \) &  @#.#### \\
+   @<<<<<< & @>> & @>>>> (@>>>>) & @>>>> & @#.#### &  \(@#.#### \pm @#.#### \) &  \(@#.#### \pm   @#.#### \) &  @#.#### \\
 $label,$nseq,$TL,$L,$S,$s,$Theta_w_per_site,$SE_Theta_w_no_recomb_per_site,$pi,$SE_pi_no_rec,$Tajima_D
 .
   
@@ -396,6 +396,7 @@ format LATEX_TOP =
 
 format SILENT_TOP =
 .
+
 
 #-----------------------
 sub print_help {

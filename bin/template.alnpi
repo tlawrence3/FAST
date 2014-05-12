@@ -13,13 +13,14 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "";
+$DESC    = "Calculate statistics from a polymorphic DNA alignment.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
 $DATE = POSIX::strftime("%c",localtime());
 
 use constant { true => 1, false => 0 };
+use constant hlPI             => log(4 * atan2 1, 1)/2;
 
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
@@ -33,6 +34,41 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
+my $suppress             = undef; #-s
+my $latex                = undef; #-x
+my $pairwise             = undef;
+my $slide_window         = undef; #-w
+my $upblue               = undef; #-u
+my $absolute             = undef; #--absolute
+my $label_input          = undef;
+
+my $L;
+my $s;
+my $S;
+my $Theta_w;
+my $a1;
+my $a2;
+my $e1;
+my $e2;
+my $Theta_w_per_site;
+my $Num_alleles;
+my $H;
+my $nseq;
+my $Exp_num_alleles;
+my $Prob_allele_partition;
+my $Pi;
+my $pi;
+my $eta_S;
+my $eta;
+my $Tajima_D;
+my $FuLi_D_star;
+my $FuLi_F_star;
+my $anp1;
+my $SE_pi_no_rec;
+my $SE_pi_LE;
+my $SE_Theta_w_no_recomb_per_site;
+my $SE_Theta_w_LE_per_site;
+my $TL;
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -46,6 +82,13 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+     'suppress|s'                  => \$suppress,
+     'latex|x'                     => \$latex,
+     'pairwise|p'                  => \$pairwise,
+     'window|w'                    => \$slide_window,
+     'upblue|u'                    => \$upblue,
+     'absolute'                    => \$absolute,
+     'label=s'                     => \$label_input,
 
 	  ) 
   or pod2usage(2);
@@ -57,40 +100,366 @@ pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARG
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
+my $label = $label_input || ' ';
+$^ = 'LATEX_TOP' if ($latex);
+$^ = 'SILENT_TOP' if ($suppress);
+$~ = ($latex ? 'STDOUT_LATEX' : 'STDOUT' );
+$^ = 'ABS_TOP' if ($absolute);
+$~ = 'STDOUT_ABS' if ($absolute);
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
-my $IN;
-unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
-    }
-}
+my $stream = FAST::Bio::AlignIO->newFh('-fh' => *STDIN{IO}, '-format' => $def_format); # read from standard input
 
-while ($IN or @ARGV) {
-  if (@ARGV) {
-    my $file = shift (@ARGV);
-    unless (-e $file) {
-      warn "$NAME: Could not find file $file. Skipping.\n";
-      next;
-    }
-    elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
-    }
-    else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
+while ( my $aln = <$stream> ){
+  my @seqs = $aln->each_seq();
+  my $ua = FAST::Bio::UnivAln->new('-seqs' => [$aln->each_seq()]);
+  $TL = $aln->length();
+  ## CALCULATION OF NEEDED PARAMETERS THAT DEPEND ON NUMBER OF SEQS
+  $nseq = (scalar (@seqs)); 
+  ##  $nseq_stat = ($opt_p ? 2 : scalar (@seqs)); 
+  $a1 = $a2 = 0;
+  for my $i (1..($nseq - 1)) {
+    $a1 += (1 / $i);
+    $a2 += (1 / ($i ** 2)); ## a2 = bn in Fu Li 93
+  }
+  my $b1 = ($nseq + 1) / (3 * ($nseq -1));
+  my $b2 = 2 * (($nseq ** 2) + $nseq + 3) / (9 * $nseq * ($nseq - 1));
+  my $c1 = ($b1 - (1 / $a1));
+  my $c2 = $b2 - (($nseq + 2) / ($a1 * $nseq)) + ($a2 / ($a1 ** 2));
+  $e1 = $c1 / $a1;
+  $e2 = $c2 / ($a1 ** 2 + $a2);
+  
+  if ($slide_window) { ## SLIDING-WINDOW MODE
+    my ($win_sz,$step_sz,$output) = split /:/,$slide_window;
+    my $gfi = $ua->gap_free_inds(); ## IGNORE GAP-FREE SITES FROM WHOLE ALIGNMENT
+    my $inds = $gfi; 
+
+    if ($pairwise) { ## PAIRWISE-PI-WINDOW MODE
+      $output = 'p'; ## FORCE OUTPUT TO BE PI
+      ## OUTPUT PAIRWISE-MODE HEADER
+      my @ids = @{ $ua->row_ids() };
+      for my $i (0..$#ids) {
+  for my $j (($i+1)..$#ids) { 
+    printf "%10s ",$ids[$i];
+  }
+      }
+      print "\n";
+      for my $i (0..$#ids) {
+  for my $j (($i+1)..$#ids) { 
+    printf "%10s ",$ids[$j];
+  }
+      }
+      print "\n";
+    } ## END PAIRWISE-MODE HEADER
+
+    ## BEGIN SLIDING WINDOWS
+    for (my $b = 0; ($b + $win_sz - 1) < $#$inds; $b += $step_sz) {
+      my $first = $$inds[$b];
+      my $last  = $$inds[($b + $win_sz - 1)];
+      my $midpoint = $first + (($last - $first) / 2);
+      my $slice = [ @$inds[$b..($b+$win_sz-1)]];
+      my $sz = scalar(@$slice);
+      warn "ERROR: window size is $sz instead of $win_sz.\n" unless ($sz == $win_sz);
+
+      unless ($pairwise) {
+  my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([],$slice)));
+  my $return_val = calculate($subaln,$output);
+  printf "%d-%d %d %7.6f\n",$first,$last,$midpoint, $return_val;
+      }
+      else { ##PAIRWISE MODE
+  printf "%d ",$midpoint;
+  for my $i (1..$nseq) {
+    for my $j (($i+1)..$nseq) { 
+      my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],$slice)));
+      my $return_val = calculate($subaln,$output);
+      printf "%10.6f ",$return_val;
+    } }
+  print "\n";
+      }
     }
   }
-  if ($IN) { 
-    while (my $seq = $IN->next_seq()) {
-      print $OUT $seq;
+
+  elsif ($pairwise) { ## PAIRWISE-MATRIX-MODE
+    ## WE PUT OPT_U HERE TO MAXIMIZE SEGSITES BETWEEN PAIRS
+    ## INSTEAD OF REMOVING ALL SITES CONTAINING A GAP IN ANY
+    ## ALLELE
+    
+    my $output = 'p'; ## output is 'pi', modifies behavior of &calculate
+    my @ids = @{ $ua->row_ids() };
+    ## PRINT HEADER
+    print (' ' x 11);
+    for my $i (0..($#ids-1)) {
+      print ($latex ? '& ' : '  '); ## LATEX MODE
+  printf "%10s ",$ids[$i];
     }
-    undef $IN;
+    print ($latex ? "\\\\\n" : "\n");
+
+    ## PRINT MATRIX
+    for my $i (1..$nseq) {
+      printf "%10s ",$ids[($i-1)];
+
+  for my $j (1..($i-1)) { 
+  print ($latex ? '& ' : '  '); ## LATEX MODE
+  my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
+  my $return_val = &calculate($pair,$output);
+  printf "%10.6f ",$return_val;
+      }
+      if ($latex) {
+  for my $j ($i..($nseq-1)) { 
+    print "&",(' ' x 12);
   }
+      }
+      print ($latex ? " \\\\\n" : "\n");
+    }
+  }
+  elsif ($upblue) {
+    print $nseq,"\n";
+    for my $i (1..$nseq) {
+      for my $j (($i+1)..$nseq) { 
+  my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
+  print join ' ',$i,$j;
+  my $return_val = &calculate($pair,'p');
+      }
+    }
+  }
+  else {
+    &calculate($ua);
+  }
+
 }
 
+## THIS FUNCTION WILL BE MAPPED OVER ALIGNMENT COLUMNS TO COUNT STATES
+sub get_pattern {
+  my @chars = @{ $_[0] };
+  my $count = {};
+  map {$$count{$_}++} @chars;
+  return $count;
+}
+
+## THIS APPROXIMATION FOR THE LOG FACTORIAL IS DUE TO RAMANUJAN TAKEN FROM WIKIPEDIA ON MARCH 13 2009
+## NEEDS TO BE VERIFIED AND COMPARED TO THE MATH::GSL::SF AND BIGFLOAT FUNCTIONS
+## INPUT: INTEGER, FRACTIONAL PART WILL BE FLOORED AWAY
+sub Ramanujan_logfact{
+  my $lf;
+  my $n = shift; 
+  $lf = ($n * log $n) - $n;
+  $lf += log ($n + (4 * $n ** 2) + (8 * $n ** 3)) / 6;
+  $lf += hlPI; #this constant is half-log PI defined at the top
+}
+
+sub calculate {
+  my $ua = shift;
+  my $output = shift;
+  if ($output && $output !~ /[pwd]/) { 
+    die "Error, output (third parameter to -w) must be equal to \'p\', \'w\', or \'d\´.\n"; 
+  }
+
+  my $gfs = $ua->gap_free_sites();
+  my $gf = FAST::Bio::UnivAln->new('-seqs' => $gfs);
+  $L =  $gf->width(); ## NOT my BECAUSE IT IS PRINTED GLOBAL
+  my $nseqs = $gf->height(); ## LOCAL DISTINCT VARIABLE BECAUSE OF PAIRWISE MODE
+  my $vs = $gf->var_sites();
+  my $v =  FAST::Bio::UnivAln->new('-seqs' => $vs);
+
+  $S  = $v->width();
+  $s = $S / ($L || 1);
+  $Theta_w = $S / $a1;
+  $Theta_w_per_site = $Theta_w / ($L || 1);
+  return $Theta_w_per_site if ($output && $output eq 'w');
+
+  print join ' ','',$S,"\n" if ($upblue); 
+  ## NEW IMPLEMENTATION $opt_u NOT TESTED; REQUIRES PRINTING NUMBER PW DIFF EACH PAIR OF SEQS!?
+
+  my @seqs = split /\n/,$vs;       ## NEWLINES GO AWAY
+  my %alleles;
+  for my $i (0..$#seqs) {      
+    $alleles{$seqs[$i]}++;         ## FOR THE ALLELE CONFIGURATION
+  }
+  ## COMPUTE PROBABILITY OF ALLELIC CONFIGURATION USING KARLIN MACGREGOR 1972
+  $Num_alleles = scalar keys %alleles;
+  $H = 1;
+  my %a;
+  map {$H -= (($_/$nseqs) ** 2)} values %alleles;
+  if (!$slide_window and !$pairwise and $Theta_w > 0) {
+      $Exp_num_alleles = 1 / $Theta_w;
+      for my $i (1 .. ($#seqs )) {
+    $Exp_num_alleles += 1 / ($Theta_w + $i);
+      }
+      $Exp_num_alleles *= $Theta_w; ## Ewen's Sampling formula
+      map {$a{$_}++} values %alleles; ## THIS MAKES THE a_i
+      my $log_prob   = $Num_alleles * log ($Theta_w);
+      #      $log_prob  += Math::Gsl::Sf::sf_lnfact($Num_alleles);
+      $log_prob  += Ramanujan_logfact($Num_alleles);
+
+      foreach my $i  (0 .. ($nseqs - 1)) {
+    $log_prob -= log ($Theta_w + $i);
+      }
+      foreach (keys %a) {
+  #   $log_prob -= ($a{$_} * log ($_)) + Math::Gsl::Sf::sf_lnfact($a{$_});
+    $log_prob -= ($a{$_} * log ($_)) + Ramanujan_logfact($a{$_});
+      }
+      $Prob_allele_partition = exp $log_prob;
+  }
+  else {
+      $Exp_num_alleles = 1;
+      $Prob_allele_partition = 1;
+  }
+  undef %alleles;
+  ## end COMPUTE PROBABILITY OF ALLELIC CONFIGURATION USING KARLIN MACGREGOR 1972
+  $Pi = 0;
+  $eta_S = 0; ## FOR fu li D* and F*
+  $eta   = 0;
+  my @pats = $v->map_c(\&get_pattern);
+  foreach my $pat (@pats) { 
+    $eta_S += scalar grep {$_ == 1} values %$pat;
+    $eta   += (scalar values %$pat) - 1;
+    my $F = 0;
+    map {$F += (($_ / $nseqs) ** 2)} values %$pat;
+    $Pi += (1 - $F);
+  }
+
+  $Pi and $Pi *= ($nseqs / ($nseqs - 1)); ## for stochastic and sampling variance see Tajima 93
+  ## USED TO BE $nseqs_stat -- for pairwise pi mode. Why?
+  my $pi = $Pi / ($L || 1); ## nuc diversity 
+  return $pi if ($output && $output eq 'p');
+
+  my $Tajima_D_num = $Pi - $Theta_w;
+  my $Tajima_D_den = sqrt ( ($e1 * $S) + ($e2 * $S * ($S - 1)));
+  $Tajima_D     = $Tajima_D_num / ($Tajima_D_den || 1);
+  return $Tajima_D if ($output && $output eq 'd');
+
+  if ($nseq > 2) {  
+    
+   my $cn          = ($nseq == 2 ? 1 : (2 * ((($nseq * $a1) - (2 * ($nseq - 1))) 
+           / (($nseq - 1) * ($nseq - 2))))); ## FU LI eq 14. p 695
+   $anp1        = $a1 + (1 / ($nseq));
+
+   my $dn          = ($cn + 
+      (($nseq - 2) / (($nseq - 1) ** 2)) + 
+      ((2 / ($nseq - 1)) * 
+       (3/2 - (((2 * $anp1) - 3) / ($nseq - 2)) - (1 / $nseq))
+      )
+     ); 
+
+   my $v_D_st      = (((($nseq / ($nseq - 1)) ** 2) * $a2) + 
+        (($a1 ** 2) * $dn) - 
+       ((2 * $nseq * $a1 * ($a1 + 1)) / (($nseq - 1) ** 2)))
+                   /
+       ( ($a1 ** 2) + $a2 );
+   my $u_D_st     = (($nseq / ($nseq - 1)) * ($a1 - ($nseq / ($nseq - 1)))) - $v_D_st;
+  
+   my $FuLi_D_star_num = ($eta * $nseqs / ($nseqs - 1)) - ($eta_S * $a1);
+   my $FuLi_D_star_den = sqrt ( ($u_D_st * $eta) + ($v_D_st * ($eta ** 2)));
+   $FuLi_D_star     = $FuLi_D_star_num / ($FuLi_D_star_den || 1);
+  }
+  else {
+      $FuLi_D_star     = "NA";
+  }
+  ## THE BELOW EXPRESSION IS FROM FU LI 93
+  #   $v_F_st         = ( $dn + (((2 * (($nseq ** 2) + $nseq + 3))) / (9 * $nseq * ($nseq - 1)))
+  #               - (2 / ($nseq - 1) * ((4 * $a2) - 6 + (8 / $nseq)))) 
+  #                      /
+  #                      ( ($a1 ** 2) + $a2 );  
+
+  #   $u_F_st         = ((($nseq / ($nseq - 1)) + (($nseq + 1 ) / (3 * ($nseq - 1))) 
+  #                                   - (4 / $nseq / ($nseq - 1)) 
+  #                                   + (2 * ($nseq + 1) 
+  #                                                    / (($nseq - 1) ** 2) 
+  #                      * ($anp1 - ((2 * $nseq) / ($nseq + 1)))
+  #                   )
+  #            )
+  #            / $a1) 
+  #                        - $v_F_st;
+  ## THE BELOW EXPRESSION IS FROM SIMONSEN ET AL P 428
+      my $v_F_st     = (    ((2 * ($nseq ** 3) + (110 * ($nseq ** 2)) - (255 * $nseq) + 153) 
+                 / (9 * ($nseq ** 2) * ($nseq - 1)))
+             + ((2 * ($nseq - 1) * $a1) / ($nseq ** 2))
+             - (8 * $a2 / $nseq)
+              ) 
+                    / (($a1 ** 2) + $a2);
+
+#   ## THE BELOW EXPRESSION IS FROM SIMONSEN ET AL P 428
+
+       my $u_F_st     = ((((4 * ($nseq ** 2)) 
+                 + (19 * $nseq) 
+                 + 3 
+       - (12 * ($nseq + 1) * $anp1) 
+                 )
+           /
+            (3 * $nseq * ($nseq - 1))) 
+          / $a1) 
+   - $v_F_st;
+
+  my $FuLi_F_star_num = $Pi - ($eta_S * ($nseq - 1) / $nseq); 
+  my $FuLi_F_star_den = sqrt ( ($u_F_st * $eta) + ($v_F_st * ($eta ** 2))); 
+  $FuLi_F_star     = $FuLi_F_star_num / ($FuLi_F_star_den || 1);
+
+  ## THESE STATISTICS BELOW CORRESPOND TO FU AND LI "other tests" AND 
+  ## ARE CORRECTED IN SIMONSEN ET AL 95
+  #   $v_D_st1      = (($a2 / ($a1 ** 2)) - ( (2/$nseq) * ( 1 + (1 / $a1) - $a1 + ($a1 / $nseq)))
+  #        - (1 / ($nseq ** 2)))
+  #                     / ( ($a1 ** 2) + $a2 );
+  
+  #   $u_D_st1     = (($a1 * ($nseq - 1)) - $nseq) / ($nseq * ($a1 ** 2)) - $v_D_st1;
+  #   $FuLi_D_star1_num = $Theta_w - ($eta_S * ($nseqs - 1) / $nseqs); ## Simonsen Et Al 95
+  #   $FuLi_D_star1_den = sqrt ( ($u_D_st1 * $S) + ($v_D_st1 * ($S ** 2)));
+  #   $FuLi_D_star     = $FuLi_D_star1_num / ($FuLi_D_star1_den || 1);
+
+  my $Var_Pi_denom = ((11 * ($nseqs ** 2)) - (7 * $nseqs) + 6);
+  my $Total_Variance_Pi_no_rec = ((3 * $nseqs * ($nseqs + 1) * $Pi) + (2 * (($nseqs ** 2) + $nseqs + 3) * ($Pi ** 2))) / $Var_Pi_denom;
+  my $SE_Pi_no_rec = (sqrt $Total_Variance_Pi_no_rec);
+  $SE_pi_no_rec = $SE_Pi_no_rec / ($L || 1);
+
+  my $Total_Variance_Pi_LE = $Pi * ($nseqs + 1) / (3 * ($nseqs - 1)); 
+  my $SE_Pi_LE = (sqrt $Total_Variance_Pi_LE);
+  $SE_pi_LE =   $SE_Pi_LE / ($L || 1);
+
+  my $Variance_Theta_w_no_recomb = ((($a1 ** 2) * $S) + ($a2 * ($S ** 2))) / (($a1 ** 4) + (($a1 ** 2) * $a2));
+  my $Variance_Theta_w_LE = $S / ($a1 ** 2);
+  #  $SE_Theta_w_no_recomb = (sqrt $Variance_Theta_w_no_recomb);
+  #  $SE_Theta_w_LE = (sqrt $Variance_Theta_w_LE);
+  $SE_Theta_w_no_recomb_per_site = (sqrt $Variance_Theta_w_no_recomb) / ($L || 1);
+  $SE_Theta_w_LE_per_site = (sqrt $Variance_Theta_w_LE) / ($L || 1);
+
+  write;
+}
+format STDOUT_TOP =
+% 
+%  0.n   0.k  0.H   0.E(k|Th_w)  0.Pr(ai..ak)  1.L  2.L(gf)  3.S     4.s   5.Th_w_ps  6.SE_Thwps_LD  7.SE_Thwps_LE    8.pi     9.SE_pi_LD  10.SE_pi_LE  11.Tajim_D   12.FuLi_D*   13.FuLi_F*   14.label
+%  ---   ---  ----  -----------  -----------  -----  -----  -----  -------  --------  -------------  -------------  --------  -----------   ----------  ----------  ----------  ----------   --------
+.
+
+format STDOUT =
+   @>>  @>>  @.###   @.####       @.####    @>>>>  @>>>>  @>>>>  @#.####  @#.#####     @#.#####      @#.#####     @#.#####    @#.#####    @#.#####    @#.#####     @#.#####    @#.#####   @<<<<<<
+$nseq,$Num_alleles,$H,$Exp_num_alleles,$Prob_allele_partition,$TL,$L,$S,$s,$Theta_w_per_site,$SE_Theta_w_no_recomb_per_site,$SE_Theta_w_LE_per_site,$pi,$SE_pi_no_rec,$SE_pi_LE,$Tajima_D,$FuLi_D_star,$FuLi_F_star,$label
+.
+
+format ABS_TOP =
+   0.n 1.k   2.Len   3.S    4.Th_W    5. Pi    6.EtaS   7.Eta   8.label
+   --- ---   -----  -----   -------  --------   -----   -----   -------
+.
+format STDOUT_ABS =
+   @>>  @>>  @>>>>  @>>>>   @#.####  @#.#####   @>>>>   @>>>>   @<<<<<<
+$nseq,$Num_alleles,$L,$S,$Theta_w,$Pi,$eta_S,$eta,$label
+.
+
+format STDOUT_LATEX =
+   @<<<<<< & @>> & @>>>> (@>>>>) & @>>>> & @#.#### &  \(@#.#### \pm @#.#### \) &  \(@#.#### \pm   @#.#### \) &  @#.#### \\
+$label,$nseq,$TL,$L,$S,$s,$Theta_w_per_site,$SE_Theta_w_no_recomb_per_site,$pi,$SE_pi_no_rec,$Tajima_D
+.
+  
+format LATEX_TOP =
+\documentclass[12pt,letterpaper,oneside]{article}
+\begin{document}
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{lccccccc}
+\hline 
+  & n & Len (gf) &  S &   s & $\hat{\theta}_W \pm SE$ & $\hat{pi} \pm SE$ & Tajima's D \\
+\hline 
+.
+
+format SILENT_TOP =
+.
 
 
 __END__
