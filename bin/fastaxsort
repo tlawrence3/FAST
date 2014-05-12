@@ -57,8 +57,8 @@ GetOptions('help|h'         		 => \$help,
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
-pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
+pod2usage("$NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file fasta-file1 fasta-file2 ... > fasta-file. Try $NAME -h for help.") if ((-t STDIN) && ((@ARGV < 3 && !$noname) && (@ARGV < 2 && $noname)));
+pod2usage("$NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file < fasta-file1 > fasta-file. Try $NAME -h for help.") if (!(-t STDIN) && ((@ARGV != 2 && !$noname) && (@ARGV != 1 && $noname)));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 my $nodesfile;
