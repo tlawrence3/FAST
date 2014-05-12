@@ -15,7 +15,7 @@
 #     AUTHOR => [q[David H. Ardell <dhard@cpan.org>]]
 #     BUILD_REQUIRES => { Test::More=>q[0] }
 #     CONFIGURE_REQUIRES => { ExtUtils::MakeMaker=>q[0] }
-#     EXE_FILES => [q[bin/alndegap], q[bin/alnpi], q[bin/alnseg], q[bin/fascodon], q[bin/fascomp], q[bin/fasconvert], q[bin/fascut], q[bin/fasfilter], q[bin/fasgrep], q[bin/faslen], q[bin/fasposcomp], q[bin/fasrc], q[bin/fassub], q[bin/fastr], q[bin/fasuniq], q[bin/fasxl], q[bin/fassort], q[bin/fastaxsort], q[bin/gbfeat2fas], q[bin/gbalncut], q[bin/gbgrep]]
+#     EXE_FILES => [q[bin/alndegap], q[bin/alnpi], q[bin/alnseg], q[bin/fascodon], q[bin/fascomp], q[bin/fasconvert], q[bin/fascut], q[bin/fasfilter], q[bin/fasgrep], q[bin/faslen], q[bin/fasposcomp], q[bin/fasrc], q[bin/fassub], q[bin/fastr], q[bin/fasuniq], q[bin/fasxl], q[bin/fassort], q[bin/fastaxsort], q[bin/fastax], q[bin/gbfeat2fas], q[bin/gbalncut], q[bin/gbgrep]]
 #     INSTALLMAN3DIR => q[none]
 #     LICENSE => q[Perl]
 #     MIN_PERL_VERSION => q[5.006]
@@ -179,6 +179,7 @@ MAN1PODS = bin/alndegap \
 	bin/fasrc \
 	bin/fassort \
 	bin/fassub \
+	bin/fastax \
 	bin/fastaxsort \
 	bin/fastr \
 	bin/fasuniq \
@@ -1353,6 +1354,7 @@ manifypods : pure_all  \
 	bin/fasrc \
 	bin/fassort \
 	bin/fassub \
+	bin/fastax \
 	bin/fastaxsort \
 	bin/fastr \
 	bin/fasuniq \
@@ -1374,6 +1376,7 @@ manifypods : pure_all  \
 	  bin/fasrc $(INST_MAN1DIR)/fasrc.$(MAN1EXT) \
 	  bin/fassort $(INST_MAN1DIR)/fassort.$(MAN1EXT) \
 	  bin/fassub $(INST_MAN1DIR)/fassub.$(MAN1EXT) \
+	  bin/fastax $(INST_MAN1DIR)/fastax.$(MAN1EXT) \
 	  bin/fastaxsort $(INST_MAN1DIR)/fastaxsort.$(MAN1EXT) \
 	  bin/fastr $(INST_MAN1DIR)/fastr.$(MAN1EXT) \
 	  bin/fasuniq $(INST_MAN1DIR)/fasuniq.$(MAN1EXT) \
@@ -1390,132 +1393,24 @@ manifypods : pure_all  \
 
 # --- MakeMaker installbin section:
 
-EXE_FILES = bin/alndegap bin/alnpi bin/alnseg bin/fascodon bin/fascomp bin/fasconvert bin/fascut bin/fasfilter bin/fasgrep bin/faslen bin/fasposcomp bin/fasrc bin/fassub bin/fastr bin/fasuniq bin/fasxl bin/fassort bin/fastaxsort bin/gbfeat2fas bin/gbalncut bin/gbgrep
+EXE_FILES = bin/alndegap bin/alnpi bin/alnseg bin/fascodon bin/fascomp bin/fasconvert bin/fascut bin/fasfilter bin/fasgrep bin/faslen bin/fasposcomp bin/fasrc bin/fassub bin/fastr bin/fasuniq bin/fasxl bin/fassort bin/fastaxsort bin/fastax bin/gbfeat2fas bin/gbalncut bin/gbgrep
 
-pure_all :: $(INST_SCRIPT)/gbgrep $(INST_SCRIPT)/fasposcomp $(INST_SCRIPT)/fastr $(INST_SCRIPT)/fascodon $(INST_SCRIPT)/fassub $(INST_SCRIPT)/fastaxsort $(INST_SCRIPT)/fascut $(INST_SCRIPT)/fasrc $(INST_SCRIPT)/fasfilter $(INST_SCRIPT)/gbalncut $(INST_SCRIPT)/gbfeat2fas $(INST_SCRIPT)/fasconvert $(INST_SCRIPT)/alnpi $(INST_SCRIPT)/fascomp $(INST_SCRIPT)/alndegap $(INST_SCRIPT)/fasgrep $(INST_SCRIPT)/fasxl $(INST_SCRIPT)/alnseg $(INST_SCRIPT)/fasuniq $(INST_SCRIPT)/faslen $(INST_SCRIPT)/fassort
+pure_all :: $(INST_SCRIPT)/fasuniq $(INST_SCRIPT)/gbalncut $(INST_SCRIPT)/fasfilter $(INST_SCRIPT)/alnpi $(INST_SCRIPT)/fassort $(INST_SCRIPT)/faslen $(INST_SCRIPT)/alnseg $(INST_SCRIPT)/fascut $(INST_SCRIPT)/fassub $(INST_SCRIPT)/fascomp $(INST_SCRIPT)/fastr $(INST_SCRIPT)/fasgrep $(INST_SCRIPT)/fascodon $(INST_SCRIPT)/fastaxsort $(INST_SCRIPT)/gbgrep $(INST_SCRIPT)/fasconvert $(INST_SCRIPT)/gbfeat2fas $(INST_SCRIPT)/fasxl $(INST_SCRIPT)/fasposcomp $(INST_SCRIPT)/fastax $(INST_SCRIPT)/fasrc $(INST_SCRIPT)/alndegap
 	$(NOECHO) $(NOOP)
 
 realclean ::
 	$(RM_F) \
-	  $(INST_SCRIPT)/gbgrep $(INST_SCRIPT)/fasposcomp \
-	  $(INST_SCRIPT)/fastr $(INST_SCRIPT)/fascodon \
-	  $(INST_SCRIPT)/fassub $(INST_SCRIPT)/fastaxsort \
-	  $(INST_SCRIPT)/fascut $(INST_SCRIPT)/fasrc \
-	  $(INST_SCRIPT)/fasfilter $(INST_SCRIPT)/gbalncut \
-	  $(INST_SCRIPT)/gbfeat2fas $(INST_SCRIPT)/fasconvert \
-	  $(INST_SCRIPT)/alnpi $(INST_SCRIPT)/fascomp \
-	  $(INST_SCRIPT)/alndegap $(INST_SCRIPT)/fasgrep \
-	  $(INST_SCRIPT)/fasxl $(INST_SCRIPT)/alnseg \
-	  $(INST_SCRIPT)/fasuniq $(INST_SCRIPT)/faslen \
-	  $(INST_SCRIPT)/fassort 
-
-$(INST_SCRIPT)/gbgrep : bin/gbgrep $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbgrep
-	$(CP) bin/gbgrep $(INST_SCRIPT)/gbgrep
-	$(FIXIN) $(INST_SCRIPT)/gbgrep
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbgrep
-
-$(INST_SCRIPT)/fasposcomp : bin/fasposcomp $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasposcomp
-	$(CP) bin/fasposcomp $(INST_SCRIPT)/fasposcomp
-	$(FIXIN) $(INST_SCRIPT)/fasposcomp
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasposcomp
-
-$(INST_SCRIPT)/fastr : bin/fastr $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fastr
-	$(CP) bin/fastr $(INST_SCRIPT)/fastr
-	$(FIXIN) $(INST_SCRIPT)/fastr
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fastr
-
-$(INST_SCRIPT)/fascodon : bin/fascodon $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fascodon
-	$(CP) bin/fascodon $(INST_SCRIPT)/fascodon
-	$(FIXIN) $(INST_SCRIPT)/fascodon
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fascodon
-
-$(INST_SCRIPT)/fassub : bin/fassub $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fassub
-	$(CP) bin/fassub $(INST_SCRIPT)/fassub
-	$(FIXIN) $(INST_SCRIPT)/fassub
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fassub
-
-$(INST_SCRIPT)/fastaxsort : bin/fastaxsort $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fastaxsort
-	$(CP) bin/fastaxsort $(INST_SCRIPT)/fastaxsort
-	$(FIXIN) $(INST_SCRIPT)/fastaxsort
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fastaxsort
-
-$(INST_SCRIPT)/fascut : bin/fascut $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fascut
-	$(CP) bin/fascut $(INST_SCRIPT)/fascut
-	$(FIXIN) $(INST_SCRIPT)/fascut
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fascut
-
-$(INST_SCRIPT)/fasrc : bin/fasrc $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasrc
-	$(CP) bin/fasrc $(INST_SCRIPT)/fasrc
-	$(FIXIN) $(INST_SCRIPT)/fasrc
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasrc
-
-$(INST_SCRIPT)/fasfilter : bin/fasfilter $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasfilter
-	$(CP) bin/fasfilter $(INST_SCRIPT)/fasfilter
-	$(FIXIN) $(INST_SCRIPT)/fasfilter
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasfilter
-
-$(INST_SCRIPT)/gbalncut : bin/gbalncut $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbalncut
-	$(CP) bin/gbalncut $(INST_SCRIPT)/gbalncut
-	$(FIXIN) $(INST_SCRIPT)/gbalncut
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbalncut
-
-$(INST_SCRIPT)/gbfeat2fas : bin/gbfeat2fas $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbfeat2fas
-	$(CP) bin/gbfeat2fas $(INST_SCRIPT)/gbfeat2fas
-	$(FIXIN) $(INST_SCRIPT)/gbfeat2fas
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbfeat2fas
-
-$(INST_SCRIPT)/fasconvert : bin/fasconvert $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasconvert
-	$(CP) bin/fasconvert $(INST_SCRIPT)/fasconvert
-	$(FIXIN) $(INST_SCRIPT)/fasconvert
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasconvert
-
-$(INST_SCRIPT)/alnpi : bin/alnpi $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/alnpi
-	$(CP) bin/alnpi $(INST_SCRIPT)/alnpi
-	$(FIXIN) $(INST_SCRIPT)/alnpi
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/alnpi
-
-$(INST_SCRIPT)/fascomp : bin/fascomp $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fascomp
-	$(CP) bin/fascomp $(INST_SCRIPT)/fascomp
-	$(FIXIN) $(INST_SCRIPT)/fascomp
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fascomp
-
-$(INST_SCRIPT)/alndegap : bin/alndegap $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/alndegap
-	$(CP) bin/alndegap $(INST_SCRIPT)/alndegap
-	$(FIXIN) $(INST_SCRIPT)/alndegap
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/alndegap
-
-$(INST_SCRIPT)/fasgrep : bin/fasgrep $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasgrep
-	$(CP) bin/fasgrep $(INST_SCRIPT)/fasgrep
-	$(FIXIN) $(INST_SCRIPT)/fasgrep
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasgrep
-
-$(INST_SCRIPT)/fasxl : bin/fasxl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasxl
-	$(CP) bin/fasxl $(INST_SCRIPT)/fasxl
-	$(FIXIN) $(INST_SCRIPT)/fasxl
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasxl
-
-$(INST_SCRIPT)/alnseg : bin/alnseg $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/alnseg
-	$(CP) bin/alnseg $(INST_SCRIPT)/alnseg
-	$(FIXIN) $(INST_SCRIPT)/alnseg
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/alnseg
+	  $(INST_SCRIPT)/fasuniq $(INST_SCRIPT)/gbalncut \
+	  $(INST_SCRIPT)/fasfilter $(INST_SCRIPT)/alnpi \
+	  $(INST_SCRIPT)/fassort $(INST_SCRIPT)/faslen \
+	  $(INST_SCRIPT)/alnseg $(INST_SCRIPT)/fascut \
+	  $(INST_SCRIPT)/fassub $(INST_SCRIPT)/fascomp \
+	  $(INST_SCRIPT)/fastr $(INST_SCRIPT)/fasgrep \
+	  $(INST_SCRIPT)/fascodon $(INST_SCRIPT)/fastaxsort \
+	  $(INST_SCRIPT)/gbgrep $(INST_SCRIPT)/fasconvert \
+	  $(INST_SCRIPT)/gbfeat2fas $(INST_SCRIPT)/fasxl \
+	  $(INST_SCRIPT)/fasposcomp $(INST_SCRIPT)/fastax \
+	  $(INST_SCRIPT)/fasrc $(INST_SCRIPT)/alndegap 
 
 $(INST_SCRIPT)/fasuniq : bin/fasuniq $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasuniq
@@ -1523,17 +1418,131 @@ $(INST_SCRIPT)/fasuniq : bin/fasuniq $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).ex
 	$(FIXIN) $(INST_SCRIPT)/fasuniq
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasuniq
 
-$(INST_SCRIPT)/faslen : bin/faslen $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/faslen
-	$(CP) bin/faslen $(INST_SCRIPT)/faslen
-	$(FIXIN) $(INST_SCRIPT)/faslen
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/faslen
+$(INST_SCRIPT)/gbalncut : bin/gbalncut $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbalncut
+	$(CP) bin/gbalncut $(INST_SCRIPT)/gbalncut
+	$(FIXIN) $(INST_SCRIPT)/gbalncut
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbalncut
+
+$(INST_SCRIPT)/fasfilter : bin/fasfilter $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasfilter
+	$(CP) bin/fasfilter $(INST_SCRIPT)/fasfilter
+	$(FIXIN) $(INST_SCRIPT)/fasfilter
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasfilter
+
+$(INST_SCRIPT)/alnpi : bin/alnpi $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/alnpi
+	$(CP) bin/alnpi $(INST_SCRIPT)/alnpi
+	$(FIXIN) $(INST_SCRIPT)/alnpi
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/alnpi
 
 $(INST_SCRIPT)/fassort : bin/fassort $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fassort
 	$(CP) bin/fassort $(INST_SCRIPT)/fassort
 	$(FIXIN) $(INST_SCRIPT)/fassort
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fassort
+
+$(INST_SCRIPT)/faslen : bin/faslen $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/faslen
+	$(CP) bin/faslen $(INST_SCRIPT)/faslen
+	$(FIXIN) $(INST_SCRIPT)/faslen
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/faslen
+
+$(INST_SCRIPT)/alnseg : bin/alnseg $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/alnseg
+	$(CP) bin/alnseg $(INST_SCRIPT)/alnseg
+	$(FIXIN) $(INST_SCRIPT)/alnseg
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/alnseg
+
+$(INST_SCRIPT)/fascut : bin/fascut $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fascut
+	$(CP) bin/fascut $(INST_SCRIPT)/fascut
+	$(FIXIN) $(INST_SCRIPT)/fascut
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fascut
+
+$(INST_SCRIPT)/fassub : bin/fassub $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fassub
+	$(CP) bin/fassub $(INST_SCRIPT)/fassub
+	$(FIXIN) $(INST_SCRIPT)/fassub
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fassub
+
+$(INST_SCRIPT)/fascomp : bin/fascomp $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fascomp
+	$(CP) bin/fascomp $(INST_SCRIPT)/fascomp
+	$(FIXIN) $(INST_SCRIPT)/fascomp
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fascomp
+
+$(INST_SCRIPT)/fastr : bin/fastr $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fastr
+	$(CP) bin/fastr $(INST_SCRIPT)/fastr
+	$(FIXIN) $(INST_SCRIPT)/fastr
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fastr
+
+$(INST_SCRIPT)/fasgrep : bin/fasgrep $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasgrep
+	$(CP) bin/fasgrep $(INST_SCRIPT)/fasgrep
+	$(FIXIN) $(INST_SCRIPT)/fasgrep
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasgrep
+
+$(INST_SCRIPT)/fascodon : bin/fascodon $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fascodon
+	$(CP) bin/fascodon $(INST_SCRIPT)/fascodon
+	$(FIXIN) $(INST_SCRIPT)/fascodon
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fascodon
+
+$(INST_SCRIPT)/fastaxsort : bin/fastaxsort $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fastaxsort
+	$(CP) bin/fastaxsort $(INST_SCRIPT)/fastaxsort
+	$(FIXIN) $(INST_SCRIPT)/fastaxsort
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fastaxsort
+
+$(INST_SCRIPT)/gbgrep : bin/gbgrep $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbgrep
+	$(CP) bin/gbgrep $(INST_SCRIPT)/gbgrep
+	$(FIXIN) $(INST_SCRIPT)/gbgrep
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbgrep
+
+$(INST_SCRIPT)/fasconvert : bin/fasconvert $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasconvert
+	$(CP) bin/fasconvert $(INST_SCRIPT)/fasconvert
+	$(FIXIN) $(INST_SCRIPT)/fasconvert
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasconvert
+
+$(INST_SCRIPT)/gbfeat2fas : bin/gbfeat2fas $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/gbfeat2fas
+	$(CP) bin/gbfeat2fas $(INST_SCRIPT)/gbfeat2fas
+	$(FIXIN) $(INST_SCRIPT)/gbfeat2fas
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/gbfeat2fas
+
+$(INST_SCRIPT)/fasxl : bin/fasxl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasxl
+	$(CP) bin/fasxl $(INST_SCRIPT)/fasxl
+	$(FIXIN) $(INST_SCRIPT)/fasxl
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasxl
+
+$(INST_SCRIPT)/fasposcomp : bin/fasposcomp $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasposcomp
+	$(CP) bin/fasposcomp $(INST_SCRIPT)/fasposcomp
+	$(FIXIN) $(INST_SCRIPT)/fasposcomp
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasposcomp
+
+$(INST_SCRIPT)/fastax : bin/fastax $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fastax
+	$(CP) bin/fastax $(INST_SCRIPT)/fastax
+	$(FIXIN) $(INST_SCRIPT)/fastax
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fastax
+
+$(INST_SCRIPT)/fasrc : bin/fasrc $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/fasrc
+	$(CP) bin/fasrc $(INST_SCRIPT)/fasrc
+	$(FIXIN) $(INST_SCRIPT)/fasrc
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/fasrc
+
+$(INST_SCRIPT)/alndegap : bin/alndegap $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/alndegap
+	$(CP) bin/alndegap $(INST_SCRIPT)/alndegap
+	$(FIXIN) $(INST_SCRIPT)/alndegap
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/alndegap
 
 
 
@@ -1584,7 +1593,7 @@ realclean_subdirs :
 # Delete temporary files (via clean) and also delete dist files
 realclean purge ::  clean realclean_subdirs
 	- $(RM_F) \
-	  $(MAKEFILE_OLD) $(FIRST_MAKEFILE) 
+	  $(FIRST_MAKEFILE) $(MAKEFILE_OLD) 
 	- $(RM_RF) \
 	  $(DISTVNAME) 
 

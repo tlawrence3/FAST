@@ -32,6 +32,8 @@ my $comment              = undef;        # -C
 
 my $concat               = undef;
 my $delimiter            = $def_delimiter;
+my $description_match    = undef;
+my $id_match             = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -47,6 +49,8 @@ GetOptions('help|h'         		 => \$help,
 
 	   'concat|c'                    => \$concat,
 	   'delimiter|d=s'               => \$delimiter
+     'description|D'               => \$description_match,
+     'id|I'                        => \$id_match,
 
 	  ) 
   or pod2usage(2);
@@ -62,6 +66,9 @@ elsif ((-t STDIN) and (@ARGV != 1)) {
 }
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
+my $match = 'seq';
+if ($description_match){$match = 'desc';}
+if ($id_match){$match = 'id';}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
@@ -100,8 +107,8 @@ while ($IN or @ARGV) {
 	next;
       }
       else { #not first sequence
-	my $seqseq = $seq->seq;
-	my $lastseqseq = $lastseq->seq;
+	my $seqseq = $seq->$match;
+	my $lastseqseq = $lastseq->$match;
 
 	if ($seqseq ne $lastseqseq) { #no repeat, or repeat is over
 
