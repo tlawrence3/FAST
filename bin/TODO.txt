@@ -9,6 +9,7 @@ Updated Friday May 9, 2014 19:06 by TJL
 Updated Friday May 9, 2014 22:00 by TJL
 Updated Sunday May 11, 2014 12:18 by TJL
 Updated Sunday May 11, 2014 18:06 by TJL
+Updated Sunday May 11, 2014 19:08 by TJL
 
 TESTING 
 alndegap
@@ -26,6 +27,7 @@ fassub
 fastax -needs someone to debug
 fasfilter
 fassort
+fastaxsort
 fasuniq
 fasxl
 gbfeat2fas
@@ -44,13 +46,14 @@ fassub
 fastax
 fasfilter
 fassort
+fastaxsort
 fasxl
 fasuniq
 gbfeat2fas
 gbalncut
 
 I/O -- FIX TO CURRENT INTERFACE
-fastaxsort
+
 
 CODING
 fasfilter -- generalize for numerical filtering by description
