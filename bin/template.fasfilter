@@ -8,7 +8,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "Filter sequences in a fasta file by length.\n";
+$DESC    = "Filter sequences in a fasta file.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -47,8 +47,8 @@ GetOptions('help|h'         		 => \$help,
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
-pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
+pod2usage("$0: Requires at least two arguments fasfilter [options] <range> fasta-file1 [fasta-file2...]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 1));
+pod2usage("$0: Requires exactly one argument (a range) when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -81,10 +81,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
     }
   }
   if ($IN) { 
