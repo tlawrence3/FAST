@@ -10,6 +10,7 @@ Updated Friday May 9, 2014 22:00 by TJL
 Updated Sunday May 11, 2014 12:18 by TJL
 Updated Sunday May 11, 2014 18:06 by TJL
 Updated Sunday May 11, 2014 19:08 by TJL
+Updated Sunday May 11, 2014 21:10 by TJL 
 
 TESTING 
 alndegap
@@ -59,5 +60,4 @@ CODING
 fasfilter -- generalize for numerical filtering by description
 fascomp -- put fasposcomp functionality in fascomp. 
 alnpi, fascodon -- enable output in description for use with fasfilter
-fasuniq -- fix to work on sorted data (currently works on sequence information; needs to work on id and desc.)
 fasxl -- verify gapped translation functionality
