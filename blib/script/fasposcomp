@@ -109,10 +109,11 @@ sub print_pos {
   }
   print '> ';
   foreach $key (@keys) {
-    print "     $key";
+    printf ("%8s",$key);
   }
   print " TOTAL";
-  print " // $id-(POS $pos)\n  "; ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
+  if ($numpos == 1) {print " // $id\n  ";}
+  else {print " // $id-(POS $pos)\n  ";} ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
   if ($opt_n) {
     foreach $key (@keys) {
       $normalizer += (exists $$hashref{$key} ? $$hashref{$key} : 0);
