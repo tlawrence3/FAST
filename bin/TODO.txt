@@ -11,6 +11,7 @@ Updated Sunday May 11, 2014 12:18 by TJL
 Updated Sunday May 11, 2014 18:06 by TJL
 Updated Sunday May 11, 2014 19:08 by TJL
 Updated Sunday May 11, 2014 21:10 by TJL 
+Updated Tuesday May 13 2014 12:45 by TJL
 
 TESTING 
 alndegap
@@ -53,11 +54,7 @@ fasuniq
 gbfeat2fas
 gbalncut
 
-I/O -- FIX TO CURRENT INTERFACE
-
-
 CODING
 fasfilter -- generalize for numerical filtering by description
-fascomp -- put fasposcomp functionality in fascomp. 
 alnpi, fascodon -- enable output in description for use with fasfilter
 fasxl -- verify gapped translation functionality
