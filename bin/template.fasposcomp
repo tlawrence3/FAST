@@ -36,7 +36,7 @@ my $append               = undef; #-a
 my $strict               = undef;
 my $iupac                = undef;
 my $case                 = undef;
-my $position             = 1;
+my $position             = 1; #default value
 
 my $warned;
 my $job_alphabet;
@@ -176,6 +176,9 @@ sub process {
     $primseqs[$i] = FAST::Bio::PrimarySeq->new(join '',@{ $cuts[$i] });
   }
   
+  my $old_desc;
+  my $new_desc;
+  my $append_count=0; #count so we don't print faspos more than once
 
   for my $i (0..$#primseqs) {
     my $primseq = $primseqs[$i]; 
@@ -183,11 +186,26 @@ sub process {
     my $hash_ref = $seqstats->count_monomers();
     if ($total) {
       foreach my $mono (keys %$hash_ref) {
-  $$$sum[$i]{$mono} += $$hash_ref{$mono};
+        $$$sum[$i]{$mono} += $$hash_ref{$mono};
       }
-    } else {
+    }
+    elsif ($append){  
+     $old_desc = $seqobj->desc();
+     if ($append_count == 0){#first append need faspos label
+     $new_desc .= (join '',"fascomp:",&print_pos($i,$hash_ref,$seqobj->display_id,$filter));
+     }
+     else{ #additional appends no need for faspos label
+      $new_desc .= &print_pos($i,$hash_ref,$seqobj->display_id,$filter);
+     } 
+     $append_count++;   
+    }
+    else {
       &print_pos($i,$hash_ref,$seqobj->display_id,$filter);
     }
+  }
+  if ($append){
+    $seqobj->desc($old_desc . $new_desc);
+    print $OUT $seqobj;
   }
 }
 
@@ -210,6 +228,7 @@ sub print_pos {
   } else {
     @keys = sort keys %$hashref;
   }
+  if (!$append){
   print '> ';
   foreach my $key (@keys) {
     printf ("%8s",$key);
@@ -232,6 +251,57 @@ sub print_pos {
       printf "%8d", $normalizer;
   }
   print "\n";
+  }
+  else { #append true
+  my $append_desc;
+  #if ($position == 1) {print " // $id\n  ";}
+  #else {print " // $id-(POS $pos)\n  ";} ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
+  
+  if ($norm) {
+    foreach my $key (@keys) {
+      $normalizer += (exists $$hashref{$key} ? $$hashref{$key} : 0);
+    }
+    foreach my $key (@keys) {
+      if ($position != 1){
+      $append_desc .= sprintf ("POS_%d:%s %.3f|",$pos, $key, ((exists $$hashref{$key} and $normalizer != 0) ? ($$hashref{$key}/$normalizer) : 0));
+      }
+      else{
+        $append_desc .= sprintf ("%s %.3f|",$key, ((exists $$hashref{$key} and $normalizer != 0) ? ($$hashref{$key}/$normalizer) : 0));
+      }
+    }
+    return $append_desc;
+
+  } else {
+    foreach my $key (@keys) {
+      if ($position != 1){
+      $append_desc .= sprintf ("POS_%d:%s %.3f|",$pos, $key, (exists $$hashref{$key} ? $$hashref{$key} : 0));
+      }
+      else {
+      $append_desc .= sprintf ("%s %.3f|",$key, (exists $$hashref{$key} ? $$hashref{$key} : 0));
+      }
+    }
+    return $append_desc;
+}
+
+###################################
+  # if ($norm) { #append and normalize
+   #   foreach $key (@keys) {
+    #  $normalizer += $$hashref{$key} ? $$hashref{$key} : 0;
+     # }
+     # foreach $key (@keys) {
+     # $append_desc .= sprintf ("%s:%.3f|", $key, ($$hashref{$key} && $normalizer) ? ($$hashref{$key}/$normalizer) : 0);
+     # }
+     # return $append_desc;
+   # }
+   # else{ #append abs
+   #   foreach $key (@keys) {
+   #   $append_desc .= sprintf ("%s:%d|",$key, $$hashref{$key} ? $$hashref{$key} : 0);
+   #   }
+   #   return $append_desc
+   # }
+##################################################
+
+  }
 }
 __END__
 
