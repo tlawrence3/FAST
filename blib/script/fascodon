@@ -39,6 +39,7 @@ my $suppress             = undef; #-s
 my $amino_order          = undef; #-o
 my $orderby_amino        = undef;
 my $table                = 1; #-t 
+my $append               = undef;
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -58,6 +59,7 @@ GetOptions('help|h'         		 => \$help,
      'amino-order|o=s'             => \$amino_order,
      'order-by-amino|g'            => \$orderby_amino,
      'table|t=i'                   => \$table,
+     'append|a'                    => \$append,
 
 	  ) 
   or pod2usage(2);
@@ -70,6 +72,7 @@ pod2usage("$0: Expects no arguments when reading from STDIN. Try $NAME -h for he
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 my $code = FAST::Bio::Tools::CodonTable->new(-id => $table);
+my @append_seqs;
 
 my @bases;
 if ($base_order) {
@@ -190,21 +193,48 @@ while ($IN or @ARGV) {
 
       }
     if ($individual) {
-     &print_output;
+     if (!$append){
+     my $id = $seq->id . $seq->desc();
+     &print_output($id);
      }
+     else{
+      my $old_desc = $seq->desc();
+      my $new_desc = &print_output;
+      $new_desc = "$old_desc $new_desc";
+      $seq->desc($new_desc);
+      print $OUT $seq;
+     }
+     }
+    
+    if ($append && !$individual){ #keep seq objects to append to later
+      push (@append_seqs, $seq);
     }
+  }
     undef $IN;
   }
 }
 
 unless ($individual) {
-    &print_output;
+    if (!$append){&print_output;}
+    else{
+      my $desc_add = &print_output;
+      my $old;
+      my $desc_print;
+      foreach my $print_seq (@append_seqs){
+        $old = $print_seq->desc();
+        $desc_print = "$old $desc_add";
+        $print_seq->desc($desc_print);
+        print $OUT $print_seq;
+      }
+    }
 }
-&print_end_totals;
+if (!$append){&print_end_totals;}
 
 
 sub print_output {
     # calculate RCSU for middle codons
+    my $append_count = 0;
+    my $seq = $_[0];
     my $sum;
     my %rcsu = ();
     my %startrcsu = ();
@@ -237,18 +267,30 @@ sub print_output {
     map {$sum+=$_} values %startrcsu;
     map {$_/$sum}  values %startrcsu;
     
+    my $append_desc = "";
+    
     if ($orderby_amino) { ## group output by amino acid
+  if ($individual && !$append){print "$seq\n";}
   foreach my $aa (split //, ($amino_order || "ARNDCQEGHILKMFPSTWYV*")) {
       foreach my $codon (@{$synonyms{$aa}}) {
     $rcsu{$codon} ||= 0;
     $startrcsu{$codon} ||= 0;
     $count{$codon} ||= 0;
     $startcount{$codon} ||= 0;
+    if (!$append){
     printf("%s %s %5.3f %5.3f %10u %10u\n",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});
+    }
+    else{ #append
+      if ($append_count == 0){$append_desc .= sprintf("fascodon: %s %s %5.3f %5.3f %u %u|",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});}
+      else {$append_desc .= sprintf("%s %s %5.3f %5.3f %u %u|",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});}    
+      $append_count++;
+    }
       }
-  }
+    }
+    if ($append){return $append_desc;}
     }
     else {
+  if ($individual && !$append){print "$seq\n";}
   foreach my $first (@bases) { 
       foreach my $second (@bases) { 
     foreach my $third (@bases) { 
@@ -257,12 +299,21 @@ sub print_output {
         $startrcsu{$codon} ||= 0;
         $count{$codon} ||= 0;
         $startcount{$codon} ||= 0;
+        if (!$append){
         printf("%s %s %5.3f %5.3f %10u %10u\n",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});
+        }
+        else{ #append
+      if ($append_count == 0){$append_desc .= sprintf("fascodon: %s %s %5.3f %5.3f %u %u|",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});}
+      else {$append_desc .= sprintf("%s %s %5.3f %5.3f %u %u|",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});}    
+      $append_count++;
+    }
     }
       }
   }
-    }
+    if ($append){return $append_desc;}
+    
 
+}
 }
 
 sub print_end_totals {    

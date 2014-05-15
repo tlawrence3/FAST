@@ -12,6 +12,7 @@ Updated Sunday May 11, 2014 18:06 by TJL
 Updated Sunday May 11, 2014 19:08 by TJL
 Updated Sunday May 11, 2014 21:10 by TJL 
 Updated Tuesday May 13 2014 12:45 by TJL
+Updated Wednesday May 14, 2014 22:10 by TJL
 
 TESTING 
 alndegap
@@ -56,5 +57,5 @@ gbalncut
 
 CODING
 fasfilter -- generalize for numerical filtering by description
-alnpi, fascodon -- enable output in description for use with fasfilter
+alnpi -- enable output in description for use with fasfilter
 fasxl -- verify gapped translation functionality
