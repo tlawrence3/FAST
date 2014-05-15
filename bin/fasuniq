@@ -48,7 +48,7 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 
 	   'concat|c'                    => \$concat,
-	   'delimiter|d=s'               => \$delimiter
+	   'delimiter|d=s'               => \$delimiter,
      'description|D'               => \$description_match,
      'id|I'                        => \$id_match,
 
@@ -173,7 +173,7 @@ fasuniq [options] [MULTIFASTA-FILE]
 
 =head1 DESCRIPTION
 
-fasuniq concatenates IDs of adjacent duplicate sequence records in a
+fasuniq concatenates IDs of adjacent duplicate sequence records in a 
 multifasta datastream. The sequences should be sorted such as output
 from B<fassort -s>. Only the sequence data itself must be
 identical, not identifiers or descriptions. By default, the first

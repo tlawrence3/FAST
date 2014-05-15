@@ -252,22 +252,15 @@ multifasta datastream.
 
 =head1 SYNOPSIS
 
-fasuniq [options] [MULTIFASTA-FILE]
+fassort [options] [MULTIFASTA-FILE]
 
-[MULTIFASTA-DATA-ON-STDIN] | fasuniq [options]
+[MULTIFASTA-DATA-ON-STDIN] | fassort [options]
 
 =head1 DESCRIPTION
 
-fasuniq concatenates IDs of adjacent duplicate sequence records in a
-multifasta datastream. The sequences should be sorted such as output
-from B<fassort -s>. Only the sequence data itself must be
-identical, not identifiers or descriptions. By default, the first
-matching sequence record in a series of matches (including identifier
-and description) is the one printed.
 
 Options specific to fasuniq:
-  -c, --concat                     concatenate identifiers 
-  -d<string>, --delimiter=<string> use <string> between identifers [:] 
+ 
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -290,16 +283,6 @@ formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
-
-=item B<-c>,
-      B<--concat>
-
-Concatenate identifiers of repeated sequences in output 
-
-=item B<-d [string]>,
-      B<--delim=[string]>
-
-Use delimiter [string] to concatenate identifiers. Default is ":"
 
 =item B<-h>,
       B<--help>

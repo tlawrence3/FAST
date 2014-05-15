@@ -155,17 +155,28 @@ __END__
 
 =head1 NAME
 
-name - what it does
+fastr - facilitates the application of a tr/// operator on all ids,
+descriptions or seqeunces on input
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+fastr [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+fastr takes multifasta format sequence or alignment data as input,
+and faciliates the application of a tr/// operator. This faciliates 
+character remapping, case changes, deletions, degapping, squeezing of
+repeated characters, and more. Various case-spellings are allowed 
+such as strict alphabet, iupac alphabet, upper case only and the 
+replacement of ambigious characters with a defined character rather 
+than 'N' or 'X'. 
 
-Options specific to name:
+Options specific to fastr:
+  -D                           Delete
+  -S                           Squeeze
+  --strict                     Strict DNA or RNA (ACGTacgt)
+  --iupac                      Allows sequence ambiguities
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -179,7 +190,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+fastr is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -188,6 +199,10 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-D>
+
+Delete defined characters or spaces.
 
 =item B<-h>,
       B<--help>
