@@ -179,15 +179,15 @@ __END__
 
 =head1 NAME
 
-name - what it does
+alndegap - removes gap containing sites from a seqeunce alignment
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+alndegap [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+alndegap takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
 

@@ -1,6 +1,6 @@
-#!/Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w
+#!/usr/bin/perl -w
 
-eval 'exec /Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w -S $0 ${1+"$@"}'
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 use Getopt::Std;
 use FAST::Bio::SeqIO;
@@ -109,11 +109,10 @@ sub print_pos {
   }
   print '> ';
   foreach $key (@keys) {
-    printf ("%8s",$key);
+    print "     $key";
   }
   print " TOTAL";
-  if ($numpos == 1) {print " // $id\n  ";}
-  else {print " // $id-(POS $pos)\n  ";} ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
+  print " // $id-(POS $pos)\n  "; ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
   if ($opt_n) {
     foreach $key (@keys) {
       $normalizer += (exists $$hashref{$key} ? $$hashref{$key} : 0);
