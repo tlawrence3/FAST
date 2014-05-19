@@ -215,7 +215,7 @@ Default:[match on identifier]
 
 =item B<-s>
 
-This option will match defiined REGEX on the seqeunces.
+This option will match defined REGEX on the sequences.
 
 =item B<-d>
 

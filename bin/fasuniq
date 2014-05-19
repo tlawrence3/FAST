@@ -220,12 +220,12 @@ Use delimiter [string] to concatenate identifiers. Default is ":"
 =item B<-D>
       B<--description>
 
-Removes duplicate seqeunces by matching on descriptions.
+Removes duplicate sequences by matching on descriptions.
 
 =item B<-I>
       B<--id>
 
-Removes duplicate seqeunces by matching on identifiers.
+Removes duplicate sequences by matching on identifiers.
 
 =item B<-h>,
       B<--help>
