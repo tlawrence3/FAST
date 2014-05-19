@@ -110,15 +110,15 @@ __END__
 
 =head1 NAME
 
-name - what it does
+alnseg - Extracts only variable sites from an alignment
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+alnseg [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+alnseg takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
 
