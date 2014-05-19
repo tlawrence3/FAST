@@ -250,6 +250,10 @@ reformat other formats to and from multifasta.
 
 =over 8
 
+=item B<-t>
+
+
+
 =item B<-h>,
       B<--help>
 

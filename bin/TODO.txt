@@ -12,15 +12,12 @@ Updated Sunday May 11, 2014 18:06 by TJL
 Updated Sunday May 11, 2014 19:08 by TJL
 Updated Sunday May 11, 2014 21:10 by TJL 
 Updated Tuesday May 13 2014 12:45 by TJL
-Updated Wednesday May 14, 2014 22:10 by TJL
+updated Monday May 19 2014  12:25 by DLC
 
 TESTING 
 alndegap
 alnseg
 alnpi
-fasgrep
-fasconvert
-fastr
 fascomp
 faslen
 fascodon
@@ -31,7 +28,6 @@ fastax -needs someone to debug
 fasfilter
 fassort
 fastaxsort
-fasuniq
 fasxl
 gbfeat2fas
 gbalncut
@@ -41,7 +37,6 @@ alndegap
 alnseg
 alnpi
 fassort
-fastr
 faslen
 fascodon
 fascut
@@ -51,11 +46,16 @@ fasfilter
 fassort
 fastaxsort
 fasxl
-fasuniq
 gbfeat2fas
 gbalncut
 
 CODING
 fasfilter -- generalize for numerical filtering by description
-alnpi -- enable output in description for use with fasfilter
+alnpi, fascodon -- enable output in description for use with fasfilter
 fasxl -- verify gapped translation functionality
+
+REVIEW
+fasconvert
+fasuniq
+fastr
+fasgrep

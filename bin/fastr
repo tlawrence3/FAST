@@ -177,6 +177,10 @@ Options specific to fastr:
   -S                           Squeeze
   --strict                     Strict DNA or RNA (ACGTacgt)
   --iupac                      Allows sequence ambiguities
+  -s                           Match on Sequence
+  -d                           Match on description
+  -a, --append                 Append information section
+  -c, --complement             Delete opposite of indicated
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -202,7 +206,39 @@ reformat other formats to and from multifasta.
 
 =item B<-D>
 
-Delete defined characters or spaces.
+Delete defined characters or spaces. Default:[match on identifier]
+
+=item B<-S>
+
+Squeezes defined characters or spaces into one character or space.
+Default:[match on identifier]
+
+=item B<-s>
+
+This option will match defiined REGEX on the seqeunces.
+
+=item B<-d>
+
+This option will match defined REGEX on description.
+
+=item B<--strict>
+
+This option will replace anything that is not a ACTGU/actgu with N.
+
+=item B<--iupac>
+
+This option will replace any charcter that is not an IUPAC ambiguity
+with an N.
+
+=item B<-c>
+      B<--complement>
+
+This option will match and act on any character other than the REGEX.
+
+=item B<-a>
+      B<--append>
+
+This option will append the description 
 
 =item B<-h>,
       B<--help>
