@@ -3,6 +3,7 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -40,14 +41,15 @@ GetOptions('help|h'         		   => \$help,
      'radius|r=i'                  => \$radius,
      'case-insensitive|i'          => \$case,
      'begin|b=i'                   => \$begin_match,
-     'end|e=i'                     => \$end_match,                
+     'end|e=i'                     => \$end_match,
+     'tag|t=s'                       => \$tag_match,                
 
 	  ) 
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file. Try $NAME -h for help.") if (!(-t STDIN) && (@ARGV != 1));
+#pod2usage("Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file. Try $NAME -h for help.") if (!(-t STDIN) && (@ARGV != 0));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -58,16 +60,18 @@ my $product;
 my $note;
 
 my $tag = 'note';
-$tag_match and $tag = $tag_match;
+if ($tag_match){
+  $tag = $tag_match;
+}
 
 my $begin = my $end = undef;
 $begin_match and $begin = $begin_match;
 $end_match and $end = $end_match;
 
-my $IN = FAST::Bio::SeqIO->newFh('-format' => 'Genbank'); ##READ FROM STDIN
+my $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'genbank'); ##READ FROM STDIN
 my $re = ($case ? qr/$ARGV[0]/i : qr/$ARGV[0]/);
 
-while(my $seqobj = <$IN>) {
+while(my $seqobj = $IN->next_seq()) {
   my @feat = grep {$_->primary_tag eq 'CDS' or $_->primary_tag =~ /RNA/} $seqobj->top_SeqFeatures();
   for my $i (0 .. $#feat) {
     my $feat = $feat[$i];
@@ -80,6 +84,7 @@ while(my $seqobj = <$IN>) {
     ++$k;
     print "\n\nMatch $k:\n";
     for my $j (($i - $radius) .. ($i + $radius)) {
+      if ($feat[$j]){ #Check that feature exists
       my $lfeat = $feat[$j];
       $start = $lfeat->start;
       $stop  = $lfeat->end;
@@ -87,6 +92,7 @@ while(my $seqobj = <$IN>) {
       $product  = $lfeat->has_tag('product') ? join ' + ',$lfeat->each_tag_value('product') : ' '; 
       $note     = $lfeat->has_tag('note')    ? join ' + ',$lfeat->each_tag_value('note')    : ' '; 
       write;
+    }
     }
   }
       }
