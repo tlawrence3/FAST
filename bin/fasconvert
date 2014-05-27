@@ -40,7 +40,8 @@ my $seq_ext = {
 	       swiss   =>  'swiss',
 	       pir     =>  'pir',
 	       gcg     =>  'gcg',
-	       raw     =>  'raw'
+	       raw     =>  'raw',
+         fastq   =>  'fastq'
 	      };
 
 my $aln_ext = {

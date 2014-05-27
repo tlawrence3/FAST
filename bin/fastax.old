@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use Getopt::Std;
-use Bio::SeqIO;
-use Bio::Tools::SeqPattern ();
+use FAST::Bio::SeqIO;
+#use Bio::Tools::SeqPattern ();
 use vars qw($VERSION $DESC);
 $VERSION = 0.3;
 $DESC    = "Select sequences based on exact matching of part of a description to NCBI taxonomy IDs or names.\n";
@@ -117,9 +117,9 @@ while (@queue){
 #$re = qr/$opt_F/ if ($opt_F); #deleted by Katie
 
 
-$OUT = Bio::SeqIO->newFh('-format' => 'fasta');
+$OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 unless (@ARGV) {
-  $IN = Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
+  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
 }
 
 while ($IN or @ARGV) {
@@ -130,7 +130,7 @@ while ($IN or @ARGV) {
       next;
     }
     else {
-      $IN = Bio::SeqIO->new(-file => $file, '-format' => $opt_f);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $opt_f);
     }
   }
   if ($IN) { 

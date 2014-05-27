@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w
 
-eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+eval 'exec /Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
@@ -252,6 +252,10 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-t>
+
+
 
 =item B<-h>,
       B<--help>

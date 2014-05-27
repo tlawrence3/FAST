@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w
 
-eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+eval 'exec /Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
@@ -43,7 +43,8 @@ my $seq_ext = {
 	       swiss   =>  'swiss',
 	       pir     =>  'pir',
 	       gcg     =>  'gcg',
-	       raw     =>  'raw'
+	       raw     =>  'raw',
+         fastq   =>  'fastq'
 	      };
 
 my $aln_ext = {
@@ -192,10 +193,10 @@ fasconvert - Convert sequences or alignments to or from fasta format.
 
 =head1 SYNOPSIS
 
-fasconvert -o <format> < fasta-file > other-format file\n";  
-fasconvert -i <format> < other-format-file > fasta-file\n";
-fasconvert -fo <format> fasta-file1 fasta-file2 ... \n";
-fasconvert -fi <format> other-format-file1 other-format-file2 ... \n";
+fasconvert -o <format> < fasta-file > other-format file;  
+fasconvert -i <format> < other-format-file > fasta-file;
+fasconvert -fo <format> fasta-file1 fasta-file2 ... ;
+fasconvert -fi <format> other-format-file1 other-format-file2 ... ;
 
 =head1 DESCRIPTION
 
@@ -211,7 +212,7 @@ one-by-one to corresponding output files using extensions.
 Options specific to fasconvert:
   -i <format>, --input <format>   convert from <format> to fasta
   -o <format>, --output <format>  convert from fasta to <format>
-  -f, --files                      convert files in place 
+  -f, --files                      input file (not from stdin) 
   -s, --sequential                    for phylip output, don't interleave sequences
   -M <integer>, --maxlength=<integer>   for phylip output, truncate identifiers to specified length                                      
 
@@ -233,9 +234,37 @@ reformat other formats to and from multifasta format. The FAST
 definition of fasta encompasses both single and multifasta formats and
 alignments.
 
-for =head1 OPTIONS
+=head1 OPTIONS
 
 =over 8
+
+=item B<-i [format]>
+      B<--input [format]>
+
+Convert file from input format to FASTA format
+
+=item B<-o [format]>
+      B<--output [format]>
+
+Convert file from FASTA format to output format
+
+=item B<-f>
+      B<--files>
+
+This option is to be used when the input is not the direct output from
+a previous program
+
+=item B<-s>
+      B<--sequential>
+
+Used when the ouput format is phylip, specifies to not interleave 
+sequences
+
+=item B<-M [integer]>
+      B<--maxlength=[integer]>
+
+Used when the output format is phylip, this option truncates the
+identifiers to a specified maximum length. Default: [none]
 
 =item B<-h>,
       B<--help>
