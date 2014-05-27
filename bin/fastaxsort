@@ -3,6 +3,7 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -50,7 +51,7 @@ GetOptions('help|h'         		 => \$help,
      'field|F=s'                   => \$field,
      'indentifer|I'                => \$identifer,
      'index|i'                     => \$index,
-     'marker|m=s'                  => \$marker,     
+     'marker|M=s'                  => \$marker,     
 
 	  ) 
   or pod2usage(2);
