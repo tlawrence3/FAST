@@ -109,9 +109,16 @@ $~ = ($latex ? 'STDOUT_LATEX' : 'STDOUT' );
 $^ = 'ABS_TOP' if ($absolute);
 $~ = 'STDOUT_ABS' if ($absolute);
 
-my $stream = FAST::Bio::AlignIO->newFh('-fh' => *STDIN{IO}, '-format' => $def_format); # read from standard input
+my $IN;
+if ($moltype) {
+  $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+}
+else {
+  $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+}
 
-while ( my $aln = <$stream> ){
+if ($IN) {
+while ( my $aln = $IN->next_aln){
   my @seqs = $aln->each_seq();
   my $ua = FAST::Bio::UnivAln->new('-seqs' => [$aln->each_seq()]);
   $TL = $aln->length();
@@ -229,6 +236,8 @@ while ( my $aln = <$stream> ){
 
 }
 
+}
+
 ## THIS FUNCTION WILL BE MAPPED OVER ALIGNMENT COLUMNS TO COUNT STATES
 sub get_pattern {
   my @chars = @{ $_[0] };
@@ -321,7 +330,7 @@ sub calculate {
 
   $Pi and $Pi *= ($nseqs / ($nseqs - 1)); ## for stochastic and sampling variance see Tajima 93
   ## USED TO BE $nseqs_stat -- for pairwise pi mode. Why?
-  my $pi = $Pi / ($L || 1); ## nuc diversity 
+  $pi = $Pi / ($L || 1); ## nuc diversity 
   return $pi if ($output && $output eq 'p');
 
   my $Tajima_D_num = $Pi - $Theta_w;
@@ -333,7 +342,7 @@ sub calculate {
     
    my $cn          = ($nseq == 2 ? 1 : (2 * ((($nseq * $a1) - (2 * ($nseq - 1))) 
            / (($nseq - 1) * ($nseq - 2))))); ## FU LI eq 14. p 695
-   $anp1        = $a1 + (1 / ($nseq));
+   $anp1 = $a1 + (1 / ($nseq));
 
    my $dn          = ($cn + 
       (($nseq - 2) / (($nseq - 1) ** 2)) + 
