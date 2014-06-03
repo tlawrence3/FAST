@@ -258,7 +258,11 @@ fassort [options] [MULTIFASTA-FILE]
 =head1 DESCRIPTION
 
 fassort take a multifasta format on input, 
-Options specific to fasuniq:
+
+Options specific to fassort:
+	-s, --sort-description		sort on description
+	-d, --sort-sequence		sort on sequence
+	-f, --sort-field		sort field in description
  
 
 Options general to FAST:
