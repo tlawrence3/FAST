@@ -1,58 +1,124 @@
 #!/usr/bin/perl -w
+use POSIX;
+use Getopt::Long qw(:config bundling require_order auto_version);
+use Pod::Usage;
+use FAST;
 use FAST::Bio::AlignIO;
 use FAST::Bio::UnivAln;
 use FAST::Bio::SimpleAlign;
 use FAST::Bio::Tools::CodonTable;
 use FAST::Bio::Seq;
 use FAST::Bio::SeqIO;
-#use Math::GSL::SF qw(:Gamma);
-#use Math::BigInt lib => 'GMP';
+use strict;
 
-use constant hlPI             => log(4 * atan2 1, 1)/2;
-
-use Getopt::Std;
-use vars qw($VERSION $DESC $NAME $tag);
-$VERSION = 0.3;
+use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
+$VERSION = $FAST::VERSION; 
 $DESC    = "Calculate statistics from a polymorphic DNA alignment.\n";
 $NAME    = $0;
-$NAME    =~ s/^\/(\w+\/)+//;
+$NAME    =~ s/^.*\///;
+$COMMAND = join " ",$NAME,@ARGV;
+$DATE = POSIX::strftime("%c",localtime());
 
-# PROCESS Command-line options:
-$opt_h      = undef;
-$opt_l      = undef;
-$opt_s      = undef; ## suppress header
-$opt_x      = undef; ## latex output
-$opt_p      = undef; ## pairwise calculations of pi
-$opt_w      = undef; ## sliding window analysis
-$opt_i      = 'fasta'; ## input format
-$opt_u      = undef; ## MAKE AN UPBLUE OUTPUT FILE
-$opt_a      = undef; ## absolute summaries
+use constant { true => 1, false => 0 };
+use constant hlPI             => log(4 * atan2 1, 1)/2;
 
-&getopts('hl:sxw:i:puf:a');
-$opt_h and do { 
-    &print_help;
-    die;
-};
-$label = $opt_l || ' ';
+## DEFAULT OPTION VALUES
+my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
+my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 
-$^ = 'LATEX_TOP' if ($opt_x);
-$^ = 'SILENT_TOP' if ($opt_s);
-$~ = ($opt_x ? 'STDOUT_LATEX' : 'STDOUT' );
-$^ = 'ABS_TOP' if ($opt_a);
-$~ = 'STDOUT_ABS' if ($opt_a);
+## OPTION VARIABLES
+my $man                  = undef;  # --man
+my $help                 = undef;  # -h
+my $moltype              = undef;  # -m, in case bioperl can't tell
+my $format               = $def_format;  # --format
+my $log                  = undef;        # -l
+my $logname              = $def_logname; # -L
+my $comment              = undef;        # -C
+my $suppress             = undef; #-s
+my $latex                = undef; #-x
+my $pairwise             = undef;
+my $slide_window         = undef; #-w
+my $upblue               = undef; #-u
+my $absolute             = undef; #--absolute
+my $label_input          = undef;
+
+my $L;
+my $s;
+my $S;
+my $Theta_w;
+my $a1;
+my $a2;
+my $e1;
+my $e2;
+my $Theta_w_per_site;
+my $Num_alleles;
+my $H;
+my $nseq;
+my $Exp_num_alleles;
+my $Prob_allele_partition;
+my $Pi;
+my $pi;
+my $eta_S;
+my $eta;
+my $Tajima_D;
+my $FuLi_D_star;
+my $FuLi_F_star;
+my $anp1;
+my $SE_pi_no_rec;
+my $SE_pi_LE;
+my $SE_Theta_w_no_recomb_per_site;
+my $SE_Theta_w_LE_per_site;
+my $TL;
 
 
-if (scalar(@ARGV) != 0) {
-    die "Usage: cat alignment-file | $0 -[h] -l [label] \n option -h for help.\n";
+GetOptions('help|h'         		 => \$help, 
+	   'man'            		 => \$man,
+	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						    unless $val =~ /dna|rna|protein/i; 
+						  $moltype = $val;
+						},
+	   'format=s'                    => \$format,
+	   'log|l'                       => \$log,
+	   'logname|L=s'                 => \$logname,
+	   'comment|C=s'                 => \$comment,
+     'suppress|s'                  => \$suppress,
+     'latex|x'                     => \$latex,
+     'pairwise|p'                  => \$pairwise,
+     'window|w'                    => \$slide_window,
+     'upblue|u'                    => \$upblue,
+     'absolute'                    => \$absolute,
+     'label=s'                     => \$label_input,
+
+	  ) 
+  or pod2usage(2);
+		  
+pod2usage(1) if $help;
+pod2usage(-verbose => 2) if $man;
+pod2usage("$0: Expects zero arguments when taking input from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && (@ARGV != 0));
+
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+
+my $label = $label_input || ' ';
+$^ = 'LATEX_TOP' if ($latex);
+$^ = 'SILENT_TOP' if ($suppress);
+$~ = ($latex ? 'STDOUT_LATEX' : 'STDOUT' );
+$^ = 'ABS_TOP' if ($absolute);
+$~ = 'STDOUT_ABS' if ($absolute);
+
+my $IN;
+if ($moltype) {
+  $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+}
+else {
+  $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
 }
 
-$stream = FAST::Bio::AlignIO->newFh('-fh' => *STDIN{IO}, '-format' => "$opt_i"); # read from standard input
-
-while ( my $aln = <$stream> ) {
+if ($IN) {
+while ( my $aln = $IN->next_aln){
   my @seqs = $aln->each_seq();
   my $ua = FAST::Bio::UnivAln->new('-seqs' => [$aln->each_seq()]);
   $TL = $aln->length();
-
   ## CALCULATION OF NEEDED PARAMETERS THAT DEPEND ON NUMBER OF SEQS
   $nseq = (scalar (@seqs)); 
   ##  $nseq_stat = ($opt_p ? 2 : scalar (@seqs)); 
@@ -61,32 +127,32 @@ while ( my $aln = <$stream> ) {
     $a1 += (1 / $i);
     $a2 += (1 / ($i ** 2)); ## a2 = bn in Fu Li 93
   }
-  $b1 = ($nseq + 1) / (3 * ($nseq -1));
-  $b2 = 2 * (($nseq ** 2) + $nseq + 3) / (9 * $nseq * ($nseq - 1));
-  $c1 = ($b1 - (1 / $a1));
-  $c2 = $b2 - (($nseq + 2) / ($a1 * $nseq)) + ($a2 / ($a1 ** 2));
+  my $b1 = ($nseq + 1) / (3 * ($nseq -1));
+  my $b2 = 2 * (($nseq ** 2) + $nseq + 3) / (9 * $nseq * ($nseq - 1));
+  my $c1 = ($b1 - (1 / $a1));
+  my $c2 = $b2 - (($nseq + 2) / ($a1 * $nseq)) + ($a2 / ($a1 ** 2));
   $e1 = $c1 / $a1;
   $e2 = $c2 / ($a1 ** 2 + $a2);
-
-  if ($opt_w) { ## SLIDING-WINDOW MODE
-    my ($win_sz,$step_sz,$output) = split /:/,$opt_w;
+  
+  if ($slide_window) { ## SLIDING-WINDOW MODE
+    my ($win_sz,$step_sz,$output) = split /:/,$slide_window;
     my $gfi = $ua->gap_free_inds(); ## IGNORE GAP-FREE SITES FROM WHOLE ALIGNMENT
     my $inds = $gfi; 
 
-    if ($opt_p) { ## PAIRWISE-PI-WINDOW MODE
+    if ($pairwise) { ## PAIRWISE-PI-WINDOW MODE
       $output = 'p'; ## FORCE OUTPUT TO BE PI
       ## OUTPUT PAIRWISE-MODE HEADER
-      @ids = @{ $ua->row_ids() };
+      my @ids = @{ $ua->row_ids() };
       for my $i (0..$#ids) {
-	for my $j (($i+1)..$#ids) { 
-	  printf "%10s ",$ids[$i];
-	}
+  for my $j (($i+1)..$#ids) { 
+    printf "%10s ",$ids[$i];
+  }
       }
       print "\n";
       for my $i (0..$#ids) {
-	for my $j (($i+1)..$#ids) { 
-	  printf "%10s ",$ids[$j];
-	}
+  for my $j (($i+1)..$#ids) { 
+    printf "%10s ",$ids[$j];
+  }
       }
       print "\n";
     } ## END PAIRWISE-MODE HEADER
@@ -100,70 +166,74 @@ while ( my $aln = <$stream> ) {
       my $sz = scalar(@$slice);
       warn "ERROR: window size is $sz instead of $win_sz.\n" unless ($sz == $win_sz);
 
-      unless ($opt_p) {
-	my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([],$slice)));
-	my $return_val = calculate($subaln,$output);
-	printf "%d-%d %d %7.6f\n",$first,$last,$midpoint, $return_val;
+      unless ($pairwise) {
+  my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([],$slice)));
+  my $return_val = calculate($subaln,$output);
+  printf "%d-%d %d %7.6f\n",$first,$last,$midpoint, $return_val;
       }
       else { ##PAIRWISE MODE
-	printf "%d ",$midpoint;
-	for my $i (1..$nseq) {
-	  for my $j (($i+1)..$nseq) { 
-	    my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],$slice)));
-	    my $return_val = calculate($subaln,$output);
-	    printf "%10.6f ",$return_val;
-	  }	}
-	print "\n";
+  printf "%d ",$midpoint;
+  for my $i (1..$nseq) {
+    for my $j (($i+1)..$nseq) { 
+      my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],$slice)));
+      my $return_val = calculate($subaln,$output);
+      printf "%10.6f ",$return_val;
+    } }
+  print "\n";
       }
     }
   }
-  elsif ($opt_p) { ## PAIRWISE-MATRIX-MODE
+
+  elsif ($pairwise) { ## PAIRWISE-MATRIX-MODE
     ## WE PUT OPT_U HERE TO MAXIMIZE SEGSITES BETWEEN PAIRS
     ## INSTEAD OF REMOVING ALL SITES CONTAINING A GAP IN ANY
     ## ALLELE
     
-    $output = 'p'; ## output is 'pi', modifies behavior of &calculate
-    @ids = @{ $ua->row_ids() };
+    my $output = 'p'; ## output is 'pi', modifies behavior of &calculate
+    my @ids = @{ $ua->row_ids() };
     ## PRINT HEADER
     print (' ' x 11);
     for my $i (0..($#ids-1)) {
-      print ($opt_x ? '& ' : '  '); ## LATEX MODE
-	printf "%10s ",$ids[$i];
+      print ($latex ? '& ' : '  '); ## LATEX MODE
+  printf "%10s ",$ids[$i];
     }
-    print ($opt_x ? "\\\\\n" : "\n");
+    print ($latex ? "\\\\\n" : "\n");
 
     ## PRINT MATRIX
     for my $i (1..$nseq) {
       printf "%10s ",$ids[($i-1)];
 
-	for my $j (1..($i-1)) { 
-	print ($opt_x ? '& ' : '  '); ## LATEX MODE
-	my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
-	my $return_val = calculate($pair,$output);
-	printf "%10.6f ",$return_val;
+  for my $j (1..($i-1)) { 
+  print ($latex ? '& ' : '  '); ## LATEX MODE
+  my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
+  my $return_val = &calculate($pair,$output);
+  printf "%10.6f ",$return_val;
       }
-      if ($opt_x) {
-	for my $j ($i..($nseq-1)) { 
-	  print "&",(' ' x 12);
-	}
+      if ($latex) {
+  for my $j ($i..($nseq-1)) { 
+    print "&",(' ' x 12);
+  }
       }
-      print ($opt_x ? " \\\\\n" : "\n");
+      print ($latex ? " \\\\\n" : "\n");
     }
   }
-  elsif ($opt_u) {
+  elsif ($upblue) {
     print $nseq,"\n";
     for my $i (1..$nseq) {
       for my $j (($i+1)..$nseq) { 
-	my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
-	print join ' ',$i,$j;
-	my $return_val = calculate($pair,'p');
+  my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
+  print join ' ',$i,$j;
+  my $return_val = &calculate($pair,'p');
       }
     }
   }
   else {
-    calculate($ua);
+    &calculate($ua);
   }
-}    
+
+}
+
+}
 
 ## THIS FUNCTION WILL BE MAPPED OVER ALIGNMENT COLUMNS TO COUNT STATES
 sub get_pattern {
@@ -177,7 +247,8 @@ sub get_pattern {
 ## NEEDS TO BE VERIFIED AND COMPARED TO THE MATH::GSL::SF AND BIGFLOAT FUNCTIONS
 ## INPUT: INTEGER, FRACTIONAL PART WILL BE FLOORED AWAY
 sub Ramanujan_logfact{
-  $n = shift; 
+  my $lf;
+  my $n = shift; 
   $lf = ($n * log $n) - $n;
   $lf += log ($n + (4 * $n ** 2) + (8 * $n ** 3)) / 6;
   $lf += hlPI; #this constant is half-log PI defined at the top
@@ -187,7 +258,7 @@ sub calculate {
   my $ua = shift;
   my $output = shift;
   if ($output && $output !~ /[pwd]/) { 
-    die "Error, output (third parameter to -w) must be equal to \'p\', \'w\', or \'d\´.\n"; 
+    die "Error, output (third parameter to -w) must be equal to \'p\', \'w\', or \'d\Â´.\n"; 
   }
 
   my $gfs = $ua->gap_free_sites();
@@ -203,34 +274,36 @@ sub calculate {
   $Theta_w_per_site = $Theta_w / ($L || 1);
   return $Theta_w_per_site if ($output && $output eq 'w');
 
-  print join ' ','',$S,"\n" if ($opt_u); 
+  print join ' ','',$S,"\n" if ($upblue); 
   ## NEW IMPLEMENTATION $opt_u NOT TESTED; REQUIRES PRINTING NUMBER PW DIFF EACH PAIR OF SEQS!?
 
   my @seqs = split /\n/,$vs;       ## NEWLINES GO AWAY
+  my %alleles;
   for my $i (0..$#seqs) {      
     $alleles{$seqs[$i]}++;         ## FOR THE ALLELE CONFIGURATION
   }
   ## COMPUTE PROBABILITY OF ALLELIC CONFIGURATION USING KARLIN MACGREGOR 1972
   $Num_alleles = scalar keys %alleles;
   $H = 1;
+  my %a;
   map {$H -= (($_/$nseqs) ** 2)} values %alleles;
-  if (!$opt_w and !$opt_p and $Theta_w > 0) {
+  if (!$slide_window and !$pairwise and $Theta_w > 0) {
       $Exp_num_alleles = 1 / $Theta_w;
       for my $i (1 .. ($#seqs )) {
-	  $Exp_num_alleles += 1 / ($Theta_w + $i);
+    $Exp_num_alleles += 1 / ($Theta_w + $i);
       }
       $Exp_num_alleles *= $Theta_w; ## Ewen's Sampling formula
       map {$a{$_}++} values %alleles; ## THIS MAKES THE a_i
-      $log_prob   = $Num_alleles * log ($Theta_w);
+      my $log_prob   = $Num_alleles * log ($Theta_w);
       #      $log_prob  += Math::Gsl::Sf::sf_lnfact($Num_alleles);
       $log_prob  += Ramanujan_logfact($Num_alleles);
 
       foreach my $i  (0 .. ($nseqs - 1)) {
-	  $log_prob -= log ($Theta_w + $i);
+    $log_prob -= log ($Theta_w + $i);
       }
       foreach (keys %a) {
-	#	  $log_prob -= ($a{$_} * log ($_)) + Math::Gsl::Sf::sf_lnfact($a{$_});
-	  $log_prob -= ($a{$_} * log ($_)) + Ramanujan_logfact($a{$_});
+  #   $log_prob -= ($a{$_} * log ($_)) + Math::Gsl::Sf::sf_lnfact($a{$_});
+    $log_prob -= ($a{$_} * log ($_)) + Ramanujan_logfact($a{$_});
       }
       $Prob_allele_partition = exp $log_prob;
   }
@@ -257,33 +330,33 @@ sub calculate {
   $pi = $Pi / ($L || 1); ## nuc diversity 
   return $pi if ($output && $output eq 'p');
 
-  $Tajima_D_num = $Pi - $Theta_w;
-  $Tajima_D_den = sqrt ( ($e1 * $S) + ($e2 * $S * ($S - 1)));
+  my $Tajima_D_num = $Pi - $Theta_w;
+  my $Tajima_D_den = sqrt ( ($e1 * $S) + ($e2 * $S * ($S - 1)));
   $Tajima_D     = $Tajima_D_num / ($Tajima_D_den || 1);
   return $Tajima_D if ($output && $output eq 'd');
 
   if ($nseq > 2) {  
     
-   $cn          = ($nseq == 2 ? 1 : (2 * ((($nseq * $a1) - (2 * ($nseq - 1))) 
- 					 / (($nseq - 1) * ($nseq - 2))))); ## FU LI eq 14. p 695
-   $anp1        = $a1 + (1 / ($nseq));
+   my $cn          = ($nseq == 2 ? 1 : (2 * ((($nseq * $a1) - (2 * ($nseq - 1))) 
+           / (($nseq - 1) * ($nseq - 2))))); ## FU LI eq 14. p 695
+   $anp1 = $a1 + (1 / ($nseq));
 
-   $dn          = ($cn + 
- 		  (($nseq - 2) / (($nseq - 1) ** 2)) + 
- 		  ((2 / ($nseq - 1)) * 
- 		   (3/2 - (((2 * $anp1) - 3) / ($nseq - 2)) - (1 / $nseq))
- 		  )
- 		 ); 
+   my $dn          = ($cn + 
+      (($nseq - 2) / (($nseq - 1) ** 2)) + 
+      ((2 / ($nseq - 1)) * 
+       (3/2 - (((2 * $anp1) - 3) / ($nseq - 2)) - (1 / $nseq))
+      )
+     ); 
 
-   $v_D_st      = (((($nseq / ($nseq - 1)) ** 2) * $a2) + 
-  		  (($a1 ** 2) * $dn) - 
- 		   ((2 * $nseq * $a1 * ($a1 + 1)) / (($nseq - 1) ** 2)))
+   my $v_D_st      = (((($nseq / ($nseq - 1)) ** 2) * $a2) + 
+        (($a1 ** 2) * $dn) - 
+       ((2 * $nseq * $a1 * ($a1 + 1)) / (($nseq - 1) ** 2)))
                    /
-  		 ( ($a1 ** 2) + $a2 );
-   $u_D_st     = (($nseq / ($nseq - 1)) * ($a1 - ($nseq / ($nseq - 1)))) - $v_D_st;
+       ( ($a1 ** 2) + $a2 );
+   my $u_D_st     = (($nseq / ($nseq - 1)) * ($a1 - ($nseq / ($nseq - 1)))) - $v_D_st;
   
-   $FuLi_D_star_num = ($eta * $nseqs / ($nseqs - 1)) - ($eta_S * $a1);
-   $FuLi_D_star_den = sqrt ( ($u_D_st * $eta) + ($v_D_st * ($eta ** 2)));
+   my $FuLi_D_star_num = ($eta * $nseqs / ($nseqs - 1)) - ($eta_S * $a1);
+   my $FuLi_D_star_den = sqrt ( ($u_D_st * $eta) + ($v_D_st * ($eta ** 2)));
    $FuLi_D_star     = $FuLi_D_star_num / ($FuLi_D_star_den || 1);
   }
   else {
@@ -291,47 +364,47 @@ sub calculate {
   }
   ## THE BELOW EXPRESSION IS FROM FU LI 93
   #   $v_F_st         = ( $dn + (((2 * (($nseq ** 2) + $nseq + 3))) / (9 * $nseq * ($nseq - 1)))
-  #  		          - (2 / ($nseq - 1) * ((4 * $a2) - 6 + (8 / $nseq)))) 
+  #               - (2 / ($nseq - 1) * ((4 * $a2) - 6 + (8 / $nseq)))) 
   #                      /
   #                      ( ($a1 ** 2) + $a2 );  
 
   #   $u_F_st         = ((($nseq / ($nseq - 1)) + (($nseq + 1 ) / (3 * ($nseq - 1))) 
-  #   		                            - (4 / $nseq / ($nseq - 1)) 
-  #   		                            + (2 * ($nseq + 1) 
+  #                                   - (4 / $nseq / ($nseq - 1)) 
+  #                                   + (2 * ($nseq + 1) 
   #                                                    / (($nseq - 1) ** 2) 
-  #   					         * ($anp1 - ((2 * $nseq) / ($nseq + 1)))
-  #   					      )
-  #   		     )
-  #   		     / $a1) 
+  #                      * ($anp1 - ((2 * $nseq) / ($nseq + 1)))
+  #                   )
+  #            )
+  #            / $a1) 
   #                        - $v_F_st;
   ## THE BELOW EXPRESSION IS FROM SIMONSEN ET AL P 428
-      $v_F_st     = (    ((2 * ($nseq ** 3) + (110 * ($nseq ** 2)) - (255 * $nseq) + 153) 
-        		     / (9 * ($nseq ** 2) * ($nseq - 1)))
-        		 + ((2 * ($nseq - 1) * $a1) / ($nseq ** 2))
-        		 - (8 * $a2 / $nseq)
-        	    ) 
+      my $v_F_st     = (    ((2 * ($nseq ** 3) + (110 * ($nseq ** 2)) - (255 * $nseq) + 153) 
+                 / (9 * ($nseq ** 2) * ($nseq - 1)))
+             + ((2 * ($nseq - 1) * $a1) / ($nseq ** 2))
+             - (8 * $a2 / $nseq)
+              ) 
                     / (($a1 ** 2) + $a2);
 
 #   ## THE BELOW EXPRESSION IS FROM SIMONSEN ET AL P 428
 
-       $u_F_st     = ((((4 * ($nseq ** 2)) 
-     		         + (19 * $nseq) 
-     		         + 3 
-			 - (12 * ($nseq + 1) * $anp1) 
-        	       )
-		       /
-		        (3 * $nseq * ($nseq - 1))) 
-		      / $a1) 
-	 - $v_F_st;
+       my $u_F_st     = ((((4 * ($nseq ** 2)) 
+                 + (19 * $nseq) 
+                 + 3 
+       - (12 * ($nseq + 1) * $anp1) 
+                 )
+           /
+            (3 * $nseq * ($nseq - 1))) 
+          / $a1) 
+   - $v_F_st;
 
-  $FuLi_F_star_num = $Pi - ($eta_S * ($nseq - 1) / $nseq); 
-  $FuLi_F_star_den = sqrt ( ($u_F_st * $eta) + ($v_F_st * ($eta ** 2))); 
+  my $FuLi_F_star_num = $Pi - ($eta_S * ($nseq - 1) / $nseq); 
+  my $FuLi_F_star_den = sqrt ( ($u_F_st * $eta) + ($v_F_st * ($eta ** 2))); 
   $FuLi_F_star     = $FuLi_F_star_num / ($FuLi_F_star_den || 1);
 
   ## THESE STATISTICS BELOW CORRESPOND TO FU AND LI "other tests" AND 
   ## ARE CORRECTED IN SIMONSEN ET AL 95
   #   $v_D_st1      = (($a2 / ($a1 ** 2)) - ( (2/$nseq) * ( 1 + (1 / $a1) - $a1 + ($a1 / $nseq)))
-  # 		   - (1 / ($nseq ** 2)))
+  #        - (1 / ($nseq ** 2)))
   #                     / ( ($a1 ** 2) + $a2 );
   
   #   $u_D_st1     = (($a1 * ($nseq - 1)) - $nseq) / ($nseq * ($a1 ** 2)) - $v_D_st1;
@@ -339,17 +412,17 @@ sub calculate {
   #   $FuLi_D_star1_den = sqrt ( ($u_D_st1 * $S) + ($v_D_st1 * ($S ** 2)));
   #   $FuLi_D_star     = $FuLi_D_star1_num / ($FuLi_D_star1_den || 1);
 
-  $Var_Pi_denom = ((11 * ($nseqs ** 2)) - (7 * $nseqs) + 6);
-  $Total_Variance_Pi_no_rec = ((3 * $nseqs * ($nseqs + 1) * $Pi) + (2 * (($nseqs ** 2) + $nseqs + 3) * ($Pi ** 2))) / $Var_Pi_denom;
-  $SE_Pi_no_rec = (sqrt $Total_Variance_Pi_no_rec);
+  my $Var_Pi_denom = ((11 * ($nseqs ** 2)) - (7 * $nseqs) + 6);
+  my $Total_Variance_Pi_no_rec = ((3 * $nseqs * ($nseqs + 1) * $Pi) + (2 * (($nseqs ** 2) + $nseqs + 3) * ($Pi ** 2))) / $Var_Pi_denom;
+  my $SE_Pi_no_rec = (sqrt $Total_Variance_Pi_no_rec);
   $SE_pi_no_rec = $SE_Pi_no_rec / ($L || 1);
 
-  $Total_Variance_Pi_LE = $Pi * ($nseqs + 1) / (3 * ($nseqs - 1)); 
-  $SE_Pi_LE = (sqrt $Total_Variance_Pi_LE);
+  my $Total_Variance_Pi_LE = $Pi * ($nseqs + 1) / (3 * ($nseqs - 1)); 
+  my $SE_Pi_LE = (sqrt $Total_Variance_Pi_LE);
   $SE_pi_LE =   $SE_Pi_LE / ($L || 1);
 
-  $Variance_Theta_w_no_recomb = ((($a1 ** 2) * $S) + ($a2 * ($S ** 2))) / (($a1 ** 4) + (($a1 ** 2) * $a2));
-  $Variance_Theta_w_LE = $S / ($a1 ** 2);
+  my $Variance_Theta_w_no_recomb = ((($a1 ** 2) * $S) + ($a2 * ($S ** 2))) / (($a1 ** 4) + (($a1 ** 2) * $a2));
+  my $Variance_Theta_w_LE = $S / ($a1 ** 2);
   #  $SE_Theta_w_no_recomb = (sqrt $Variance_Theta_w_no_recomb);
   #  $SE_Theta_w_LE = (sqrt $Variance_Theta_w_LE);
   $SE_Theta_w_no_recomb_per_site = (sqrt $Variance_Theta_w_no_recomb) / ($L || 1);
@@ -357,7 +430,6 @@ sub calculate {
 
   write;
 }
-
 format STDOUT_TOP =
 % 
 %  0.n   0.k  0.H   0.E(k|Th_w)  0.Pr(ai..ak)  1.L  2.L(gf)  3.S     4.s   5.Th_w_ps  6.SE_Thwps_LD  7.SE_Thwps_LE    8.pi     9.SE_pi_LD  10.SE_pi_LE  11.Tajim_D   12.FuLi_D*   13.FuLi_F*   14.label
@@ -379,7 +451,7 @@ $nseq,$Num_alleles,$L,$S,$Theta_w,$Pi,$eta_S,$eta,$label
 .
 
 format STDOUT_LATEX =
-@<<<<<< & @>> & @>>>> (@>>>>) & @>>>> & @#.#### &  \(@#.#### \pm @#.#### \) &  \(@#.#### \pm   @#.#### \) &  @#.#### \\
+   @<<<<<< & @>> & @>>>> (@>>>>) & @>>>> & @#.#### &  \(@#.#### \pm @#.#### \) &  \(@#.#### \pm   @#.#### \) &  @#.#### \\
 $label,$nseq,$TL,$L,$S,$s,$Theta_w_per_site,$SE_Theta_w_no_recomb_per_site,$pi,$SE_pi_no_rec,$Tajima_D
 .
   
@@ -397,66 +469,127 @@ format LATEX_TOP =
 format SILENT_TOP =
 .
 
-#-----------------------
-sub print_help {
-#-----------------------
-    print STDERR << "QQ_HELP_QQ";
-    
-$NAME version $VERSION
-$DESC
-Usage: $NAME [-h] [-l <label>]
- args: -h        this help 
-       -l <string> output label for dataset
-       -s suppress header
-       -x latex-mode. Output in latex format.
-       -w <int:int:char> sliding window output. Argument is Window-sz:step-size:[p(pi)|w(watterman's est)|d(tajima's d)]        
-       -g Include all-gap-sites in spatial indexing (but not statistical calculations) for sliding-window-mode.
-       -p pairwise pi mode. Produces pairwise matrix of pi by allele. Can be combined with latex-mode (-x).
-                            Can also be combined with sliding-window-mode (-w) where it forces pi as output.
 
-input: from standard input
-outpt: to standard output
+__END__
 
-      Notes: 
-	Sites containing gap characters are removed on normal and pairwise-pi-mode (-p). 
-        In sliding-window-mode (-w), if -g is set, sites that _ONLY_ contain gap characters
-           are removed from calculating statistics, but are including in counting the midpoints. 
-%This
-%           allows alignment of sliding windows of protein translations of a coding-region, even with
-%           introns.
-	Ambiguous characters (R,W,N,X, etc.) are not recognized and will be considered as 
-          polymorphisms. Thus, they should be mapped to a gap char to remove the site from consideration,
-          or otherwise taken care of. 
-          See FAST::Bio::UnivAln for definition of recognized gap characters ('-' is one of them).
+=head1 NAME
 
-	The output for sliding window pairwise-mode of pi of two sequences will be affected by gaps 
-          in certain positions in other sequences; this is to make the data comparable for averaging.
+name - what it does
 
-example usage:
+=head1 SYNOPSIS
 
-        ## Calculate statistics on two alignments, same table
-        cat aln.one.fas | $NAME -l  'one' > results.txt 
-        cat aln.two.fas | $NAME -sl 'two' >> results.txt 
+name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
-        ## Latex output
-        cat aln.one.fas | $NAME -xl 'one' > results.tex 
+=head1 DESCRIPTION
 
-        ## Example using 'subalign' to get coding region and 'seqstrict' to remap ambiguities
-        subalign poly.fas seq.gb CDS | seqstrict -sm dna -c - | $NAME -l 'CDS' > $NAME.out
+name takes multifasta format sequence or alignment data as input,
+
+Options specific to name:
+
+Options general to FAST:
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>      specify input sequence type
+
+=head1 INPUT AND OUTPUT
+
+name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+on Bioperl. Most core FAST utilities expect input and return output in
+multifasta format. Input can occur in one or more files or on
+STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
+reformat other formats to and from multifasta.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-h>,
+      B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+=item B<--version>
+
+Print version information and exit.
+
+=item B<-l>,
+      B<--log>
+
+Creates, or appends to, a generic FAST logfile in the current working
+directory. The logfile records date/time of execution, full command
+with options and arguments, and an optional comment.
+
+=item B<-L [string]>,
+      B<--logname=[string]>
+
+Use [string] as the name of the logfile. Default is "FAST.log.txt".
+
+=item B<-C [string]>,
+      B<--comment=[string]>
+
+Include comment [string] in logfile. No comment is saved by default.
+
+=item B<--format=[format]> 		  
+
+Use alternative format for input. See man page for "fasconvert" for
+allowed formats. This is for convenience; the FAST tools are designed
+to exchange data in Fasta format, and "fasta" is the default format
+for this tool.
+
+=item B<-m [dna|rna|protein]>,
+      B<--moltype=[dna|rna|protein]> 		  
+
+Specify the type of sequence on input (should not be needed in most
+cases, but sometimes Bioperl cannot guess and complains when
+processing data).
+
+=back
+
+=head1 EXAMPLES
+
+Print all sequences with "-DNA" in the ID:
+
+=over 8
+
+cat data.fas | fasgrep "-DNA" > data.dna.fas
+
+=back
 
 
-QQ_HELP_QQ
-}
+=back
 
+=head1 SEE ALSO
 
+=over 8
 
+=item C<man perlre>
 
+=item C<perldoc perlre>
 
+Documentation on perl regular expressions.
 
+=item C<man FAST>
 
+=item C<perldoc FAST>
 
+Introduction and cookbook for FAST
 
+=item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
 
+=back 
 
+=head1 CITING
 
+If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
 
+=cut

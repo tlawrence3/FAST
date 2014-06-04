@@ -1,118 +1,135 @@
 #!/usr/bin/perl -w
-use Getopt::Std;
+use POSIX;
+use Getopt::Long qw(:config bundling require_order auto_version);
+use Pod::Usage;
+use FAST;
+use strict;
 use FAST::Bio::SeqIO;
-use FAST::Bio::Tools::SeqPattern ();
-use vars qw($VERSION $DESC);
-$VERSION = 0.3;
-$DESC    = "Substitute strings by perl regular expression match on IDs, sequences, or descriptions.\n";
+
+use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
+$VERSION = $FAST::VERSION; 
+$DESC    = "";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
+$COMMAND = join " ",$NAME,@ARGV;
+$DATE = POSIX::strftime("%c",localtime());
 
-# Command-line options:
-$opt_s      = undef;
-$opt_i      = undef;
-$opt_e      = undef;
-$opt_p      = undef;
-$opt_r      = undef;
-$opt_d      = undef;
-$opt_f      = 'fasta';
-$opt_h      = undef;
-$opt_g      = undef;
+use constant { true => 1, false => 0 };
 
-&getopts('sieprdf:hg');
+## DEFAULT OPTION VALUES
+my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
+my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 
-if ($opt_h or scalar(@ARGV) < 2) {
-  print STDERR <<"QQ_HELP_QQ";
- 
-  $NAME $VERSION
-  $DESC
-  Copyleft 2001-2009 David H. Ardell
-  All wrongs reversed.
+## OPTION VARIABLES
+my $man                  = undef;  # --man
+my $help                 = undef;  # -h
+my $moltype              = undef;  # -m, in case bioperl can't tell
+my $log                  = undef;        # -l
+my $logname              = $def_logname; # -L
+my $comment              = undef;        # -C
+my $match_seq            = undef;
+my $match_desc           = undef;
+my $case                 = undef;
+my $expand_dna           = undef;
+my $expand_protein       = undef;
+my $global               = undef;
+my $rev_expand           = undef;
 
-  Usage: $NAME [options] \'perl-regex\' \'replacement string\' fasta-file1 fasta-file2 ... > fasta-file.
-         $NAME [options] \'perl-regex\' \'replacement string\' < fasta-file1 > fasta-file.
+my $component = 'id'; #default for search
 
-  Options: 
-     -s match on sequence [default: match on ID]
-     -d match on description [default: match on ID]
-     -i case-insensitive-match 
-     -e IUPAC ambiguity expand regex for DNA/RNA sequence match (implies -s)
-     -p IUPAC ambiguity expand regex for protein sequence match (implies -s)
-     -r reverse complement IUPAC ambiguity expanded regex for DNA/RNA match (implies -s)
-     -f <format> read <format> on input instead of default fasta. <format>
-                 may be one of: embl,exp,fastq,gcg,genbank,pir,scf
-                                ace,game,locuslink,phd,qual,raw,swiss
-                 <format> is case-insensitive; google "FAST::Bio::SeqIO" for more info.
-     -g replace matches "globally", all matches per line. 
-        Default is to replace only left-most match. 
 
-  $NAME
-  sequence-matching, there is support for expanding IUPAC ambiguities
-  in the regex pattern.
+GetOptions('help|h'         		 => \$help, 
+	   'man'            		 => \$man,
+	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						    unless $val =~ /dna|rna|protein/i; 
+						  $moltype = $val;
+						},
+	   'log|l'                       => \$log,
+	   'logname|L=s'                 => \$logname,
+	   'comment|C=s'                 => \$comment,
+     'expand-dna|e'                => \$expand_dna,
+     'expand-protein|p'            => \$expand_protein,
+     'case-insensitive|i'          => \$case,
+     'global|g'                    => \$global,
+     'rev-expand|r'                => \$rev_expand,
+     'match-seq|s'                 => \$match_seq,
+     'match-desc|d'                => \$match_desc,
 
-  Like UNIX filters, $NAME can open files for input or take its input
-  from STDIN. It expects fasta format on input, but you can change
-  this (with the "-f" option). It always puts fasta-format to STDOUT.
+	  ) 
 
-  Examples:
+  or pod2usage(2);
+		  
+pod2usage(1) if $help;
+pod2usage(-verbose => 2) if $man;
+pod2usage("$0: $NAME [options] \'perl-regex\' \'replacement string\' fasta-file1 fasta-fileN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 3));
+pod2usage("$0: Requires two arguments when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV != 2);
 
- 
-QQ_HELP_QQ
-exit 1;
-}
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-$arg = shift @ARGV;
+my $arg = shift @ARGV;
+my $re_string;
 
-if ($opt_e and !$opt_r) {
+if ($expand_dna and !$rev_expand) {
   $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->expand;
 }
-elsif ($opt_p) {
+elsif ($expand_protein) {
   $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Protein')->expand;
 }
-elsif ($opt_r) {
+elsif ($rev_expand) {
   $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->revcom(1)->str;
 }
 else {
   $re_string = $arg;
 }
 
-if ($opt_i) {
+my $re;
+if ($case) {
   $re = qr/$re_string/i;
 }
 else {
   $re = qr/$re_string/;
 }
 
-$string = shift @ARGV;
+my $string = shift @ARGV;
 
-$OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+$component = 'desc' if ($match_desc);
+$component = 'seq'  if ($match_seq);
+
+
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $IN;
 unless (@ARGV) {
-  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
+    if ($moltype) {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+    }
+    else {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+    }
 }
-
-$component = 'id';
-$component = 'desc' if ($opt_d);
-$component = 'seq'  if ($opt_s);
 
 while ($IN or @ARGV) {
   if (@ARGV) {
     my $file = shift (@ARGV);
     unless (-e $file) {
-      warn "Could not find file $file. Skipping.\n";
+      warn "$NAME: Could not find file $file. Skipping.\n";
       next;
     }
+    elsif ($moltype) {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+    }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $opt_f);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
     }
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      $matchfield = $seq->$component();
-      if ($opt_g) {
-	$matchfield =~ s/$re/$string/g;
+      my $matchfield = $seq->$component();
+      if ($global) {
+        $matchfield =~ s/$re/$string/g;
       }
       else {
-	$matchfield =~ s/$re/$string/;
+        $matchfield =~ s/$re/$string/;
       }
       $seq->$component($matchfield);
       print $OUT $seq;
@@ -123,3 +140,126 @@ while ($IN or @ARGV) {
 
 
 
+__END__
+
+=head1 NAME
+
+name - what it does
+
+=head1 SYNOPSIS
+
+name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+
+=head1 DESCRIPTION
+
+name takes multifasta format sequence or alignment data as input,
+
+Options specific to name:
+
+Options general to FAST:
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>      specify input sequence type
+
+=head1 INPUT AND OUTPUT
+
+name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+on Bioperl. Most core FAST utilities expect input and return output in
+multifasta format. Input can occur in one or more files or on
+STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
+reformat other formats to and from multifasta.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-h>,
+      B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+=item B<--version>
+
+Print version information and exit.
+
+=item B<-l>,
+      B<--log>
+
+Creates, or appends to, a generic FAST logfile in the current working
+directory. The logfile records date/time of execution, full command
+with options and arguments, and an optional comment.
+
+=item B<-L [string]>,
+      B<--logname=[string]>
+
+Use [string] as the name of the logfile. Default is "FAST.log.txt".
+
+=item B<-C [string]>,
+      B<--comment=[string]>
+
+Include comment [string] in logfile. No comment is saved by default.
+
+=item B<--format=[format]> 		  
+
+Use alternative format for input. See man page for "fasconvert" for
+allowed formats. This is for convenience; the FAST tools are designed
+to exchange data in Fasta format, and "fasta" is the default format
+for this tool.
+
+=item B<-m [dna|rna|protein]>,
+      B<--moltype=[dna|rna|protein]> 		  
+
+Specify the type of sequence on input (should not be needed in most
+cases, but sometimes Bioperl cannot guess and complains when
+processing data).
+
+=back
+
+=head1 EXAMPLES
+
+Print all sequences with "-DNA" in the ID:
+
+=over 8
+
+cat data.fas | fasgrep "-DNA" > data.dna.fas
+
+=back
+
+
+=back
+
+=head1 SEE ALSO
+
+=over 8
+
+=item C<man perlre>
+
+=item C<perldoc perlre>
+
+Documentation on perl regular expressions.
+
+=item C<man FAST>
+
+=item C<perldoc FAST>
+
+Introduction and cookbook for FAST
+
+=item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
+
+=back 
+
+=head1 CITING
+
+If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+
+=cut

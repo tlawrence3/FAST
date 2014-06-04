@@ -1,60 +1,100 @@
 #!/usr/bin/perl -w
-
+use POSIX;
+use Getopt::Long qw(:config bundling require_order auto_version);
+use Pod::Usage;
+use FAST;
 use FAST::Bio::SeqIO;
-use Getopt::Std;
-use vars qw($VERSION $DESC $tag);
-$VERSION = 0.2;
+use strict;
+
+use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
+$VERSION = $FAST::VERSION; 
 $DESC    = "Extract neighboring features from Genbank files corresponding to reg-ex match on tags.\n";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+$COMMAND = join " ",$NAME,@ARGV;
+$DATE = POSIX::strftime("%c",localtime());
 
-# Command-line options:
-$opt_h      = undef;
-$opt_t      = undef;
-$opt_i      = undef;
-$opt_r      = 1;
-$opt_b      = undef;
-$opt_e      = undef;
-&getopts('hit:r:b:e:');
+use constant { true => 1, false => 0 };
 
-$opt_h and do { 
-    &print_help;
-    die;
-};
+## DEFAULT OPTION VALUES
+my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
+my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 
-$tag = 'note';
-$opt_t and $tag = $opt_t;
+## OPTION VARIABLES
+my $man                  = undef;  # --man
+my $help                 = undef;  # -h
+my $log                  = undef;        # -l
+my $logname              = $def_logname; # -L
+my $comment              = undef;        # -C
+my $radius               = 1; #-r
+my $case                 = undef;
+my $tag_match            = undef;
+my $begin_match          = undef;
+my $end_match            = undef;
 
-$begin = $end = undef;
-$opt_b and $begin = $opt_b;
-$opt_e and $end = $opt_e;
 
-if (scalar(@ARGV) != 1) {
-    die "Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file\nuse option -h for help.\n";
+GetOptions('help|h'         		   => \$help, 
+	   'man'            		         => \$man,
+	   'log|l'                       => \$log,
+	   'logname|L=s'                 => \$logname,
+	   'comment|C=s'                 => \$comment,
+     'radius|r=i'                  => \$radius,
+     'case-insensitive|i'          => \$case,
+     'begin|b=i'                   => \$begin_match,
+     'end|e=i'                     => \$end_match,
+     'tag|t=s'                       => \$tag_match,                
+
+	  ) 
+  or pod2usage(2);
+		  
+pod2usage(1) if $help;
+pod2usage(-verbose => 2) if $man;
+#pod2usage("Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file. Try $NAME -h for help.") if (!(-t STDIN) && (@ARGV != 0));
+
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+
+my $start;
+my $stop;
+my $gene;
+my $product;
+my $note;
+
+my $tag = 'note';
+if ($tag_match){
+  $tag = $tag_match;
 }
 
-my $seqin = FAST::Bio::SeqIO->newFh('-format' => 'Genbank'); ##READ FROM STDIN
-my $re = ($opt_i ? qr/$ARGV[0]/i : qr/$ARGV[0]/);
+my $begin = my $end = undef;
+$begin_match and $begin = $begin_match;
+$end_match and $end = $end_match;
 
-while(my $seqobj = <$seqin>) {
-  @feat = grep {$_->primary_tag eq 'CDS' or $_->primary_tag =~ /RNA/} $seqobj->top_SeqFeatures();
-  for $i (0 .. $#feat) {
+my $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'genbank'); ##READ FROM STDIN
+my $re = ($case ? qr/$ARGV[0]/i : qr/$ARGV[0]/);
+
+while(my $seqobj = $IN->next_seq()) {
+  my @feat = grep {$_->primary_tag eq 'CDS' or $_->primary_tag =~ /RNA/} $seqobj->top_SeqFeatures();
+  for my $i (0 .. $#feat) {
     my $feat = $feat[$i];
     next if ($begin and $begin > $feat->start);
     next if ($end   and $end <   $feat->end);
     if ($feat->has_tag($tag)) {
-      foreach $value ( $feat->each_tag_value($tag) ) {
-	if ($value =~ $re) {
-	  ++$k;
-	  print "\n\nMatch $k:\n";
-	  for $j (($i - $opt_r) .. ($i + $opt_r)) {
-	    my $lfeat = $feat[$j];
-	    $start = $lfeat->start;
-	    $stop  = $lfeat->end;
-	    $gene     = $lfeat->has_tag('gene')    ? join ' + ',$lfeat->each_tag_value('gene')    : ' '; 
-	    $product  = $lfeat->has_tag('product') ? join ' + ',$lfeat->each_tag_value('product') : ' '; 
-	    $note     = $lfeat->has_tag('note')    ? join ' + ',$lfeat->each_tag_value('note')    : ' '; 
-	    write;
-	  }
-	}
+      foreach my $value ( $feat->each_tag_value($tag) ) {
+        my $k;
+  if ($value =~ $re) {
+    ++$k;
+    print "\n\nMatch $k:\n";
+    for my $j (($i - $radius) .. ($i + $radius)) {
+      if ($feat[$j]){ #Check that feature exists
+      my $lfeat = $feat[$j];
+      $start = $lfeat->start;
+      $stop  = $lfeat->end;
+      $gene     = $lfeat->has_tag('gene')    ? join ' + ',$lfeat->each_tag_value('gene')    : ' '; 
+      $product  = $lfeat->has_tag('product') ? join ' + ',$lfeat->each_tag_value('product') : ' '; 
+      $note     = $lfeat->has_tag('note')    ? join ' + ',$lfeat->each_tag_value('note')    : ' '; 
+      write;
+    }
+    }
+  }
       }
     }
   }
@@ -65,38 +105,129 @@ format STDOUT =
 $start,$stop,$gene,$product,$note
 .
 
-#-----------------------
-sub print_help {
-#-----------------------
-    print STDERR << "QQ_HELP_QQ";
-    
-$0 version $VERSION
-$DESC
-Usage: $0 [-hri] [-t <tag>] 'perl-reg-exp'
- args: -h        this help 
-       -r        raw sequence (otherwise reverse complements features on negative strand)
-       -i        case insensitive pattern matching (corresponds to m//i)
-       -t <tag>  match genbank feature <tag>. 
-                  Default is 'note.' 
-                  Examples of alternatives: 'product', 'gene'
-input: from <stdin>
-outpt: multifasta file
-
-    Do 'man perlre' for help on perl regular expressions.
-
-        ## Print all subsequences from files ending in *.gb for features with '/product' =~ m/.+RNA/i 
-    Ex: cat *.gb | $0 -it product '.+RNA' 
-
-QQ_HELP_QQ
-}
 
 
 
+__END__
+
+=head1 NAME
+
+name - what it does
+
+=head1 SYNOPSIS
+
+name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+
+=head1 DESCRIPTION
+
+name takes multifasta format sequence or alignment data as input,
+
+Options specific to name:
+
+Options general to FAST:
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>      specify input sequence type
+
+=head1 INPUT AND OUTPUT
+
+name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+on Bioperl. Most core FAST utilities expect input and return output in
+multifasta format. Input can occur in one or more files or on
+STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
+reformat other formats to and from multifasta.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-h>,
+      B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+=item B<--version>
+
+Print version information and exit.
+
+=item B<-l>,
+      B<--log>
+
+Creates, or appends to, a generic FAST logfile in the current working
+directory. The logfile records date/time of execution, full command
+with options and arguments, and an optional comment.
+
+=item B<-L [string]>,
+      B<--logname=[string]>
+
+Use [string] as the name of the logfile. Default is "FAST.log.txt".
+
+=item B<-C [string]>,
+      B<--comment=[string]>
+
+Include comment [string] in logfile. No comment is saved by default.
+
+=item B<--format=[format]> 		  
+
+Use alternative format for input. See man page for "fasconvert" for
+allowed formats. This is for convenience; the FAST tools are designed
+to exchange data in Fasta format, and "fasta" is the default format
+for this tool.
+
+=item B<-m [dna|rna|protein]>,
+      B<--moltype=[dna|rna|protein]> 		  
+
+Specify the type of sequence on input (should not be needed in most
+cases, but sometimes Bioperl cannot guess and complains when
+processing data).
+
+=back
+
+=head1 EXAMPLES
+
+Print all sequences with "-DNA" in the ID:
+
+=over 8
+
+cat data.fas | fasgrep "-DNA" > data.dna.fas
+
+=back
 
 
+=back
 
+=head1 SEE ALSO
 
+=over 8
 
+=item C<man perlre>
 
+=item C<perldoc perlre>
 
+Documentation on perl regular expressions.
 
+=item C<man FAST>
+
+=item C<perldoc FAST>
+
+Introduction and cookbook for FAST
+
+=item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
+
+=back 
+
+=head1 CITING
+
+If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+
+=cut

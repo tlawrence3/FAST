@@ -1,0 +1,254 @@
+#!/usr/bin/perl -w
+use Getopt::Std;
+use FAST::Bio::SeqIO;
+use FAST::Bio::PrimarySeq;
+use FAST::Bio::Tools::MySeqStats;
+
+use vars qw($VERSION $DESC $dnastrict $dnaiupac $rnastrict $rnaiupac $proteinstrict $proteiniupac);
+$VERSION = 1.0;
+$DESC    = "Outputs monomer (letter) composition of a sequence";
+
+$opt_h      = undef; #help
+$opt_f    = 'fasta'; #format
+$opt_t      = undef; #total
+$opt_p      = undef; #pipe
+$opt_n      = undef; #normalize by total
+$opt_s      = undef; #strict
+$opt_i      = undef; #iupac
+$opt_m      = undef; #alphabet
+$opt_c      = undef; #ignore case
+&getopts('hf:tpsm:cin');
+$opt_h and do { 
+    &print_help;
+    die;
+};
+$opt_m and do { 
+  die "USAGE: $0 -m [dna|rna|protein]\n" if ('dna protein rna' !~ /$opt_m/);
+};
+$opt_s and do { 
+  $opt_i = undef;
+  $opt_s = 'strict';
+};
+$opt_i and do { 
+  $opt_s = 'iupac';
+};
+$opt_p and do {
+  if (scalar(@ARGV) != 0) {
+    die "-p implies no arguments (pipe).\n";
+  }
+};
+
+(!$opt_p) and do {
+  if (scalar(@ARGV) == 0) {
+    die "no sequence files specified. -p implies input from stdin if that's what you want.\n";
+  }
+};
+
+
+## TO GO INTO DICTIONARY
+local $dnastrict     = qr/[ACTGactg]/;
+local $dnaiupac      = qr/[ACTGactgMRWSYKVHDBXNmrwsykvhdbxn]/;
+local $rnastrict     = qr/[ACUGacug]/;
+local $rnaiupac      = qr/[ACUGacugMRWSYKVHDBXNmrwsykvhdbxn]/;
+local $proteinstrict = qr/[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy]/;
+local $proteiniupac  = qr/[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwyBZX\.bzx\*]/;
+# USAGE $alphabet = $opt_m . $opt_s; $re = $$alphabet;
+
+if ($opt_p) {
+  $IN  = FAST::Bio::SeqIO->newFh('-format' => $opt_f);
+  while(<$IN>) {
+  # my ($primseq,$hash_ref,$job_alphabet);
+    my $seqobj = $_;
+    $opt_m and do {
+      $seqobj->alphabet($opt_m); ##SET ALPHABET OF ALL SEQUENCES
+    };
+    unless ($warned) {
+      $job_alphabet and do {
+	if ($seqobj->alphabet ne $job_alphabet) {
+	  warn "Sequences appear not to be of the same type.\n";
+	}
+	$warned = 1;
+      };
+    }
+    unless ($job_alphabet) {
+      $job_alphabet = $seqobj->alphabet;
+    }
+    if ($opt_c) {
+      warn "opt c DISABLED\n";
+      #      $primseq = $seqobj->primary_seq;
+    } else {
+      #      $primseq = FAST::Bio::PrimarySeq->new(uc $seqobj->seq);
+    }
+    $filter = qr/./; ## MATCH ANY CHARACTER
+    $opt_s and do {
+      $alphabet = ($seqobj->alphabet . $opt_s); 
+      $filter = $$alphabet;
+    };
+    $seqstats = FAST::Bio::Tools::MySeqStats->new($seqobj);
+    $hash_ref = $seqstats->count_monomers();
+    if ($opt_t) {
+      foreach $mono (keys %$hash_ref) {
+	$sum{$mono} += $$hash_ref{$mono};
+      }
+    } else {
+      &print_mono($hash_ref,$seqobj->display_id,$filter);
+    }
+  }
+  $opt_t and do {
+    &print_mono(\%sum,'',$filter);
+  }
+}
+else {
+  @seqfiles = glob($ARGV[0]);
+  foreach $seqfilenm (@seqfiles) {
+    my %sum;
+    $IN  = FAST::Bio::SeqIO->new('-format' => $opt_f, -file => $seqfilenm);
+    while(my $seqobj = $IN->next_seq) {
+      # my ($primseq,$hash_ref,$job_alphabet);
+      $opt_m and do {
+	$seqobj->alphabet($opt_m); ##SET ALPHABET OF ALL SEQUENCES
+      };
+      unless ($warned) {
+	$job_alphabet and do {
+	  if ($seqobj->alphabet ne $job_alphabet) {
+	    warn "Sequences appear not to be of the same type.\n";
+	  }
+	  $warned = 1;
+	};
+      }
+      unless ($job_alphabet) {
+	$job_alphabet = $seqobj->alphabet;
+      }
+      if ($opt_c) {
+	warn "opt c DISABLED\n";
+	#	$primseq = $seqobj->primary_seq;
+      } else {
+	#	$primseq = FAST::Bio::PrimarySeq->new(uc $seqobj->seq);
+      }
+      $filter = qr/./; ## MATCH ANY CHARACTER
+      $opt_s and do {
+	$alphabet = ($seqobj->alphabet . $opt_s); 
+	$filter = $$alphabet;
+      };
+      $seqstats = FAST::Bio::Tools::MySeqStats->new($seqobj);
+      $hash_ref = $seqstats->count_monomers();
+      if ($opt_t) {
+	foreach $mono (keys %$hash_ref) {
+	  $sum{$mono} += $$hash_ref{$mono};
+	}
+      } else {
+	&print_mono($hash_ref,$seqobj->display_id,$filter);
+      }
+    }
+    $opt_t and do {
+      &print_mono(\%sum,$seqfilenm,$filter);
+    }   
+  }
+  close IN;
+}
+1;
+
+
+
+
+#-----------------------
+sub print_help {
+#-----------------------
+    print STDERR << "QQ_HELP_QQ";
+    
+$0 version $VERSION
+$DESC
+Usage: $0 [-htpisc] [-m alphabet] [-f <file-format>] < <seq-file>
+   or: cat <seq-files> | $0 [-htpisc] [-m alphabet] [-f <file-format>] 
+ opts: -h this help 
+       -t total composition over all sequences
+       -p argument from stdin (else default is analyze a list of files as args)
+       -n normalize (probabilities instead of frequencies)
+       -f file format (default is fasta). Options are:
+
+                       Fasta       FASTA format
+                       EMBL        EMBL format
+                       GenBank     GenBank format
+                       swiss       Swissprot format
+                       SCF         SCF tracefile format
+                       PIR         Protein Information Resource format
+                       GCG         GCG format
+                       raw         Raw format (one sequence per line, no ID)
+                       ace         ACeDB sequence format
+			 
+			 various case-spellings are allowed
+       
+       -s strict alphabet (only unambiguous sense monomers counted)
+       -i iupac  alphabet (ambiguity and stop codes counted, -s overrides)
+       -m force alphabet [dna,rna,protein] (only affects behavior with a -s flag)
+       -c count cases separately
+
+ note: without -s or -i, any character is counted.  Columns may not represent the same 
+       characters for multiple sequences if they don't have identical alphabets.
+ args: none. Multiple sequence files are read ftom <stdin>.
+ returns: to <stdout> 
+			       > mono1 mono2 mono3 ... total
+                                 freq1 freq2 freq3 ... total
+
+QQ_HELP_QQ
+}
+
+#-----------------------
+sub print_mono {
+#-----------------------
+  my ($hashref,$id,$filter) = @_;
+  my ($normalizer,@keys);
+
+  if ($opt_s) {
+    foreach $key (keys %$hashref) {
+      if ($key !~ $filter) {
+	warn "Sequence", ($id ? " $id" : '(s)'), " contained excluded character \'$key\'.\n";
+      }
+    }
+    unless ($opt_c) {$filter =~ tr/a-z\\//d;}
+    $filter =~ /\[(.+)\]/; ## REGEXP A REGEXP
+    $allowed = $1;
+    @keys = split //,$allowed;
+  } else {
+    @keys = sort keys %$hashref;
+  }
+  print '> ';
+  foreach $key (@keys) {
+    printf "%8s",$key;
+  }
+  print " TOTAL";
+  print " // $id\n  "; ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
+  if ($opt_n) {
+    foreach $key (@keys) {
+      $normalizer += $$hashref{$key} ? $$hashref{$key} : 0;
+    }
+    foreach $key (@keys) {
+      printf "%8.3f", ($$hashref{$key} && $normalizer) ? ($$hashref{$key}/$normalizer) : 0;
+    }
+  } else {
+    foreach $key (@keys) {
+      $normalizer += $$hashref{$key} ? $$hashref{$key} : 0;
+      printf "%8d", $$hashref{$key} ? $$hashref{$key} : 0;
+    }
+      printf "%8d", $normalizer;
+  }
+  print "\n";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

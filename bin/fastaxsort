@@ -1,57 +1,80 @@
 #!/usr/bin/perl -w
-use Getopt::Std;
-use Bio::SeqIO;
-use Bio::Tools::SeqPattern ();
-use vars qw($VERSION $DESC %childaddress);
-$VERSION = 0.3;
+use POSIX;
+use Getopt::Long qw(:config bundling require_order auto_version);
+use Pod::Usage;
+use FAST;
+use FAST::Bio::SeqIO;
+use strict;
+
+use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
+$VERSION = $FAST::VERSION; 
 $DESC    = "Sort and identify sequences based on NCBI taxonomy.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
+$COMMAND = join " ",$NAME,@ARGV;
+$DATE = POSIX::strftime("%c",localtime());
 
-# Command-line options:
-$opt_I      = undef; ## match on identifer, not description
-$opt_S      = undef; ## split mode
-$opt_F      = undef; ## reg-ex for split, default is \t
-$opt_n      = undef; ## no-name mode
-$opt_f      = 'fasta';
-$opt_h      = undef;
-$opt_i      = undef; ## print indices
-$opt_m      = '#'; ## Address marker glyph, default is #
+use constant { true => 1, false => 0 };
 
-&getopts('IS:F:nf:hi');
+## DEFAULT OPTION VALUES
+my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
+my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 
-if ($opt_h or @ARGV < 2) {
-  print STDERR <<"QQ_HELP_QQ";
-  $NAME $VERSION
-  $DESC
-  Copyleft 2010 David H. Ardell
-  All wrongs reversed.
+## OPTION VARIABLES
+my $man                  = undef;  # --man
+my $help                 = undef;  # -h
+my $moltype              = undef;  # -m, in case bioperl can't tell
+my $format               = $def_format;  # --format
+my $log                  = undef;        # -l
+my $logname              = $def_logname; # -L
+my $comment              = undef;        # -C
+my $noname               = undef; #-n
+my $split                = undef; #-S
+my $field                = undef; #-F
+my $identifer            = undef; #-I
+my $index                = undef; #-i
+my $marker               = '#'; #-m
 
-  Usage: $NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file fasta-file1 fasta-file2 ... > fasta-file.
-         $NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file < fasta-file1 > fasta-file.  
-         $NAME [options] -n NCBI-taxonomy-nodes-file fasta-file1 fasta-file2 ... > fasta-file.
-         $NAME [options] -n NCBI-taxonomy-nodes-file < fasta-file1 > fasta-file.
+GetOptions('help|h'         		 => \$help, 
+	   'man'            		 => \$man,
+	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						    unless $val =~ /dna|rna|protein/i; 
+						  $moltype = $val;
+						},
+	   'format=s'                    => \$format,
+	   'log|l'                       => \$log,
+	   'logname|L=s'                 => \$logname,
+	   'comment|C=s'                 => \$comment,
+     'noname|n'                    => \$noname,
+     'split|S=i'                   => \$split,
+     'field|F=s'                   => \$field,
+     'indentifer|I'                => \$identifer,
+     'index|i'                     => \$index,
+     'marker|M=s'                  => \$marker,     
 
+	  ) 
+  or pod2usage(2);
+		  
+pod2usage(1) if $help;
+pod2usage(-verbose => 2) if $man;
+pod2usage("$NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file fasta-file1 fasta-file2 ... > fasta-file. Try $NAME -h for help.") if ((-t STDIN) && ((@ARGV < 3 && !$noname) && (@ARGV < 2 && $noname)));
+pod2usage("$NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file < fasta-file1 > fasta-file. Try $NAME -h for help.") if (!(-t STDIN) && ((@ARGV != 2 && !$noname) && (@ARGV != 1 && $noname)));
 
-  Options: 
-         -h   this help 
-         -I   taxa are searched over sequence identifiers (default is over descriptions)
-         -S   <int>   split-mode (sequence descriptions or identifers are split into fields and field <int> (0-based) is searched for taxonomic identifiers) 
-         -F   <regex> (in split-mode (-S) split on perl-regex <regex> instead of default separator, which is a tab character \t. Do "man perlre" and "man perlfunc" for split.)
-         -n   no-name mode (only uses NCBI taxonomic IDs, which are integer strings) 
-         -f   <format> read <format> on input instead of default fasta. <format>
-                 may be one of: pir, gcg, genbank, fasta, embl, raw, swiss
-                 <format> is case-insensitive; google "Bio::SeqIO" for more info.
-         -i   print addresses for taxonomic IDs
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+my $nodesfile;
+my $namesfile;
+my $nonamemode;
+my %id;
+my %name;
+my %parent;
+my %children;
+my %address;
+my %childaddress;
+my %childrenseen;
+my %seq;
 
-  Examples:
-
-
-QQ_HELP_QQ
-exit 1;
-}
-
-unless ($opt_n){
+unless ($noname){
   ($nodesfile,$namesfile) = splice @ARGV,0,2;
 }
 else {
@@ -65,9 +88,9 @@ if ($namesfile) {
   while (<NAMES>) {
     my ($id,$name,@stuff) = split /\t\|\t/,$_;
     $id{$name} = $id;
-    if ($opt_i) {
+    if ($index) {
       unless (exists $name{$id}) { ## take the first name from names.dmp
-	$name{$id} = $name;
+  $name{$id} = $name;
       }
     }
   }
@@ -85,10 +108,9 @@ while (<NODES>) {
 }
 close NODES;
 
-## create addresses
 $address{ 1 } = "00";
-if ($opt_i) {
-  print $opt_m,join " ",$address{ 1 },$name{1},"\n";
+if ($index) {
+  print $marker,join " ",$address{ 1 },$name{1},"\n";
 }
 &address_DFS(1);
 sub address_DFS(){
@@ -96,8 +118,8 @@ sub address_DFS(){
   $childaddress{$tax} = 0;
   foreach my $child (sort {$a <=> $b} keys %{ $children{$tax} } ) { 
     $address{ $child } = join "",(join ".",$address{ $tax },(sprintf "%02s",$childaddress{ $tax }++));
-    if ($opt_i) {
-      print $opt_m,join " ",$address{ $child },$name{$child},"\n";
+    if ($index) {
+      print $marker,join " ",$address{ $child },$name{$child},"\n";
     }
     if (exists $children{$child}) {  
       &address_DFS($child);
@@ -105,69 +127,79 @@ sub address_DFS(){
   }
 }
 
-die if $opt_i;
+die if $index;
 
-  $re = qr/$opt_F/ if ($opt_F);
+my $re = qr/$field/ if ($field);
 
-  unless (@ARGV) {
-    $IN = Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $opt_f);
-  }
 
-  while ($IN or @ARGV) {
-    if (@ARGV) {
-      my $file = shift (@ARGV);
-      unless (-e $file) {
-	warn "Could not find file $file. Skipping.\n";
-	next;
-      }
-      else {
-	$IN = Bio::SeqIO->new(-file => $file, '-format' => $opt_f);
-      }
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $IN;
+unless (@ARGV) {
+    if ($moltype) {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
     }
-    if ($IN) { 
-      while (my $seq = $IN->next_seq()) {
-	$data = $seq->desc();
-	$data = $seq->id() if ($opt_I);
-	if (defined $opt_S) {
-	  @data = split $re,$data;
-	  $data = $data[$opt_S];
-	}
-	next unless $data;
-	if ($nonamemode) {
-	  push @{ $seq{$data} },$seq;
-	  $id = $data;
-	}
-	else {
-	  next unless (exists $id{$data});
-	  push @{ $seq{$id{$data}} },$seq;
-	  $id = $id{$data};
-	}
-	while($id != 1) {
-	  my $parent = $parent{$id};
-	  $childrenseen{$parent}{$id} = 1; 
-	  $id = $parent;
-	}
-      }
-      undef $IN;
+    else {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+    }
+}
+
+while ($IN or @ARGV) {
+  if (@ARGV) {
+    my $file = shift (@ARGV);
+    unless (-e $file) {
+      warn "$NAME: Could not find file $file. Skipping.\n";
+      next;
+    }
+    elsif ($moltype) {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
+    }
+    else {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
     }
   }
+  if ($IN) { 
+    while (my $seq = $IN->next_seq()) {
+      my $id;
+      my $data = $seq->desc();
+  $data = $seq->id() if ($index);
+  if (defined $split) {
+    my @data = split $re,$data;
+    $data = $data[$split];
+  }
+  next unless $data;
   
-  $OUT = Bio::SeqIO->newFh('-format' => 'fasta');
-  &DFS_seq(1);
+  if ($nonamemode) {
+    push @{ $seq{$data} },$seq;
+    $id = $data;
+  }
+  else {
+    next unless (exists $id{$data});
+    push @{ $seq{$id{$data}} },$seq;
+    $id = $id{$data};
+  }
+  while($id != 1) {
+    my $parent = $parent{$id};
+    $childrenseen{$parent}{$id} = 1; 
+    $id = $parent;
+  }
+    }
+    undef $IN;
+  }
+}
 
+&DFS_seq(1);
 
-
-  sub DFS_seq {
+sub DFS_seq {
     my $node = shift;
     if (exists $seq{$node} ) {
       foreach my $seq (@{ $seq{$node} }){
-	$seq->desc(join " ",$seq->desc,(join "",$opt_m,$address{$node}));
-	print $OUT $seq;      
+  $seq->desc(join " ",$seq->desc,(join "",$marker,$address{$node}));
+  print $OUT $seq;      
       }
     }
     if (exists $childrenseen{$node} ) {
       foreach my $child (map { $_->[0] } sort address_sort map {[$_,$address{$_}]} keys %{ $childrenseen{$node} }) {
-	&DFS_seq($child);
+  &DFS_seq($child);
       }
     }
   }
@@ -184,3 +216,127 @@ sub address_sort {
   }
   warn "ERROR IN $NAME ADDRESS_SORT: invalid condition. Please contact author.\n";
 }
+
+__END__
+
+=head1 NAME
+
+name - what it does
+
+=head1 SYNOPSIS
+
+name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+
+=head1 DESCRIPTION
+
+name takes multifasta format sequence or alignment data as input,
+
+Options specific to name:
+
+Options general to FAST:
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>      specify input sequence type
+
+=head1 INPUT AND OUTPUT
+
+name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+on Bioperl. Most core FAST utilities expect input and return output in
+multifasta format. Input can occur in one or more files or on
+STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
+reformat other formats to and from multifasta.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-h>,
+      B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+=item B<--version>
+
+Print version information and exit.
+
+=item B<-l>,
+      B<--log>
+
+Creates, or appends to, a generic FAST logfile in the current working
+directory. The logfile records date/time of execution, full command
+with options and arguments, and an optional comment.
+
+=item B<-L [string]>,
+      B<--logname=[string]>
+
+Use [string] as the name of the logfile. Default is "FAST.log.txt".
+
+=item B<-C [string]>,
+      B<--comment=[string]>
+
+Include comment [string] in logfile. No comment is saved by default.
+
+=item B<--format=[format]> 		  
+
+Use alternative format for input. See man page for "fasconvert" for
+allowed formats. This is for convenience; the FAST tools are designed
+to exchange data in Fasta format, and "fasta" is the default format
+for this tool.
+
+=item B<-m [dna|rna|protein]>,
+      B<--moltype=[dna|rna|protein]> 		  
+
+Specify the type of sequence on input (should not be needed in most
+cases, but sometimes Bioperl cannot guess and complains when
+processing data).
+
+=back
+
+=head1 EXAMPLES
+
+Print all sequences with "-DNA" in the ID:
+
+=over 8
+
+cat data.fas | fasgrep "-DNA" > data.dna.fas
+
+=back
+
+
+=back
+
+=head1 SEE ALSO
+
+=over 8
+
+=item C<man perlre>
+
+=item C<perldoc perlre>
+
+Documentation on perl regular expressions.
+
+=item C<man FAST>
+
+=item C<perldoc FAST>
+
+Introduction and cookbook for FAST
+
+=item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
+
+=back 
+
+=head1 CITING
+
+If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+
+=cut

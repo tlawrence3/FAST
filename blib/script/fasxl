@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w
 
-eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+eval 'exec /Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
@@ -39,7 +39,7 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 
-my $gapped               = undef;        # -g, gapped one-letter aa IUPAC transation, aligns to codons
+my $gapped               = undef;        # -g, gapped one-letter aa IUPAC transalation, aligns to codons
 my $keep_msg             = undef;        # -k, forces -i
 my $xl_as_cds            = undef;        # --cds, force all translations to start with M
 my $expand_gaps          = undef;        # -e, expand gaps
@@ -53,6 +53,7 @@ my $code                 = $def_code;      # -c
 ## in increasing priority:
 my $all_three            = undef;        # -3
 my $all_six              = undef;        # -6
+my $keep_dna             = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -91,6 +92,7 @@ GetOptions('help|h'         		 => \$help,
 	   'keep-msg|k'                  => \$keep_msg,
 	   'cds'                         => \$xl_as_cds,
 	   'expand-gaps|e'               => \$expand_gaps,
+     'keep-dna|d'                  => \$keep_dna,
 	  )
   or pod2usage(2);
 		  

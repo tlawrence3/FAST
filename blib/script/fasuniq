@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w
 
-eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+eval 'exec /Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
@@ -35,6 +35,8 @@ my $comment              = undef;        # -C
 
 my $concat               = undef;
 my $delimiter            = $def_delimiter;
+my $description_match    = undef;
+my $id_match             = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -49,7 +51,9 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 
 	   'concat|c'                    => \$concat,
-	   'delimiter|d=s'               => \$delimiter
+	   'delimiter|d=s'               => \$delimiter,
+     'description|D'               => \$description_match,
+     'id|I'                        => \$id_match,
 
 	  ) 
   or pod2usage(2);
@@ -65,6 +69,9 @@ elsif ((-t STDIN) and (@ARGV != 1)) {
 }
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
+my $match = 'seq';
+if ($description_match){$match = 'desc';}
+if ($id_match){$match = 'id';}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
@@ -103,8 +110,8 @@ while ($IN or @ARGV) {
 	next;
       }
       else { #not first sequence
-	my $seqseq = $seq->seq;
-	my $lastseqseq = $lastseq->seq;
+	my $seqseq = $seq->$match;
+	my $lastseqseq = $lastseq->$match;
 
 	if ($seqseq ne $lastseqseq) { #no repeat, or repeat is over
 
@@ -169,7 +176,7 @@ fasuniq [options] [MULTIFASTA-FILE]
 
 =head1 DESCRIPTION
 
-fasuniq concatenates IDs of adjacent duplicate sequence records in a
+fasuniq concatenates IDs of adjacent duplicate sequence records in a 
 multifasta datastream. The sequences should be sorted such as output
 from B<fassort -s>. Only the sequence data itself must be
 identical, not identifiers or descriptions. By default, the first
@@ -179,7 +186,8 @@ and description) is the one printed.
 Options specific to fasuniq:
   -c, --concat                     concatenate identifiers 
   -d<string>, --delimiter=<string> use <string> between identifers [:] 
-
+  -D, --description                match on description
+  -I, --id                         match on identifiers
 Options general to FAST:
   -h, --help                  	 print a brief help message
   --man             	           print full documentation
@@ -211,6 +219,16 @@ Concatenate identifiers of repeated sequences in output
       B<--delim=[string]>
 
 Use delimiter [string] to concatenate identifiers. Default is ":"
+
+=item B<-D>
+      B<--description>
+
+Removes duplicate sequences by matching on descriptions.
+
+=item B<-I>
+      B<--id>
+
+Removes duplicate sequences by matching on identifiers.
 
 =item B<-h>,
       B<--help>

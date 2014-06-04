@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w
 
-eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+eval 'exec /Users/travislawrence/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
@@ -79,8 +79,10 @@ GetOptions('help|h'         		 => \$help,
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
-pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
+#pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
+#pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
+pod2usage("$0: Requires at least two arguments REGEX file1 [file2…fileN]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
+pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if (@ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -114,7 +116,7 @@ else {
 
 
 my $index;
-if ($match_field > 0) {
+if (defined $match_field and $match_field > 0) {
   $index = $match_field - 1;
 }
 else { # $match_field < 0

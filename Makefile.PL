@@ -5,8 +5,8 @@ use ExtUtils::MakeMaker;
 
 #my @scripts = qw/alndegap alnpi alnseg fascodon fascomp fasconvert fascut fasfilter fasgrep faslen fasposcomp fasrc fasstrict fassub fastr fasuniq fasxl gbf2fas gbfcut gbfgrep/;
 my @scripts = qw/alndegap alnpi alnseg fascodon fascomp fasconvert fascut
-fasfilter fasgrep faslen fasposcomp fasrc fasstrict fassub fastr fasuniq
-fasxl fassort/;
+fasfilter fasgrep faslen fasrc fassub fastr fasuniq
+fasxl fassort fastaxsort fastax gbfeat2fas gbalncut gbgrep/;
 
 WriteMakefile(
     NAME             => 'FAST',
