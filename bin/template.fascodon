@@ -3,6 +3,9 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
+use FAST::Bio::SeqIO;
+use FAST::Bio::Seq;
+use FAST::Bio::Tools::CodonTable;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -19,6 +22,8 @@ use constant { true => 1, false => 0 };
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 
+my $def_genetic_code = 1;
+
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
 my $help                 = undef;  # -h
@@ -27,7 +32,13 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
+my $genetic_code         = $def_genetic_code; ## -t
+my $in_desc              = undef;        # -d ## $opt_v = undef; ## output stats for each gene in the description
+my $output_aa_order      = undef;        # -a
+my $order                = undef;        # -o
+my $output_base_order    = undef;        # -b
 
+# $opt_s = undef; ## suppress errors
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -40,6 +51,11 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+	   'genetic_code|c=i'            => \$genetic_code,
+my $in_desc              = undef;        # -d ## $opt_v = undef; ## output stats for all genes individually
+my $output_aa_order      = undef;        # -a
+my $order                = undef;        # -o
+my $output_base_order    = undef; 
 
 	  ) 
   or pod2usage(2);
@@ -50,6 +66,16 @@ pod2usage("$0: Requires exactly one argument (a regex) when taking input from ST
 pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+
+if ($opt_b) {
+    die "-b option requires a base ordering of T,C,A, and G separated by colons (:), as in T:C:A:G (the default)\n" if ($opt_b =~ /[^TCAG:]/);
+    @bases = split /:/, $opt_b;
+}
+else {
+    @bases = qw/T C A G/;   
+}
+
+$code = FAST::Bio::Tools::CodonTable->new(-id => $opt_t);
 
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');

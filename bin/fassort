@@ -29,17 +29,18 @@ $DATE = POSIX::strftime("%c",localtime());
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_delimiter = ":";
+
+my $def_split_on_regex = ' ';
 
 ## OPTION VARIABLES
-my $man                  = undef;  # --man
-my $help                 = undef;  # -h
-my $moltype              = undef;  # -m, in case bioperl can't tell
-my $format               = $def_format;  # --format
-my $log                  = undef;        # -l
-my $logname              = $def_logname; # -L
-my $comment              = undef;        # -C
-my $split_on_regex       = undef;        # -S 
+my $man                  = undef;                 # --man
+my $help                 = undef;                 # -h
+my $moltype              = undef;                 # -m, in case bioperl can't tell
+my $format               = $def_format;           # --format
+my $log                  = undef;                 # -l
+my $logname              = $def_logname;          # -L
+my $comment              = undef;                 # -C
+my $split_on_regex       = $def_split_on_regex;   # -S 
 
 ## in increasing priority:
 my $sort_description    = undef;  # -d
@@ -131,7 +132,10 @@ else {
 
 my $keyf;
 if ($sort_regex) {
-  $keyf = sub { my $s = shift; my $re = qr/$sort_regex/; my $d = $s->desc(); $d =~ $re; my $o = $1; $o; };
+  my $m = 'id'; 
+     $m = 'desc' if ($sort_description); 
+     $m = 'seq'  if ($sort_sequence);
+  $keyf = sub { my $s = shift;  my $re = qr/$sort_regex/; my $r = $s->$m(); $r =~ $re; my $o = $1; $o; };
 }
 elsif ($sort_field) {
   $keyf = sub { my $s = shift; my @fields = split $split_re,$s->desc(); $fields[$index]};
@@ -182,10 +186,10 @@ while ($IN or @ARGV) {
       push @$seqs, [$key,$seq];
       if (Devel::Size::total_size($seqs) > $memory_limit) {
 	$merge = 1;                                     ## PREPARE TO MERGE SORT
-	&$keysort(\@$seqs);                              ## SORT DATA IN MEMORY
+	&$keysort(\@$seqs);                             ## SORT DATA IN MEMORY
 	my ($fh, $filename) = File::Temp::tempfile();   ## OPEN TEMPFILE 
 	push @fnames, $filename;                        ## REMEMBER NAME                 
-	store_fd($seqs, $fh)                   ## STORE DATA
+	Storable::store_fd($seqs, $fh)                  ## STORE DATA
 	    or die("$NAME: Could not write data to $filename with Storable");                 
 	$seqs = [];                                     ## FREE MEMORY
       }
