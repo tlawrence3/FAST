@@ -1,9 +1,0 @@
-Migrating a bioperl installation to FAST:
-
-cd lib
-mkdir FAST
-cd FAST 
-cp -R ../../../../FAST/FAST-0.4/Bio/ .
-mkdir Bio
-mv * Bio
-find . -name '*.pm' | xargs perl -i.orig -pe 's/Bio::/FAST::Bio::/g'

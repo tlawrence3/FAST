@@ -3,10 +3,7 @@ use strict;
 use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
 
-#my @scripts = qw/alndegap alnpi alnseg fascodon fascomp fasconvert fascut fasfilter fasgrep faslen fasposcomp fasrc fasstrict fassub fastr fasuniq fasxl gbf2fas gbfcut gbfgrep/;
-my @scripts = qw/alndegap alnpi alnseg fascodon fascomp fasconvert fascut
-fasfilter fasgrep faslen fasrc fassub fastr fasuniq
-fasxl fassort fastaxsort fastax gbfeat2fas gbalncut gbgrep/;
+my @scripts = qw/alndegap alnpi alnseg fas fascodon fascomp fasconvert fascut fasfilter fasgrep faslen fasposcomp fasrc fassort fassub fastax fastaxsort fastr fasuniq fasxl gbalncut gbfeat2fas gbgrep/;
 
 WriteMakefile(
     NAME             => 'FAST',
@@ -25,8 +22,12 @@ WriteMakefile(
         'Test::More' => 0,
     },
     PREREQ_PM => {
-        'GetOpt::Long'           => 2.32,
-        #'Foo::Bar::Module' => 5.0401,
+        'Sort::Key' => 0,
+	'Devel::Size' => 0,
+        'Sort::MergeSort' => 0,
+        'File::Temp' => 0,
+        'Storable'   => 0,
+
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'FAST-*' },
