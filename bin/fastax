@@ -46,12 +46,12 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-           'negate|v'                    => \$negate,
-           'strict-negate|s'             => \$strict_negate,
-           'match-id|I'                  => \$match_id,
-           'split|S=i'                   => \$split,
-           'regex-split|F=s'             => \$regex_split,
-           'no-name-mode|n'              => \$noname,
+     'negate|v'                    => \$negate,
+     'strict-negate|s'             => \$strict_negate,
+     'match-id|I'                  => \$match_id,
+     'split|S=i'                   => \$split,
+     'regex-split|F=s'             => \$regex_split,
+     'no-name-mode|n'              => \$noname,
 
 	  ) 
   or pod2usage(2);
@@ -61,25 +61,23 @@ pod2usage(-verbose => 2) if $man;
 pod2usage("$0: Requires at least two arguments NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file [NCBI-taxon-name|NCBI-taxon-ID]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
 pod2usage("$0: Requires at least three arguments when taking input from STDIN. Try $NAME -h for help.") if (@ARGV < 3);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
-my $nodesfile = undef;
-my $namesfile = undef;
-my $query = undef;
-my $numquery = undef;
-my $numquerymode = undef;
-my $nonamemode = undef;
-my $line = undef;
+my $nonamemode;
+my $numquery;
+my $query; 
+my $nodesfile;
+my $namesfile;
+my $line;
 my %id;
 my %parent;
 my %children;
-my @queue = undef;
 my %match;
 
 unless ($noname){
   ($nodesfile,$namesfile,$query) = splice @ARGV,0,3;
   if ($query !~ /[^\d]/) {
-    $numquerymode = 1; # expecting tax ID query on named data
+    #$numquerymode = 1; # expecting tax ID query on named data
     $numquery = $query;
 
   }
@@ -119,6 +117,7 @@ while (<NODES>) {
 }
 close NODES;
 
+my @queue;
 ## here is where we compute the match criterion
 if ($nonamemode){
 #if($numquerymode){ deleted by Katie. Wrong variable name

@@ -4,11 +4,13 @@ use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
+use FAST::Bio::Seq;
+use FAST::Bio::Tools::CodonTable;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "Sort and identify sequences based on NCBI taxonomy.\n";
+$DESC    = "counts codon usage";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -20,6 +22,8 @@ use constant { true => 1, false => 0 };
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 
+my $def_genetic_code = 1;
+
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
 my $help                 = undef;  # -h
@@ -28,12 +32,13 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $noname               = undef; #-n
-my $split                = undef; #-S
-my $field                = undef; #-F
-my $identifer            = undef; #-I
-my $index                = undef; #-i
-my $marker               = '#'; #-m
+my $genetic_code         = $def_genetic_code; ## -t
+my $in_desc              = undef;        # -d ## $opt_v = undef; ## output stats for each gene in the description
+my $output_aa_order      = undef;        # -a
+my $order                = undef;        # -o
+my $output_base_order    = undef;        # -b
+
+# $opt_s = undef; ## suppress errors
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -46,100 +51,41 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'noname|n'                    => \$noname,
-     'split|S=i'                   => \$split,
-     'field|F=s'                   => \$field,
-     'indentifer|I'                => \$identifer,
-     'index|i'                     => \$index,
-     'marker|M=s'                  => \$marker,     
+	   'genetic_code|c=i'            => \$genetic_code,
+my $in_desc              = undef;        # -d ## $opt_v = undef; ## output stats for all genes individually
+my $output_aa_order      = undef;        # -a
+my $order                = undef;        # -o
+my $output_base_order    = undef; 
 
 	  ) 
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file fasta-file1 fasta-file2 ... > fasta-file. Try $NAME -h for help.") if ((-t STDIN) && ((@ARGV < 3 && !$noname) && (@ARGV < 2 && $noname)));
-pod2usage("$NAME [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file < fasta-file1 > fasta-file. Try $NAME -h for help.") if (!(-t STDIN) && ((@ARGV != 2 && !$noname) && (@ARGV != 1 && $noname)));
+pod2usage("$0: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 1));
+pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (@ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
-my $nodesfile;
-my $namesfile;
-my $nonamemode;
-my %id;
-my %name;
-my %parent;
-my %children;
-my %address;
-my %childaddress;
-my %childrenseen;
-my %seq;
 
-unless ($noname){
-  ($nodesfile,$namesfile) = splice @ARGV,0,2;
+if ($opt_b) {
+    die "-b option requires a base ordering of T,C,A, and G separated by colons (:), as in T:C:A:G (the default)\n" if ($opt_b =~ /[^TCAG:]/);
+    @bases = split /:/, $opt_b;
 }
 else {
-  ($nodesfile) = shift @ARGV;
-  $nonamemode = 1; ## numerical ID query and numerical ID data
+    @bases = qw/T C A G/;   
 }
 
-if ($namesfile) {
-  die "NCBI-taxonomy-names-file $namesfile cannot be found\n" unless (-e $namesfile);
-  open (NAMES,$namesfile) or die "Can't open NCBI-taxonomy-names-file $namesfile\n";
-  while (<NAMES>) {
-    my ($id,$name,@stuff) = split /\t\|\t/,$_;
-    $id{$name} = $id;
-    if ($index) {
-      unless (exists $name{$id}) { ## take the first name from names.dmp
-  $name{$id} = $name;
-      }
-    }
-  }
-  close NAMES;
-}
-
-die "NCBI-taxonomy-nodes-file $nodesfile cannot be found\n" unless (-e $nodesfile);
-open (NODES,$nodesfile) or die "Can't open NCBI-taxonomy-nodes-file $nodesfile\n";
-while (<NODES>) {
-  my ($tax,$parent,@stuff) = split /\t\|\t/,$_;
-  $parent{$tax} = $parent;
-  unless ($parent == $tax) { ## both equal to one at top of nodes.dmp
-    $children{$parent}{$tax} = 1;
-  }
-}
-close NODES;
-
-$address{ 1 } = "00";
-if ($index) {
-  print $marker,join " ",$address{ 1 },$name{1},"\n";
-}
-&address_DFS(1);
-sub address_DFS(){
-  my $tax = shift;
-  $childaddress{$tax} = 0;
-  foreach my $child (sort {$a <=> $b} keys %{ $children{$tax} } ) { 
-    $address{ $child } = join "",(join ".",$address{ $tax },(sprintf "%02s",$childaddress{ $tax }++));
-    if ($index) {
-      print $marker,join " ",$address{ $child },$name{$child},"\n";
-    }
-    if (exists $children{$child}) {  
-      &address_DFS($child);
-    }
-  }
-}
-
-die if $index;
-
-my $re = qr/$field/ if ($field);
+$code = FAST::Bio::Tools::CodonTable->new(-id => $opt_t);
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
     }
 }
 
@@ -159,73 +105,23 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      my $id;
-      my $data = $seq->desc();
-  $data = $seq->id() if ($index);
-  if (defined $split) {
-    my @data = split $re,$data;
-    $data = $data[$split];
-  }
-  next unless $data;
-  
-  if ($nonamemode) {
-    push @{ $seq{$data} },$seq;
-    $id = $data;
-  }
-  else {
-    next unless (exists $id{$data});
-    push @{ $seq{$id{$data}} },$seq;
-    $id = $id{$data};
-  }
-  while($id != 1) {
-    my $parent = $parent{$id};
-    $childrenseen{$parent}{$id} = 1; 
-    $id = $parent;
-  }
+      print $OUT $seq;
     }
     undef $IN;
   }
 }
 
-&DFS_seq(1);
 
-sub DFS_seq {
-    my $node = shift;
-    if (exists $seq{$node} ) {
-      foreach my $seq (@{ $seq{$node} }){
-  $seq->desc(join " ",$seq->desc,(join "",$marker,$address{$node}));
-  print $OUT $seq;      
-      }
-    }
-    if (exists $childrenseen{$node} ) {
-      foreach my $child (map { $_->[0] } sort address_sort map {[$_,$address{$_}]} keys %{ $childrenseen{$node} }) {
-  &DFS_seq($child);
-      }
-    }
-  }
-
-sub address_sort {
-  return 0 if ($a->[1] eq $b->[1]);
-  my @a = split /\./, $a->[1];
-  my @b = split /\./, $b->[1];
-  while (@a) {
-    my $aa = shift @a or return -1;
-    my $bb = shift @b or return  1;
-    return -1 if ($aa < $bb);
-    return  1 if ($aa > $bb);
-  }
-  warn "ERROR IN $NAME ADDRESS_SORT: invalid condition. Please contact author.\n";
-}
 
 __END__
 
 =head1 NAME
 
-name - what it does
+fascodon - counts codon usage
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+fascodon [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 

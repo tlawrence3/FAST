@@ -186,7 +186,7 @@ sub process {
     my $hash_ref = $seqstats->count_monomers();
     if ($total) {
       foreach my $mono (keys %$hash_ref) {
-        $$$sum[$i]{$mono} += $$hash_ref{$mono};
+        $$sum[$i]{$mono} += $$hash_ref{$mono};
       }
     }
     elsif ($append){  
