@@ -1,9 +1,0 @@
-use lib "t/lib";
-use Test::More tests => 2;
-use Test::Cmd;     
-    
-$test = Test::Cmd->new(prog => 'bin/fasconvert', workdir => '');
-ok($test, "creating Test::Cmd object");
-	    
-$test->run(args => '-i convert < t/data/AF194338.1.gb');
-ok($? == 0, "executing bin/fasgrep -i genbank < t/data/AF194338.1.gb");
