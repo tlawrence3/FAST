@@ -27,8 +27,8 @@ my $moltype              = undef;  # -m, in case bioperl can't tell
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $rename               = undef;	 # -i
-my $append               = undef;        # -t
+my $rename               = undef;	 # -r
+my $append               = undef;        # -a
 my $strict               = undef;        # -s
 
 my @COORDS = ();
@@ -203,10 +203,6 @@ OUTPUT:
          * Comma-separated positions and ranges in the coordinate argument are arbitrary with
               respect to one another, e.g. they may overlap, be redundant, or be out of order.
               The result is not simplified or reduced.
-         * Unless the (-m) option is used, for each sequence in the input, 
-              the subsequences specified by every 
-              position or range are concatenated in the order of the coordinate argument 
-              and, if the result is non-empty, output with the same id and description
          * Unless the strict option (-s) is used, the longest overlapping non-null subsequence
               will be chopped for each position or range (ie end-positions greater than the 
 	      length of the sequence will reduce to the end of the sequence)
@@ -219,14 +215,14 @@ OUTPUT:
              it with "--" to stop parsing the command-line for options 
 
 Options specific to fascut:
-  -t                                output each comma-separated range or position
-                                      to a new sequence (stated in description)
-  -i <string>                       rename id of sequence to <string>
-  -s                                strict range-checking on coords; skips a
-                                      sequence with warning if coords are
-                                      out-of-bounds on that sequence. 
-                                      (default behavior is to give longest
-                                      possible subsequence within range)
+  -a, --append                              output each comma-separated range or position
+                                            to a new sequence (stated in description)
+  -r <string>, --rename <string>            rename id of sequence to <string>
+  -s, --strict                              strict range-checking on coords; skips a
+                                            sequence with warning if coords are
+                                            out-of-bounds on that sequence. 
+                                            (default behavior is to give longest
+                                            possible subsequence within range)
 
 Options general to FAST:
   -h, --help                  	    print a brief help message
@@ -250,9 +246,24 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-t>
+=item B<-a>
+      B<--append>
 
+This option will output each comma-separated range or position to a 
+new sequence (stated in description)
 
+=item B<-r string>
+      B<--rename string>
+
+This option will rename the id of the sequence with the string that you
+provide.
+
+=item B<-s>
+      B<--strict>
+
+This option will implement strict range checking on the coordinates. When
+used this option will skip any sequences that the coordinates are out of
+bounds on. (default is to give longest subsequence for that range)
 
 =item B<-h>,
       B<--help>
@@ -297,20 +308,6 @@ for this tool.
 Specify the type of sequence on input (should not be needed in most
 cases, but sometimes Bioperl cannot guess and complains when
 processing data).
-
-=item B<-i [string]>
-
-Rename the id of sequence to [string].
-
-=item B<-t>
-
-Output each comma-separated range or position to a new sequence (stated in description).
-
-=item B<-s>
-
-Strict range-checking on coords; skips a sequence with warning if coords are out-of-bounds 
-on that sequence. 
-(default behavior is to give longest possible subsequence within range)
 
 =back
 
