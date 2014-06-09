@@ -312,8 +312,6 @@ cat data.fas | fasgrep "-DNA" > data.dna.fas
 =back
 
 
-=back
-
 =head1 SEE ALSO
 
 =over 8

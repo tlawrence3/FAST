@@ -239,7 +239,6 @@ fasfilter 1..400,800.. < in.fas > out.fas
 =back
 
 
-=back
 
 =head1 SEE ALSO
 

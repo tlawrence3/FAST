@@ -205,7 +205,7 @@ Options general to FAST:
   -L, --logname=<string>            use logfile name <string>
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  --moltype=<[dna|rna|protein]>     specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
@@ -296,9 +296,6 @@ Print all sequences with "-DNA" in the ID:
 =over 8
 
 cat data.fas | fasgrep "-DNA" > data.dna.fas
-
-=back
-
 
 =back
 

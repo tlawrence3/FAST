@@ -4,7 +4,7 @@
 #
 # Please direct questions and support issues to <bioperl-l@bioperl.org> 
 #
-# Cared for by Andreas Kähäri, andreas.kahari@ebi.ac.uk
+# Cared for by Andreas Kahari, andreas.kahari@ebi.ac.uk
 #
 # You may distribute this module under the same terms as perl itself
 #------------------------------------------------------------------
@@ -230,11 +230,11 @@ submitted via the web:
 
 =head1 AUTHOR
 
-Andreas Kähäri, andreas.kahari@ebi.ac.uk
+Andreas Kahari, andreas.kahari@ebi.ac.uk
 
 =head1 CONTRIBUTORS
 
-Heikki Lehväslaiho, heikki-at-bioperl-dot-org
+Heikki Lehvaslaiho, heikki-at-bioperl-dot-org
 Mark A. Jensen, maj-at-fortinbras-dot-us
 
 =cut

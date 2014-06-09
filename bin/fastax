@@ -319,8 +319,6 @@ fastax [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file [NCBI-taxon-n
 =back
 
 
-=back
-
 =head1 SEE ALSO
 
 =over 8
