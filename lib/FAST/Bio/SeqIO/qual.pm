@@ -83,7 +83,7 @@ use strict;
 use FAST::Bio::Seq::SeqFactory;
 use Dumpvalue;
 
-my $dumper = new Dumpvalue();
+my $dumper = Dumpvalue->new();
 
 use base qw(FAST::Bio::SeqIO);
 

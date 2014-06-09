@@ -1164,7 +1164,7 @@ sub _process_grif {
             $refergene = $grif->{source}->{src}->{tag}->{id};
             $refdb     = $grif->{source}->{src}->{db};
         }
-        my $grifobj = new FAST::Bio::Annotation::Comment( -text => $grif->{text} );
+        my $grifobj = FAST::Bio::Annotation::Comment->new( -text => $grif->{text} );
         $obj = FAST::Bio::Annotation::DBLink->new(
             -database   => 'generif',
             -primary_id => $ref->{pmid}
@@ -1177,7 +1177,7 @@ sub _process_grif {
         $type = 'dblink';
     }
     else {
-        $obj = new FAST::Bio::Annotation::SimpleValue( $grif->{text}, 'generif' );
+        $obj = FAST::Bio::Annotation::SimpleValue->new( $grif->{text}, 'generif' );
         $type = 'generif';
     }
     delete $grif->{text};

@@ -81,7 +81,7 @@ use FAST::Bio::Annotation::Collection;
 use FAST::Bio::Annotation::Comment;
 use Dumpvalue;
 
-my $dumper = new Dumpvalue();
+my $dumper = Dumpvalue->new();
 
 use base qw(FAST::Bio::SeqIO);
 
