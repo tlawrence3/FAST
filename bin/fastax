@@ -229,6 +229,38 @@ reformat other formats to and from multifasta.
 
 =over 8
 
+=item B<-v>,
+      B<--negate>
+
+return all sequences that are not from the taxon
+
+=item B<-s>,
+      B<--strict-negate>
+
+return all sequences that are not from the taxon, but only
+if they are from a recognized taxon
+
+=item B<-I>,
+      B<--match-id>
+
+taxa are searched over sequence identifiers (default is over descriptions)
+
+=item B<-S [int]>,
+      B<--split=[int]>
+
+split-mode, sequence descriptions or identifers are split into fields
+and field <int> (0-based) is searched for taxonomic identifiers
+
+=item B<-F [string]>,
+      B<--regex-split=[string]>
+In split-mode (-S) split on perl-regex <regex> instead of default separator,
+which is a tab character \t. Do "man perlre" and "man perlfunc" for split.
+
+=item B<-n>,
+      B<--no-name-mode>
+ 
+no-name mode (only use NCBI taxonomic IDS, which are integer strings)
+
 =item B<-h>,
       B<--help>
 
@@ -272,39 +304,6 @@ for this tool.
 Specify the type of sequence on input (should not be needed in most
 cases, but sometimes Bioperl cannot guess and complains when
 processing data).
-
-=item B<-v>,
-      B<--negate>
-
-return all sequences that are not from the taxon
-
-=item B<-s>,
-      B<--strict-negate>
-
-return all sequences that are not from the taxon, but only
-if they are from a recognized taxon
-
-=item B<-I>,
-      B<--match-id>
-
-taxa are searched over sequence identifiers (default is over descriptions)
-
-=item B<-S [int]>,
-      B<--split=[int]>
-
-split-mode, sequence descriptions or identifers are split into fields
-and field <int> (0-based) is searched for taxonomic identifiers
-
-=item B<-F [string]>,
-      B<--regex-split=[string]>
-In split-mode (-S) split on perl-regex <regex> instead of default separator,
-which is a tab character \t. Do "man perlre" and "man perlfunc" for split.
-
-=item B<-n>,
-      B<--no-name-mode>
- 
-no-name mode (only use NCBI taxonomic IDS, which are integer strings)
-
 
 =back
 

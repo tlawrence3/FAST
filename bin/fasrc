@@ -134,6 +134,11 @@ reformat other formats to and from multifasta.
 
 =over 8
 
+=item B<-n>
+      B<--nobrand>
+
+This option will not append -rc to the end of the identifiers.
+
 =item B<-h>,
       B<--help>
 
