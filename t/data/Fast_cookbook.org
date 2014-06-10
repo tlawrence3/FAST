@@ -1,0 +1,124 @@
+#+TITLE:FAST tools cookbook
+#+AUTHOR: Katherine Amrine
+#+EMAIL: kc.amrine@gmail.com
+#+OPTIONS:H:5 num:nil toc:nil \n:nil @:t ::t ^:nil *:t LaTeX:t d:nil email:nil creator:nil
+#+STARTUP: align
+
+
+
+* simple examples
+
+** example 1: Cut, reverse complement, and transcribe a section of a genome
+
+ =Chromosome 1 from the Saccharomyces cerevisiae genome is included as=
+ /chr01.fsa/.
+\\
+\\
+ /faslen/ concatinates the length of sequences in a fasta/multifasta file to the
+ sequence identifier(s). To easily determine the length of the
+ chromosome I one can do the following:
+
+#+BEGIN_SRC shell
+faslen chr01.fsa | egrep ">"
+#+END_SRC
+
+/fascut/ will cut a subset of a sequence. 
+Example 1: We know the location of the gene YAR030C in ChrI of the yeast genome is from
+186512 - 186853 on the minus strand. Let's cut this from our chromosome. The following
+code will give a fasta file to standard out with the desired subset of the sequence:
+
+#+BEGIN_SRC shell
+fascut 186512..186853 chr01.fsa
+#+END_SRC
+
+Knowing that this is on the minus strand, we need the reverse complement of this sequence.
+/fasrc/ will give this result, and the following code will return a fasta file to the standard
+output:
+
+#+BEGIN_SRC shell
+fascut 186512..186853 chr01.fsa | fasrc
+#+END_SRC
+
+To translate this sequence, we can use the /fasxl/ utility and append it to the unix pipeline:
+
+#+BEGIN_SRC shell
+fascut 186512..186853 chr01.fsa | fasrc | fasxl
+#+END_SRC
+
+If you examine the sequence, you will see that the peptide starts with a methionine, and ends
+with a stop codon, indicated by the * character. 
+
+** example 2: convert, select, and change fasta sequences
+
+ =First 9 protein sequence that match a search for "P450" on ncbi named=
+ /P450.fas/ 
+ =then aligned using clustalw included as= 
+ /P450clustalw2.clustalw.css/
+\\
+\\
+The /fasconvert/ tool can convert from fasta to many formats, 
+or from many formats to fasta, including clustalw to fasta
+as showin in the following example 
+
+#+BEGIN_SRC shell
+fasconvert -i clustalw -f P450clustalw2.clustalw.css
+#+END_SRC
+
+The previous command saves the output to the same filename with /.fas/ 
+replacing /.css/. The /faslen/ utility will append the length of a sequence to it's 
+identifier. To look at the length of all sequences, use the following
+code. 
+
+#+BEGIN_SRC shell
+faslen P450clustalw2.clustalw.fas | head -1 | cut -f2 -d" "
+#+END_SRC
+
+which returns faslen:557. 
+
+You can subset the output in many ways
+to get information you are interested in, for example, if you want to
+get the original sequence with the gi number "86475799", you can use
+the /fasgrep/ utility, which will pull sequences matching a perl
+regular expression, by default, in the identifier:
+
+#+BEGIN_SRC shell
+fasgrep "86475799" P450.fas
+#+END_SRC
+
+And if you want to retrieve the aligned sequence with the gi number "86475799"
+
+#+BEGIN_SRC shell
+fasgrep "86475799" P450clustalw2.clustalw.fas
+#+END_SRC
+
+/fastr/ can be useful when you are having to change specific
+characters based on the requirements of a bioinformatic program. For
+example, you may need to change the way you represent gapped
+characters in a fasta alignment from "-" to ".". 
+
+#+BEGIN_SRC shell
+fastr -s "-" "." P450clustalw2.clustalw.fas
+#+END_SRC 
+
+/alndegap/ allows for editing of alignments based on their gap
+profile. To remove sites with at least one gap from all sequences, you
+can do the following:
+
+#+BEGIN_SRC shell
+alndegap -a P450clustalw2.clustalw.fas
+#+END_SRC
+
+you can then determine the length of the alignment by looking at the
+first identifier for your output after running the following:
+
+#+BEGIN_SRC shell
+alndegap -a P450clustalw2.clustalw.fas | faslen
+#+END_SRC
+
+And if you are interested in retaining only unique sequences, 
+/fasuniq/ appended to the output will collapse duplicate sequences to
+one, appending all of the identifiers to one large identifier. 
+
+#+BEGIN_SRC shell
+alndegap -a P450clustalw2.clustalw.fas | faslen | fasuniq
+#+END_SRC
