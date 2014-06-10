@@ -1,0 +1,72 @@
+\begin{thebibliography}{11}
+\providecommand{\natexlab}[1]{#1}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+\providecommand{\selectlanguage}[1]{\relax}
+
+\bibitem[{\textbf{Benson et~al.}(2009)\textbf{Benson, Karsch-Mizrachi, Lipman,
+  Ostell, and Sayers}}]{Benson2009}
+Benson, D.~A., Karsch-Mizrachi, I., Lipman, D.~J., Ostell, J., and Sayers,
+  E.~W. (2009), {GenBank.}, \emph{Nucleic acids research}, 37, Database issue,
+  D26--31, \doi{10.1093/nar/gkn723}
+
+\bibitem[{\textbf{Groves and Godlee}(2012)}]{Groves2012}
+Groves, T. and Godlee, F. (2012), {Open science and reproducible research.},
+  \emph{BMJ (Clinical research ed.)}, 344, jun26\_1, e4383,
+  \doi{10.1136/bmj.e4383}
+
+\bibitem[{\textbf{Peek}(2001)}]{Peek2001}
+Peek, J. (2001), {Why Use a Command Line Instead of Windows?},
+  \url{http://www.linuxdevcenter.com/pub/a/linux/2001/11/15/learnunixos.html}
+
+\bibitem[{\textbf{Rampp et~al.}(2006)\textbf{Rampp, Soddemann, and
+  Lederer}}]{Rampp2006}
+Rampp, M., Soddemann, T., and Lederer, H. (2006), {The MIGenAS integrated
+  bioinformatics toolkit for web-based sequence analysis.}, \emph{Nucleic acids
+  research}, 34, Web Server issue, W15--9, \doi{10.1093/nar/gkl254}
+
+\bibitem[{\textbf{Rice et~al.}(2000)\textbf{Rice, Longden, and
+  Bleasby}}]{Rice2000}
+Rice, P., Longden, I., and Bleasby, A. (2000), {EMBOSS: The European Molecular
+  Biology Open Software Suite}, \emph{Trends in Genetics}, 16, 6, 276--277,
+  \doi{10.1016/S0168-9525(00)02024-2}
+
+\bibitem[{\textbf{Sayers et~al.}(2009)\textbf{Sayers, Barrett, Benson, Bryant,
+  Canese, Chetvernin et~al.}}]{Sayers2009}
+Sayers, E.~W., Barrett, T., Benson, D.~A., Bryant, S.~H., Canese, K.,
+  Chetvernin, V., et~al. (2009), {Database resources of the National Center for
+  Biotechnology Information.}, \emph{Nucleic acids research}, 37, Database
+  issue, D5--15, \doi{10.1093/nar/gkn741}
+
+\bibitem[{\textbf{Seemann}(2013)}]{Seemann2013}
+Seemann, T. (2013), {Ten recommendations for creating usable bioinformatics
+  command line software.}, \emph{GigaScience}, 2, 1, 15,
+  \doi{10.1186/2047-217X-2-15}
+
+\bibitem[{\textbf{Smith et~al.}(1994)\textbf{Smith, Overbeek, Woese, Gilbert,
+  and Gillevet}}]{Smith1994}
+Smith, S.~W., Overbeek, R., Woese, C.~R., Gilbert, W., and Gillevet, P.~M.
+  (1994), {The genetic data environment an expandable GUI for multiple sequence
+  analysis.}, \emph{Computer applications in the biosciences : CABIOS}, 10, 6,
+  671--5
+
+\bibitem[{\textbf{Stajich et~al.}(2002)\textbf{Stajich, Block, Boulez, Brenner,
+  Chervitz, Dagdigian et~al.}}]{Stajich2002}
+Stajich, J.~E., Block, D., Boulez, K., Brenner, S.~E., Chervitz, S.~A.,
+  Dagdigian, C., et~al. (2002), {The Bioperl toolkit: Perl modules for the life
+  sciences.}, \emph{Genome research}, 12, 10, 1611--8, \doi{10.1101/gr.361602}
+
+\bibitem[{\textbf{Stutz}(2000)}]{Stutz2000}
+Stutz, M. (2000), {Linux and the Tools Philosophy},
+  \url{http://www.linuxdevcenter.com/pub/a/linux/2000/07/25/LivingLinux.html}
+
+\bibitem[{\textbf{White et~al.}(2014)\textbf{White, Pilgrim, Boykin, Stein, and
+  Mazor}}]{White2014}
+White, B.~P., Pilgrim, E.~M., Boykin, L.~M., Stein, E.~D., and Mazor, R.~D.
+  (2014), {Comparison of four species-delimitation methods applied to a DNA
+  barcode data set of insect larvae for use in routine bioassessment},
+  \emph{Freshwater Science}, 33, 1, 338--348, \doi{10.1086/674982}
+
+\end{thebibliography}

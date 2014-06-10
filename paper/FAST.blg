@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99c (Web2C 7.5.4)
+The top-level auxiliary file: FAST.aux
+The style file: frontiersinSCNS&ENG.bst
+Database file #1: FAST.bib
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+You've used 11 entries,
+            3038 wiz_defined-function locations,
+            696 strings with 7673 characters,
+and the built_in function-call counts, 7679 in all, are:
+= -- 590
+> -- 443
+< -- 4
++ -- 218
+- -- 121
+* -- 621
+:= -- 1071
+add.period$ -- 0
+call.type$ -- 11
+change.case$ -- 95
+chr.to.int$ -- 12
+cite$ -- 11
+duplicate$ -- 541
+empty$ -- 547
+format.name$ -- 149
+if$ -- 1526
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 109
+newline$ -- 41
+num.names$ -- 44
+pop$ -- 241
+preamble$ -- 1
+purify$ -- 84
+quote$ -- 0
+skip$ -- 322
+stack$ -- 0
+substring$ -- 293
+swap$ -- 300
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 99
+warning$ -- 0
+while$ -- 49
+width$ -- 0
+write$ -- 134
