@@ -137,8 +137,8 @@ sub next_seq {
 		$xml_fragment .= $finishedline;
 		last if $finishedline =~ m!</protein>!;
 	}
-
-	return unless $xml_fragment =~ /<protein/;
+	# Match <protein> but not other similar elements like <protein-matches>
+	return unless $xml_fragment =~ /<protein[\s>]/;
 
 	$self->_parse_xml($xml_fragment);
 
@@ -166,6 +166,8 @@ sub next_seq {
                   -seq_id => $protein_node->getAttribute('id') ),
 					} @locNodes;
 			foreach my $seqFeature (@seqFeatures){
+				$bioSeq->add_SeqFeature($seqFeature);
+
 				my $annotation1 = FAST::Bio::Annotation::DBLink->new;
 				$annotation1->database($matchNodes[$match]->getAttribute('dbname'));
 				$annotation1->primary_id($matchNodes[$match]->getAttribute('id'));
@@ -195,7 +197,6 @@ sub next_seq {
                                      $seqFeature->annotation->add_Annotation('dblink', $go_annotation);
                                  }
 			}
-			$bioSeq->add_SeqFeature(@seqFeatures);
 		}
 	}
 	my $accession = $protein_node->getAttribute('id');
@@ -228,7 +229,8 @@ sub _initialize {
   my $line = undef;
   # fast forward to first <protein/> record.
   while($line = $self->_readline()){
-    if($line =~ /<protein/){
+    # Match <protein> but not other similar elements like <protein-matches>
+    if($line =~ /<protein[\s>]/){
       $self->_pushback($line);
       last;
     }
