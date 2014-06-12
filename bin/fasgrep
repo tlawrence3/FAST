@@ -38,6 +38,7 @@ my $split_on_regex       = undef;        # -S
 my $match_description    = undef;  # -d
 my $match_sequence       = undef;  # -s
 my $match_field          = undef;  # -f
+my $match_tag            = undef;  # -t
 
 ## in increasing priority:
 my $iupac_ambiguity_expand_regex_prot        = undef; # -p, implies -s
@@ -50,7 +51,7 @@ GetOptions('help|h'         		 => \$help,
 	   'negate|v'                    => \$negate,
 	   'case-insensitive|i'          => \$insensitive,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"\n" 
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
@@ -62,9 +63,14 @@ GetOptions('help|h'         		 => \$help,
 	   'match-description|d'         => \$match_description,
 	   'match-sequence|s'            => \$match_sequence,
 	   'match-field|f=i'             => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --match-field or -f option takes a positive integer argument." 
+						  die "$NAME: --match-field or -f option expects non-zero integer argument\n" 
 						    unless $val != 0; 
 						  $match_field = $val;
+						},
+	   'match-tag|t=i'             => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --match-tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
+						    unless $val =~ /^[a-zA-Z0-9_-]+$/;  
+						  $match_tag = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
 
@@ -72,11 +78,11 @@ GetOptions('help|h'         		 => \$help,
 	   'iupac-expand-nuc|e'          => \$iupac_ambiguity_expand_regex_nuc,
 	   'revcom-iupac-expand-nuc|r'   => \$revcom_iupac_ambiguity_expand_regex_nuc,
 	  ) 
-  or pod2usage(2);
+  or exit(1);
 		  
-pod2usage(1) if $help;
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$NAME: Requires at least two arguments REGEX file1 [file2…fileN]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
+pod2usage("$NAME: Requires at least two arguments REGEX file1 [file2…fileN] unless taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
 pod2usage("$NAME: Requires exactly one argument (a regex) when taking input from STDIN. Try $NAME -h for help.") if (@ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
@@ -110,6 +116,14 @@ else {
 }
 
 
+my $split_re;
+if ($split_on_regex) {
+  $split_re = qr/$split_on_regex/;
+}
+else {
+  $split_re = ' ';
+}
+
 my $index;
 if (defined $match_field and $match_field > 0) {
   $index = $match_field - 1;
@@ -117,6 +131,7 @@ if (defined $match_field and $match_field > 0) {
 else { # $match_field < 0
   $index = $match_field;
 }
+
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
@@ -146,22 +161,28 @@ while ($IN or @ARGV) {
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
       my $match_data = $seq->id();
-      $match_data = $seq->desc() if ($match_description);
       $match_data = $seq->seq()  if ($match_sequence);
-      ## This could be generalized so $match_field does not imply $match_description
+      $match_data = $seq->desc() if ($match_description);
       if ($match_field) {
 	 my $desc = $seq->desc();
 	 my @fields;
 	 if ($split_on_regex) {
-	   my $split_re = qr/$split_on_regex/;
 	   @fields = split $split_re,$desc;
-	   # @fields = split $split_re,$match_data;
 	}
 	else {
 	  @fields = split ' ',$desc;
-	  # @fields = split ' ',$match_data;
 	}
 	$match_data = $fields[$index];
+      }
+      if ($match_tag) {
+	my $desc = $seq->desc();
+	my $re = qr/$match_tag[:=](\S+)/p;
+	if ($desc =~ $re) {
+	  $match_data = $1;
+	}
+	else {
+	  $match_data = "";
+	}
       }
       print $OUT $seq if (((not $negate) and $match_data =~ $re) or ($negate and $match_data !~ $re));
     }
@@ -194,6 +215,7 @@ Options specific to fasgrep:
   -s, --match-sequence              match on sequence 
   -d, --match-description           match on description 
   -f, --match-field=<int>           match field <int> in description
+  -t, --match-tag=<string>          match on value of a (tag,value) pair in the description
   -S, --split-on-regex=<regex>      use regex to split description
   -v, --negate                      output sequences that do not match
   -i, --insensitive                 match case-insensitively
@@ -219,6 +241,15 @@ multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
 reformat other formats to and from multifasta.
 
+
+=head1 DEFAULT AND OPTIONAL MATCHING BEHAVIOR
+
+By default, fasgrep tests regex matching on the identifiers of
+sequence records. Options described below modify which parts of
+sequence records get tested for regex matching. These options take
+effect as follows with decreasing priority: 
+-t > -f > -d > -s
+
 =head1 OPTIONS
 
 =over 8
@@ -232,8 +263,8 @@ Default: [query identifiers]
 =item B<-d>,
       B<--match-description> 		
 
-Query sequence descriptions with regex. If both -s and -d options are
-used, -s takes priority.  Default: [query identifiers]
+Query sequence descriptions with regex. 
+Default: [query identifiers]
 
 =item B<-f [int]>,
       B<--match-field=[int]>     
@@ -255,8 +286,6 @@ In fasta files, the identifier occurs between the record separator
 description is everything after the first string of white space on the
 identifier line. Therefore the identifier is counted as the 0th field,
 which is what fasgrep matches by default. 
-
-This option takes priority over both -s and -d.
 
 =item B<-S [regex]>,
       B<--split-on-regex=[regex]>   

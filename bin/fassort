@@ -56,7 +56,7 @@ my $memory_limit        = 1048576;  # -M; one-half GB
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						  die "$NAME: --moltype or -m option expects argument \"dna\", \"rna\" or \"protein\"\n" 
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
@@ -69,19 +69,19 @@ GetOptions('help|h'         		 => \$help,
 	   'sort-description|d'          => \$sort_description,
 	   'sort-sequence|s'             => \$sort_sequence,
 	   'sort-field|f=i'              => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --sort-field or -f option expects a positive integer argument." 
-						    unless $val > 0; 
+						  die "$NAME: --sort-field or -f option expects non-zero integer argument\n" 
+						    unless $val != 0; 
 						  $sort_field = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'sort-tag|t=s'                => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --sort-tag or -t option expects an argument that is exclusively a string of characters from the set [a-zA-Z0-9_-]." 
+						  die "$NAME: --sort-tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
 						    unless $val =~ /^[a-zA-Z0-9_-]+$/; 
 						  $sort_tag = $val;
 						},
 	   'sort-regex|x=s'              => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --sort-regex or -x option expects an argument that contains exactly one capture buffer delimited by parentheses." 
-						    unless $val =~ /^[^()]+\([^)]+\)[^()]+$/; 
+						  die "$NAME: --sort-regex or -x option expects regex argument with exactly one capture buffer\n" 
+						    unless $val =~ /^[^()]*\([^)]+\)[^()]*$/; 
 						  $sort_regex = $val;
 						},
 	   'reverse|r'                   => \$reverse,
@@ -89,13 +89,13 @@ GetOptions('help|h'         		 => \$help,
 	   'memory_limit|M=i'            => \$memory_limit
 
 	  ) 
-  or pod2usage(2);
+ or exit(1);
 		  
-pod2usage(1) if $help;
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 
 pod2usage("$NAME: Requires at least one argument file1 [file2…fileN] unless taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 1));
-pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN. Try $NAME -h for help.") if (@ARGV > 0);
+pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -136,16 +136,16 @@ else {
 
 my $keyf;
 if ($sort_tag) {
-  $keyf = sub { my $s = shift; my $re = qr/$sort_tag[:=](\S+)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return undef;} };
+  $keyf = sub { my $s = shift; my $re = qr/$sort_tag[:=](\S+)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return;} };
 }
 elsif ($sort_regex) {
   my $m = 'id'; 
      $m = 'seq'  if ($sort_sequence);
      $m = 'desc' if ($sort_description); 
-  $keyf = sub { my $s = shift;  my $re = qr/$sort_regex/p; my $r = $s->$m(); if ($r =~ $re) { return $1;} else {return undef;} };
+  $keyf = sub { my $s = shift;  my $re = qr/$sort_regex/p; my $r = $s->$m(); if ($r =~ $re) { return $1;} else {return;} };
 }
 elsif ($sort_field) {
-  $keyf = sub { my $s = shift; my @fields = split $split_re,$s->desc(); if (exists $fields[$index]) {return $fields[$index]} else {return undef;} };
+  $keyf = sub { my $s = shift; my @fields = split $split_re,$s->desc(); if (exists $fields[$index]) {return $fields[$index]} else {return;} };
 }
 elsif ($sort_description) {
   $keyf = sub { my $s = shift; $s->desc() };
@@ -234,7 +234,7 @@ else {
 }
 
 
-sub return_compare_function () {
+sub return_compare_function {
   if ($numeric){
     if ($reverse) {
       return sub { my($a,$b)=@_; return ($b->[0] <=> $a->[0]); };
@@ -262,9 +262,7 @@ fassort - sort sequences based on identifiers
 
 =head1 SYNOPSIS
 
-fassort [options] [MULTIFASTA-FILE]
-
-[MULTIFASTA-DATA-ON-STDIN] | fassort [options]
+fassort [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
@@ -278,7 +276,7 @@ Options specific to fassort:
   -s, --sort-description	       sort on description
   -d, --sort-sequence		  sort on sequence
   -f, --sort-field=<int>	       sort on field in description
-  -t, --sort-tag=<string>         sort on value of a (name,value) pair in the description
+  -t, --sort-tag=<string>         sort on value of a (tag,value) pair in the description
   -x, --sort-regex=<regex>        sort on value of a regex capture
   -S, --split-on-regex=<regex>    split description for field matching using regex 
   -r, --reverse                   reverse result of comparisons
