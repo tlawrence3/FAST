@@ -95,7 +95,7 @@ use Convert::Binary::C;
 
 use base qw(FAST::Bio::SeqIO);
 
-my $c = new Convert::Binary::C (
+my $c = Convert::Binary::C->new (
 				ByteOrder => 'BigEndian',
 				Alignment => 2
 			       );

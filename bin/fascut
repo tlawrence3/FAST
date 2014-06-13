@@ -8,7 +8,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "";
+$DESC    = "Select subsequences based on coordinate lists and ranges.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -43,17 +43,16 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'rename|r=s'                  => \$rename, #
-     'append|a'                    => \$append,
-     'strict|s'                    => \$strict,
+	   'strict|s'                    => \$strict,
+	   
 	
 	  ) 
-  or pod2usage(2);
+  or exit(1);
 		  
-pod2usage(1) if $help;
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires at least two arguments <coordinate> <fasta-file1> [fasta-file2...fasta-fileN]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
-pod2usage("$0: Requires one argument <coordinate> when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV == 0);
+pod2usage("$NAME: Requires at least two arguments <coordinate> <fasta-file1> [fasta-file2...fasta-fileN]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
+pod2usage("$NAME: Requires one argument <coordinate> when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -104,64 +103,56 @@ sequence: while (my $seq = $IN->next_seq()) {
        if ($coord =~ /([\d-]+)\.\.([\d-]+)/) {
          $b = $1 + 0;
          $e = $2 + 0; 
-        }
-        else {
+       }
+       else {
          $coord =~ /([\d-]+)/;
          $b = $1 + 0;
          $e = $b + 0;  
-        }
-  ## interpret negative coords
-  $b = ($b < 0 ? $seqlen + $b + 1 : $b);
-  $e = ($e < 0 ? $seqlen + $e + 1 : $e);
-  ## check length bounds
-  if ($strict) { ## strict; warns and skips sequence if coords are out of bounds,
-      if ($e < $b) {
-    warn "Skipped sequence $seqid with length $seqlen: bad range with end $e less than $b.\n";
-    next sequence;
-      }
-      if ($b < 1 or $e < 1 or $b > $seqlen or $e > $seqlen) {
-    warn "Skipped sequence $seqid with length $seqlen: coord $coord out-of-bounds.\n";
-    next sequence;
-      }
-  }
-  else {        ## otherwise, returns longest possible non-null subsequence within range
-      if ($e < $b) {
-    next;
-      }
-      if ($b < 1) {
-    $b = 1;
-      } 
-      elsif ($b > $seqlen) {
-    next;
-      }
-      if ($e > $seqlen) {
-    $e = $seqlen;
-      } 
-      elsif ($e < 0) {
-    next;
-      }
-  }
-  if ($append) {
-      my $trunc = $seq->trunc($b,$e);
-      $trunc->display_id($rename || $seq->id);
-      $trunc->desc(join "fascut:",$seq->desc,"$b..$e");
-      print $OUT $trunc;
-  }
-  else {
-    push @seqs, $seq->subseq($b,$e);#$seqseq .= $seq->subseq($b,$e);
-  }
-    }
-    unless ($append or not @seqs) {
-      my $seqseq = join "",@seqs;
-      if ($moltype) {
-         $subseq = new FAST::Bio::Seq(-seq => $seqseq,-id => ($rename || $seq->id),-desc => $seq->desc, -alphabet => $moltype);
-      }
-      else {
-         $subseq = new FAST::Bio::Seq(-seq => $seqseq,-id => ($rename || $seq->id),-desc => $seq->desc);
-      }
-      print $OUT $subseq;
-    }
-    }
+       }
+       ## interpret negative coords
+       $b = ($b < 0 ? $seqlen + $b + 1 : $b);
+       $e = ($e < 0 ? $seqlen + $e + 1 : $e);
+       ## check length bounds
+       if ($strict) { ## strict; warns and skips sequence if coords are out of bounds,
+	 if ($e < $b) {
+	   warn "$NAME: Skipped sequence $seqid with length $seqlen: bad range with end $e less than $b.\n";
+	   next sequence;
+	 }
+	 if ($b < 1 or $e < 1 or $b > $seqlen or $e > $seqlen) {
+	   warn "Skipped sequence $seqid with length $seqlen: coord $coord out-of-bounds.\n";
+	   next sequence;
+	 }
+       }
+       else {        ## otherwise, returns longest possible non-null subsequence within range
+	 if ($e < $b) {
+	   next;
+	 }
+	 if ($b < 1) {
+	   $b = 1;
+	 } 
+	 elsif ($b > $seqlen) {
+	   next;
+	 }
+	 if ($e > $seqlen) {
+	   $e = $seqlen;
+	 } 
+	 elsif ($e < 0) {
+	   next;
+	 }
+       }
+       push @seqs, $seq->subseq($b,$e);#$seqseq .= $seq->subseq($b,$e);
+     }
+     if (@seqs) {
+       my $seqseq = join "",@seqs;
+       if ($moltype) {
+         $subseq = new FAST::Bio::Seq(-seq => $seqseq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
+       }
+       else {
+         $subseq = new FAST::Bio::Seq(-seq => $seqseq,-id => $seq->id,-desc => $seq->desc);
+       }
+       print $OUT $subseq;
+     }
+   }
     undef $IN;
   }
 }
