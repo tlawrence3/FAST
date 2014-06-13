@@ -89,7 +89,7 @@ GetOptions('help|h'         		 => \$help,
 	   'keep-msg|k'                  => \$keep_msg,
 	   'cds'                         => \$xl_as_cds,
 	   'expand-gaps|e'               => \$expand_gaps,
-     'keep-dna|d'                  => \$keep_dna,
+	   'keep-dna|d'                  => \$keep_dna,
 	  )
   or pod2usage(2);
 		  
@@ -216,7 +216,7 @@ fasxl - translate sequences by a genetic code.
 
 =head1 SYNOPSIS
 
-fasxl [options] [MULTIFASTA-FILE...]
+fasxl [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
@@ -239,7 +239,7 @@ Options:
 
 =head1 INPUT AND OUTPUT
 
-fasgrep is part of FAST, the FAST Analysis of Sequences Toolbox, based
+fasxl is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can

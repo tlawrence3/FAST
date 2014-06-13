@@ -41,11 +41,11 @@ my $comment              = undef;                 # -C
 my $split_on_regex       = $def_split_on_regex;   # -S 
 
 ## in increasing priority:
-my $sort_description    = undef;  # -d
 my $sort_sequence       = undef;  # -s
+my $sort_description    = undef;  # -d
 my $sort_field          = undef;  # -f
-my $sort_tag            = undef;  # -t 
 my $sort_regex          = undef;  # -x
+my $sort_tag            = undef;  # -t 
 
 my $reverse             = undef;  # -r
 my $numeric             = undef;  # -n
@@ -99,13 +99,9 @@ pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN. 
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-my $split_re;
+my $split_re = ' ';
 if ($split_on_regex) {
   $split_re = qr/$split_on_regex/;
-}
-else {
-  $split_re = ' ';
-}
 
 my $index;
 if ($sort_field and $sort_field > 0) {
@@ -258,29 +254,29 @@ __END__
 
 =head1 NAME
 
-fassort - sort sequences based on identifiers
+B<fassort> - sort sequences based on identifiers
 
 =head1 SYNOPSIS
 
-fassort [OPTION]... [MULTIFASTA-FILE]...
+B<fassort> [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-fassort takes multifasta format sequence or alignment data as input,
-and outputs sequence records sorted by some user-defined criteria. By
-default, sequences are sorted ASCIIbetically by their
-identifiers. Optionally sequences may be sorted by their sequences,
-descriptions or components of descripions.
+B<fassort> takes sequence or alignment data as input, and outputs
+sequence records sorted by some user-defined criteria. By default,
+sequences are sorted ASCIIbetically by their identifiers. Optionally
+sequences may be sorted by their sequences, descriptions or components
+of descripions.
 
-Options specific to fassort:
-  -s, --sort-description	       sort on description
-  -d, --sort-sequence		  sort on sequence
-  -f, --sort-field=<int>	       sort on field in description
-  -t, --sort-tag=<string>         sort on value of a (tag,value) pair in the description
-  -x, --sort-regex=<regex>        sort on value of a regex capture
-  -S, --split-on-regex=<regex>    split description for field matching using regex 
-  -r, --reverse                   reverse result of comparisons
-  -n, --numeric                   compare according to string numerical value
+Options specific to B<fassort>:
+  B<-d>, B<--sort-description>	           sort on description
+  B<-s>, B<--sort-sequence>		      sort on sequence
+  B<-f>, B<--sort-field>=<int>	           sort on field in description
+  B<-t>, B<--sort-tag>=<string>           sort on value of a (tag,value) pair in the description
+  B<-x>, B<--sort-regex>=<regex>          sort on value of a regex capture
+  B<-S>, B<--split-on-regex>=<regex>      split description for field matching using regex 
+  B<-r>, B<--reverse>                     reverse result of comparisons
+  B<-n>, B<--numeric>                     compare according to string numerical value
   
 
 Options general to FAST:
@@ -295,7 +291,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-fassort is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fassort> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one file or on STDIN. Output
 occurs to STDOUT. The FAST utility B<fasconvert> can reformat other
@@ -303,10 +299,10 @@ formats to and from multifasta.
 
 =head1 DEFAULT AND OPTIONAL SORTING BEHAVIOR
 
-By default, fassort sorts sequence records by their
+By default, B<fassort> sorts sequence records by their
 identifiers. Options described below modify which parts of sequence
 records are sorted on. These options take effect as follows with
-decreasing priority: -t > -xd > -xs > -x > -f > -d > -s
+decreasing priority: B<-t> > B<-xd> > B<-xs> > B<-x> > B<-f> > B<-d> > B<-s>
 
 =head1 OPTIONS
 

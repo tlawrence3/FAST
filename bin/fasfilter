@@ -19,6 +19,7 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_split_on_regex = ' ';
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -29,11 +30,20 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 
+my $filter_description    = undef;  # -d
+my $filter_field          = undef;  # -f
+my $filter_tag            = undef;  # -t 
+my $filter_regex          = undef;  # -x
+my $split_on_regex       = $def_split_on_regex;   # -S 
+
+
+my $negate                = undef;  # -v
+
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"\n" 
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
@@ -42,25 +52,102 @@ GetOptions('help|h'         		 => \$help,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
 
+           'filter-description|d'        => \$filter_description,
+	   'filter-field|f=i'            => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --filter-field or -f option expects non-zero integer argument\n" 
+						    unless $val != 0; 
+						  $filter_field = $val;
+						},
+	   'split-on-regex|S=s'          => \$split_on_regex,
+	   'filter-tag|t=s'              => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --filter-tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
+						    unless $val =~ /^[a-zA-Z0-9_-]+$/; 
+						  $filter_tag = $val;
+						},
+	   'filter-regex|x=s'            => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --filter-regex or -x option expects regex argument with exactly one capture buffer\n" 
+						    unless $val =~ /^[^()]*\([^)]+\)[^()]*$/; 
+						  $filter_regex = $val;
+						},
+
 	  ) 
-  or pod2usage(2);
+  or exit(1);
 		  
-pod2usage(1) if $help;
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires at least two arguments fasfilter [options] <range> fasta-file1 [fasta-file2...]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 1));
-pod2usage("$0: Requires exactly one argument (a range) when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV == 0);
+pod2usage("$NAME: Requires at least two arguments RANGES FILE [FILE2...]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
+pod2usage("$NAME: Requires exactly one argument RANGES when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV != 1);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-my @BANDS = undef;
-
-if ($ARGV[0] =~ /,/) {
-    @BANDS = split /,/,$ARGV[0];
+my $RANGES = shift @ARGV;
+my @RANGES = undef;
+if ($RANGES =~ /,/) {
+    @RANGES = split /,/,$RANGES;
   }
 else {
-  $BANDS[0] = $ARGV[0];
+  $RANGES[0] = $RANGES;
 }
-shift @ARGV;
+
+my @intervals = ();
+foreach my $RANGE (@RANGES) {
+  my ($L,$U);
+  if ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) { ## THIS REGEX IS FROM PERL COOKBOOK RECIPE 2.2
+    $L = $1;
+    $U = $1;
+    push @intervals, [$1,$1];
+  }
+  elsif ($RANGE =~ /^\.\.(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) { 
+    push @intervals, [undef,$1];
+  } 
+  elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)\.\.$/) {
+    push @intervals, [$1,undef];
+  }
+  elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)\.\.(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) {
+    $L = $1;
+    $U = $6;
+    die "$NAME: RANGE $RANGE should have form L..U with L <= U\n" unless ($L <= $U);
+    push @intervals, [$1,$6];
+  }
+  else {
+    die "$NAME: RANGE $RANGE has an invalid syntax; Try \"$NAME -h\"\n";
+  }
+}
+
+
+my $split_re = ' ';
+if ($split_on_regex) {
+  $split_re = qr/$split_on_regex/;
+}
+my $index;
+if ($filter_field and $filter_field > 0) {
+  $index = $filter_field - 1;
+}
+elsif ($filter_field and $filter_field < 0) { 
+  $index = $filter_field;
+}
+
+my $valf;
+if ($filter_tag) {
+  $valf = sub { my $s = shift; my $re = qr/$filter_tag[:=](\S+)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return;} };
+}
+elsif ($filter_regex) {
+  my $m = 'id'; 
+     $m = 'desc' if ($filter_description); 
+  $valf = sub { my $s = shift;  my $re = qr/$filter_regex/p; my $r = $s->$m(); if ($r =~ $re) { return $1;} else {return;} };
+}
+elsif ($filter_field) {
+  $valf = sub { my $s = shift; my @fields = split $split_re,$s->desc(); if (exists $fields[$index]) {return $fields[$index]} else {return;} };
+}
+elsif ($filter_description) {
+  $valf = sub { my $s = shift; $s->desc() };
+}
+else {
+  $valf = sub { my $s = shift; $s->id() };
+}
+
+
+
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN; 
@@ -89,24 +176,17 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      my $seqlen = $seq->length;
+      my $val = &$valf($seq);
       my $pass   = undef;
-      foreach my $band (@BANDS) {
-        my ($b,$e,$l);
-        if ($band =~ /([\d-]+)\.\.([\d-]+)/) {
-	  $b = $1;
-	  $e = $2;	
-	  $pass = 1 if ($b <= $seqlen && $e >= $seqlen);
-	}
-	elsif ($band =~ /([\d-]+)\.\./) {
-	  $l = $1;	
-	  $pass = 1 if ($l <= $seqlen);
-	}
-	else {
-	  die "Bad band specification $band.\nTry $0 -h\n";
+      foreach my $interval (@intervals) {
+	my ($L,$U) = @$interval;
+	if (((not defined $U) && $val >= $L) || ((not defined $L) && $val <= $U) || (defined $U && defined $L && $val >= $L && $val <= $U)){
+	  $pass = 1;
+	  last;
 	}
       }
-      print $OUT $seq if ($pass);
+      print $OUT $seq if ($pass and not $negate);
+      print $OUT $seq if (not $pass and $negate);
     }
     undef $IN;
   }
@@ -118,45 +198,147 @@ __END__
 
 =head1 NAME
 
-fasfilter - Filter sequences in a fasta file by length
+B<fasfilter> - Select sequences by numerical values of name,value pairs in their descriptions
 
 =head1 SYNOPSIS
 
-fasfilter SPECTRUM [fasta-file...]
+B<fasfilter> [OPTION]... RANGES [MULTIFASTA-FILE...]
+
+=head1 RANGE SPECIFICATION
+
+RANGES : { RANGE | RANGE,RANGES }
+
+RANGE  : { POINT | BOUND.. | BOUND..UBOUND | ..BOUND }
+
+POINT  :  a number, as defined in perlnumber 
+
+BOUND  :  a number, as defined in perlnumber 
+
+UBOUND :  a number, as defined in perlnumber, greater than or equal to BOUND
 
 =head1 DESCRIPTION
 
- SPECTRUM : BAND | BAND,SPECTRUM
-     BAND : { LOWER_BOUND.. | LOWER_BOUND..UPPER_BOUND}
-    BOUND : positive integer, sequence based (bioperl) position coordinates
+B<fasfilter> takes sequence or alignment data on input, and outputs
+sequence records that have a numerical component that falls within
+certain specified ranges of values. By default, sequence identifiers
+are tested, assuming they are numbers. Optionally other components may
+be tested, specifically descriptions or components of descripions.
 
-  OUTPUT: 
-         * sequences whose length falls within at least one BAND in the SPECTRUM are output
-         * BOUND specification is always inclusive of the bound.
+More specifically, B<fasfilter> tests whether specific numerical data
+of sequence records falls within one of more RANGES specified by its
+only mandatory argument. If one record's value falls within one of the
+RANGES, the sequence will be printed to output. If a sequence record
+does not have the specified component, or its value falls outside all
+specified ranges, the sequence will not be printed to output. Range
+bounds are inclusive. Ranges are not simplified with respect to one
+another (e.g. through taking their union).
 
-Options specific to name:
+If the first range begins with a negative number, you should terminate
+option processing with "--".
+
+Options specific to B<fasfilter>:
+  B<-d>, B<--filter-description>	      filter on description
+  B<-f>, B<--filter-field>=<int>	      filter on field in description
+  B<-t>, B<--filter-tag>=<string>         filter on value of a (tag,value) pair in the description
+  B<-x>, B<--filter-regex>=<regex>        filter on value of a regex capture
+  B<-S>, B<--split-on-regex>=<regex>      split description for field-based filtering using regex 
+  B<-v>, B<--negate>                      print records whose values fall outside of all specified ranges
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname>=<string>            use logfile name <string>
+  B<-C>, B<--comment>=<string>            save comment <string> to log
+  B<--format>=<format>                 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
-fasfilter is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fasfilter> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
 reformat other formats to and from multifasta.
 
+=head1 DEFAULT AND OPTIONAL FILTERING BEHAVIOR
+
+By default, B<fasfilter> tests identifiers of sequence
+records. Options described below modify which parts of sequence
+records get tested. These options take effect as follows with
+decreasing priority: B<-t> > B<-xd> > B<-x> > B<-f> > B<-d> 
+
 =head1 OPTIONS
 
 =over 8
+
+=item B<-d>,
+      B<--filter-description> 		
+
+Filter sequence records by their descriptions. If used in combination
+with the B<-x>, B<--filter-regex> option, filters records by values of
+a regex capture applied to their descriptions.
+
+=item B<-f [int]>,
+      B<--filter-field=[int]>     
+
+Filter sequece records by a specific field in their descriptions. With
+this option, the description is split into fields using strings of
+white space as field delimiters (the default Perl behavior for
+splitting lines of data into fields).
+
+This option takes a mandatory integer option argument giving the index
+for which field to filter on. One-based indexing is used, so the first
+field after the identifier has index 1. As standard in Perl, negative
+indices count backwards from the last field in the description; field
+"-1" is the last field, "-2" is the second-to-last etc.
+
+In fasta files, the identifier occurs between the record separator
+(">") and the first whitespace on the identifier line, and the
+description is everything after the first string of white space on the
+identifier line. Therefore the identifier is counted as the 0th field,
+which is what B<fasfilter> tests by default. 
+
+=item B<-S [regex]>,
+      B<--split-on-regex=[regex]>   
+
+Use regex <regex> to split the description for the B<-f> option
+instead of the perl default (which splits on one or more whitespace
+characters). Special characters must be quoted to protect them from
+the shell. The regex is often helpfully enclosed by double-quote (")
+delimiters but never by forward slashes (/).
+
+=item B<-t [string]>,
+      B<--filter-tag=[string]>   
+
+Filter sequence records by values of a named tag in the description.
+Name-value pairs in the description are expected to have the format
+"name:value" as generated by FAST tools (such as faslen) or
+"name=value" as common in General Feature Format. The "name" must
+contain only characters from the set [a-zA-Z0-9_-]. The "value" is any
+string of non-whitespace characters. Sequence records for which the
+specified tag does not exist will not be written to output. Currently
+only the first (left-most) occcurence of a tag is tested.
+
+=item B<-x [regex]>,
+      B<--filter-regex=[regex]>   
+
+Filter sequence records by values of a regex capture applied to
+identifers (by default) or descriptions (in combination with the -d
+option). The format of the regex is a perl regular expression that
+must contain exactly one "capture buffer" specified by a pair or
+parentheses. The value captured in this buffer is tested. Sequence
+records that do not match the regex will will not be written to
+output. Currently only the first (left-most) match is tested. Special
+characters must be quoted to protect them from the shell. The regex is
+often usually enclosed by double-quote (") delimiters but not forward
+slashes (/).
+
+=item B<-v>,
+      B<--negate> 	   
+
+Output sequences that B<do not> meet the specified numerical criteria.
 
 =item B<-h>,
       B<--help>
@@ -206,39 +388,21 @@ processing data).
 
 =head1 EXAMPLES
 
-Output all sequences of length 400 or less
+Output sequences with gi number identifiers between 200 million and 500 million
 
 =over 8
 
-fasfilter 1..400 < in.fas > out.fas
+B<fasfilter> -x "gi\|(\d+)" 2e8..5e8  t/data/P450.fas 
 
 =back
 
-Output all sequences of length between 400 and 800 inclusively
+Output sequences with length greater than or equal to 515
 
 =over 8
 
-fasfilter 400..800 < in.fas > out.fas
+B<faswc> t/data/P450.fas | B<fasfilter> -t length 515..
 
 =back
-
-Output all sequences of length 800 or more
-
-=over 8
-
-fasfilter 800.. < in.fas > out.fas
-
-=back
-
-Output all sequences of length 400 or less or 800 or more
-
-=over 8
-
-fasfilter 1..400,800.. < in.fas > out.fas
-
-=back
-
-
 
 =head1 SEE ALSO
 
