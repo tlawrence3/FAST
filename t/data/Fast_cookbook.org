@@ -16,7 +16,7 @@
 \\
  /faslen/ concatinates the length of sequences in a fasta/multifasta file to the
  sequence identifier(s). To easily determine the length of the
- chromosome I one can do the following:
+ chromosome I we can do the following:
 
 #+BEGIN_SRC shell
 faslen chr01.fsa | egrep ">"
@@ -45,8 +45,25 @@ To translate this sequence, we can use the /fasxl/ utility and append it to the 
 fascut 186512..186853 chr01.fsa | fasrc | fasxl
 #+END_SRC
 
-If you examine the sequence, you will see that the peptide starts with a methionine, and ends
-with a stop codon, indicated by the * character. 
+If we examine the sequence, we will see that the peptide starts with a methionine, and ends
+with a stop codon, indicated by the * character. If we are interested
+in the codon usage of our gene, we can instead append /fascodon/ to the end
+of our pipeline, and the program gives a space-delimited table
+indicating the normalized counts of each codon with information on
+starts and stops. With the following code, we can see that the most
+frequently used codon in this example is AAT (encoding an Asparagine)
+
+#+BEGIN_SRC shell
+fascut 186512..186853 chr01.fsa | fasrc | fascodon
+#+END_SRC 
+
+/fascomp/ will return
+the base/protein composition of a sequence. If we are interested in
+the normalized base composition of the first chromosome, we can run the following:
+
+#+BEGIN_SRC shell
+fascomp -n chr01.fsa
+#+END_SRC
 
 ** example 2: convert, select, and change fasta sequences
 
@@ -75,9 +92,9 @@ faslen P450clustalw2.clustalw.fas | head -1 | cut -f2 -d" "
 
 which returns faslen:557. 
 
-You can subset the output in many ways
-to get information you are interested in, for example, if you want to
-get the original sequence with the gi number "86475799", you can use
+We can subset the output in many ways
+to get information we are interested in, for example, if we want to
+get the original sequence with the gi number "86475799", we can use
 the /fasgrep/ utility, which will pull sequences matching a perl
 regular expression, by default, in the identifier:
 
@@ -85,15 +102,15 @@ regular expression, by default, in the identifier:
 fasgrep "86475799" P450.fas
 #+END_SRC
 
-And if you want to retrieve the aligned sequence with the gi number "86475799"
+And if we want to retrieve the aligned sequence with the gi number "86475799"
 
 #+BEGIN_SRC shell
 fasgrep "86475799" P450clustalw2.clustalw.fas
 #+END_SRC
 
-/fastr/ can be useful when you are having to change specific
+/fastr/ can be useful when we are having to change specific
 characters based on the requirements of a bioinformatic program. For
-example, you may need to change the way you represent gapped
+example, we may need to change the way we represent gapped
 characters in a fasta alignment from "-" to ".". 
 
 #+BEGIN_SRC shell
@@ -101,21 +118,21 @@ fastr -s "-" "." P450clustalw2.clustalw.fas
 #+END_SRC 
 
 /alndegap/ allows for editing of alignments based on their gap
-profile. To remove sites with at least one gap from all sequences, you
+profile. To remove sites with at least one gap from all sequences, we
 can do the following:
 
 #+BEGIN_SRC shell
 alndegap -a P450clustalw2.clustalw.fas
 #+END_SRC
 
-you can then determine the length of the alignment by looking at the
+we can then determine the length of the alignment by looking at the
 first identifier for your output after running the following:
 
 #+BEGIN_SRC shell
 alndegap -a P450clustalw2.clustalw.fas | faslen
 #+END_SRC
 
-And if you are interested in retaining only unique sequences, 
+And if we are interested in retaining only unique sequences, 
 /fasuniq/ appended to the output will collapse duplicate sequences to
 one, appending all of the identifiers to one large identifier. 
 
