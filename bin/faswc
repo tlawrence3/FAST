@@ -111,7 +111,7 @@ while ($IN or @ARGV) {
 	print $OUT $seq;
       }
     }
-    if ($totals or $sequences or $characters){
+    if ($file && ($totals || $sequences || $characters)){
       print join "",
 	($totals || $sequences  ? sprintf("%10d", $numseqsfile) : ""),
 	  ($totals || $characters ? sprintf("%10d", $numcharsfile) : ""),
