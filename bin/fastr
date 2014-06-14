@@ -9,7 +9,7 @@ no warnings 'once';
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "";
+$DESC    = "character-based transformations on sequences";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -34,17 +34,18 @@ my $squeeze              = undef;
 my $complement           = undef;
 my $strict               = undef;
 my $iupac                = undef;
-my $seq_match            = undef;
-my $desc_match           = undef;
+my $sequence             = undef;
+my $description          = undef;
 my $append_info          = undef;
+my $ambig_char           = undef;
 
 
 my $component            = 'id'; #default
-my $search = undef;
-my $replace = ''; #default value for replace
-my %strict_symbols = ();
-my %iupac_symbols = ();
-my %ambig = ();
+my $search               = undef;
+my $replace              = ''; #default value for replace
+my %strict_symbols       = ();
+my %iupac_symbols        = ();
+my %ambig                = ();
 
 ## TO GO INTO DICTIONARY
 $strict_symbols{'dna'}     = '[ACTGactg\-]';
@@ -54,16 +55,14 @@ $iupac_symbols{'rna'}      = '[ACUGacugMRWSYKVHDBXNmrwsykvhdbxn\-]';
 $strict_symbols{'protein'} = '[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy\-]';
 $iupac_symbols{'protein'}  = '[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwyBZX\.bzx\*\-]';
 
-$ambig{'dna'} = 'N';
-$ambig{'rna'} = 'N';
-$ambig{'protein'} = 'X';
-
-
+$ambig{'dna'}              = 'N';
+$ambig{'rna'}              = 'N';
+$ambig{'protein'}          = 'X';
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"\n" 
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
@@ -71,23 +70,27 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'D=s'                         => \$delete,
-     'S=s'                         => \$squeeze,
-     'complement|c'                => \$complement,
-     'strict'                      => \$strict,
-     'iupac'                       => \$iupac,
-     's'                           => \$seq_match,
-     'd'                           => \$desc_match,
-     'append|a'                           => \$append_info,
+	   'delete|D=s'                  => \$delete,
+	   'squeeze|S=s'                 => \$squeeze,
+	   'complement|c'                => \$complement,
+	   'strict'                      => \$strict,
+	   'iupac'                       => \$iupac,
+	   'sequence|s'                  => \$sequence,
+	   'description|d'               => \$description,
+	   'ambig|a'                      => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						    unless $val =~ /dna|rna|protein/i; 
+						  $moltype = $val;
+						},
 	  ) 
   or pod2usage(2);
 		  
-pod2usage(1) if $help;
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires -D, -S, --strict, --iupac, or <search> <replace>. Try $NAME -h for help.") if (!(-t STDIN) && $delete && $squeeze && @ARGV != 2 && $iupac && $strict);
-pod2usage("$0: Requires -D, -S, --strict, --iupac, or <search> <replace> <fasta file1 .. fasta fileN>. Try $NAME -h for help.") if ((-t STDIN) && @ARGV == 0);
-pod2usage("$0: -D, -S, --strict, and --iupac are mutually exclusive options. Try $NAME -h for help.") if (grep($_, $strict, $iupac, $delete, $squeeze) > 1);
-pod2usage("$0: -s and -d are mutually exclusive options. Try $NAME -h for help.") if (grep($_, $seq_match, $desc_match) > 1);
+pod2usage("$NAME: Requires two arguments SEARCH REPLACE --delete, --squeeze, --strict, or --iupac, or <search> <replace>. Try $NAME -h for help.") if (!(-t STDIN) && $delete && $squeeze && @ARGV != 2 && $iupac && $strict);
+pod2usage("$NAME: Requires --delete, --squeeze, --strict, --iupac, or <search> <replace> <fasta file1 .. fasta fileN>. Try $NAME -h for help.") if ((-t STDIN) && @ARGV == 0);
+pod2usage("$NAME: -D, -S, --strict, and --iupac are mutually exclusive options. Try $NAME -h for help.") if (grep($_, $strict, $iupac, $delete, $squeeze) > 1);
+pod2usage("$NAME: -s and -d are mutually exclusive options. Try $NAME -h for help.") if (grep($_, $seq_match, $desc_match) > 1);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -155,8 +158,7 @@ __END__
 
 =head1 NAME
 
-fastr - facilitates the application of a tr/// operator on all ids,
-descriptions or seqeunces on input
+B<fastr> - character-based transformations on sequences
 
 =head1 SYNOPSIS
 
@@ -194,7 +196,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-fastr is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fastr> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can

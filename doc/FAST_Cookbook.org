@@ -1,9 +1,9 @@
-#+TITLE:FAST tools cookbook
-#+AUTHOR: Katherine Amrine
-#+EMAIL: kc.amrine@gmail.com
-#+OPTIONS:H:5 num:nil toc:nil \n:nil @:t ::t ^:nil *:t LaTeX:t d:nil email:nil creator:nil
+#+TITLE:FAST // Fast Analysis of Sequences Toolbox // Quick Cooking with FAST
+#+AUTHOR: Katherine C.H. Amrine, David H. Ardell
+#+OPTIONS:H:5 num:t toc:t \n:nil @:t ::t ^:nil *:t LaTeX:t d:nil email:nil creator:nil
 #+STARTUP: align
 
+These examples may be executed as a demo 
 
 
 * simple examples
