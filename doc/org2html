@@ -1,0 +1,2 @@
+#!/bin/sh
+emacs $1 --batch -f org-export-as-pdf --kill
