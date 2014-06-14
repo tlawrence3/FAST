@@ -20,7 +20,7 @@ WriteMakefile(
     },
     BUILD_REQUIRES => {
         'Test::More' => 0,
-        'Test::Script::run' => 0,
+        'Test::Script::Run' => 0,
     },
     PREREQ_PM => {
         'Sort::Key' => 0,

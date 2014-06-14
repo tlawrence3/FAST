@@ -102,6 +102,7 @@ pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN. 
 my $split_re = ' ';
 if ($split_on_regex) {
   $split_re = qr/$split_on_regex/;
+}
 
 my $index;
 if ($sort_field and $sort_field > 0) {

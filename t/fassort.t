@@ -6,8 +6,8 @@ use Test::More tests => 10;
 use Test::Script::Run;
 
 
-run_ok('fassort',[qw|-t species t/data/Dros.fas|]);
-run_not_ok('fassort',[qw|-t species: t/data/Dros.fas|],"fail if -t argument uses a colon");
+run_ok('fassort',[qw|-t species t/data/P450.fas|]);
+run_not_ok('fassort',[qw|-t species: t/data/P450.fas|],"fail if -t argument uses a colon");
 
 run_ok('fassort', [qw|-sx "^\w(\w)" t/data/P450.fas|]);
 run_not_ok('fassort', [qw|-sx "^\w\w" t/data/P450.fas|],"fail if -x argument contains neither left nor right paren");
