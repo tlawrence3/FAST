@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+lang="en" xml:lang="en">
+<head>
+<title>FAST:Fast Analysis of Sequences Toolbox Cookbook</title>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2014-06-16 07:42:21 PDT"/>
+<meta name="author" content="Katherine C.H. Amrine \& David H. Ardell"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+<div id="content">
+
+<h1 class="title">FAST:Fast Analysis of Sequences Toolbox Cookbook</h1>
+
+<p>These examples are executable from the installation directory.
+</p>
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Recipes </a></li>
+<li><a href="#sec-2">2 Tutorials </a>
+<ul>
+<li><a href="#sec-2_1">2.1 Prelude </a>
+<ul>
+<li><a href="#sec-2_1_1">2.1.1 The FAST definition of "FastA format" </a></li>
+<li><a href="#sec-2_1_2">2.1.2 Use <code>man</code> pages for full documentation </a></li>
+</ul>
+</li>
+<li><a href="#sec-2_2">2.2 Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome </a>
+<ul>
+<li><a href="#sec-2_2_1">2.2.1 Calculating sequence length </a></li>
+<li><a href="#sec-2_2_2">2.2.2 Cut out a subsequence by coordinate with <code>fascut</code> </a></li>
+<li><a href="#sec-2_2_3">2.2.3 Computing reverse complement of a sequence with <code>fasrc</code> </a></li>
+<li><a href="#sec-2_2_4">2.2.4 Translating a sequence with <code>fasxl</code> </a></li>
+<li><a href="#sec-2_2_5">2.2.5 Computing codon usage with <code>fascodon</code> </a></li>
+<li><a href="#sec-2_2_6">2.2.6 Computing base composition with <code>fascomp</code> </a></li>
+</ul>
+</li>
+<li><a href="#sec-2_3">2.3 Example 2: Reformatting, selecting and transforming alignments in FAST </a>
+<ul>
+<li><a href="#sec-2_3_1">2.3.1 Reformatting alignment data with <code>fasconvert</code> </a></li>
+<li><a href="#sec-2_3_2">2.3.2 Selecting sequences with <code>fasgrep</code> </a></li>
+<li><a href="#sec-2_3_3">2.3.3 Reformatting gap characters with <code>fastr</code> </a></li>
+<li><a href="#sec-2_3_4">2.3.4 Degapping sites with <code>alndegap</code> </a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Recipes </h2>
+<div class="outline-text-2" id="text-1">
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Tutorials </h2>
+<div class="outline-text-2" id="text-2">
+
+
+
+</div>
+
+<div id="outline-container-2_1" class="outline-3">
+<h3 id="sec-2_1"><span class="section-number-3">2.1</span> Prelude </h3>
+<div class="outline-text-3" id="text-2_1">
+
+
+
+</div>
+
+<div id="outline-container-2_1_1" class="outline-4">
+<h4 id="sec-2_1_1"><span class="section-number-4">2.1.1</span> The FAST definition of "FastA format" </h4>
+<div class="outline-text-4" id="text-2_1_1">
+
+
+<p>
+FastA format began with the FastA search utilities of William
+Pearson. For FAST, "fasta format" means what is conventionally called
+"multi-fasta" format of sequence or alignment data, largely as
+implementated in BioPerl in the module <code>Bio::SeqIO::fasta</code>. 
+</p>
+<p>
+In the FAST implementation of "fasta format", multiple sequence
+records may appear in a single file or input stream. Sequence data may
+contain gap characters. The logical elements of a sequence record are
+its <i>identifier</i>, <i>description</i> and <i>sequence</i>. The <i>identifier</i>
+(indicated with <code>id</code> in the example here) and <i>description</i> (<code>desc</code>)
+together make the <i>identifier line</i> of a sequence record, that must
+begin with the sequence record start symbol <code>&gt;</code> on a single line. The
+<i>description</i> begins after the first block of white-space on this line
+(indicated with <code>&lt;space&gt;</code>). The <i>sequence</i> of a record
+appears immediately after its identifier line and may continue over
+multiple lines until the next record. 
+</p>
+<p>
+In FAST, the description may be broken into multiple <i>fields</i> defined
+by a <i>delimiter</i> (indicated with <code>&lt;delim&gt;</code>). FAST uses a "one-based"
+indexing of fields as indicated here:
+</p>
+
+
+
+<pre class="example">&gt;seq1-id&lt;space&gt;seq1-desc-field1&lt;delim&gt;seq1-desc-field2&lt;delim&gt;...
+seq1-sequence
+seq1-sequence
+...
+seq1-sequence
+&gt;seq2-id&lt;space&gt;seq2-desc-field1&lt;delim&gt;seq2-desc-field2&lt;delim&gt;...
+seq2-sequence
+seq2-sequence
+...
+seq2-sequence
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2_1_2" class="outline-4">
+<h4 id="sec-2_1_2"><span class="section-number-4">2.1.2</span> Use <code>man</code> pages for full documentation </h4>
+<div class="outline-text-4" id="text-2_1_2">
+
+
+<p>
+All FAST utilities follow UNIX conventions in having default and
+optional behaviors. For more information about how to use and modify
+the behavior of any FAST utility such as <code>faswc</code>, consult its manual
+page with <i>e.g.</i>:
+</p>
+
+
+
+<pre class="example">man faswc
+</pre>
+
+
+
+<p>
+or alternatively:
+</p>
+
+
+
+<pre class="example">perldoc faswc
+</pre>
+
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-2_2" class="outline-3">
+<h3 id="sec-2_2"><span class="section-number-3">2.2</span> Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome </h3>
+<div class="outline-text-3" id="text-2_2">
+
+
+
+</div>
+
+<div id="outline-container-2_2_1" class="outline-4">
+<h4 id="sec-2_2_1"><span class="section-number-4">2.2.1</span> Calculating sequence length </h4>
+<div class="outline-text-4" id="text-2_2_1">
+
+
+<p>
+Chromosome 1 from the <i>Saccharomyces cerevisiae</i> genome is available
+in <code>t/data/chr01.fsa</code>. By default, <code>faswc</code> calculates the lengths of
+sequence records on its input, and outputs its input, augmenting
+sequence descriptions with its calculations using the tag (or name)
+<code>length</code> and a (name,value) separator <code>:</code>, as in <code>length:872</code>. We can
+therefore easily obtain the length of this chromosome sequence as
+follows:
+</p>
+
+
+
+<pre class="example">faswc t/data/chr01.fsa | egrep "&gt;"
+</pre>
+
+
+
+<p>
+Alternatively, <code>faswc -c</code> will output the length of the chromosome
+directly to <code>STDOUT</code>:
+</p>
+
+
+
+<pre class="example">faswc -c t/data/chr01.fsa
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2_2_2" class="outline-4">
+<h4 id="sec-2_2_2"><span class="section-number-4">2.2.2</span> Cut out a subsequence by coordinate with <code>fascut</code> </h4>
+<div class="outline-text-4" id="text-2_2_2">
+
+
+<p>
+<code>fascut</code> will cut a subsequence by coordinate. For example, suppose we
+know that the location of gene <code>YAR030C</code> in yeast chromosome 1 begins
+186512 and ends 186853 on the minus strand. Let's cut this from our
+chromosome. The following code will extract this subsequence in fasta
+format to <code>STDOUT</code>:
+</p>
+
+
+
+<pre class="example">fascut 186512..186853 t/data/chr01.fsa
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2_2_3" class="outline-4">
+<h4 id="sec-2_2_3"><span class="section-number-4">2.2.3</span> Computing reverse complement of a sequence with <code>fasrc</code> </h4>
+<div class="outline-text-4" id="text-2_2_3">
+
+
+<p>
+Knowing that this is on the minus strand, we need to obtain the
+reverse complement of this sequence.  <code>fasrc</code> will compute this.  The
+following code will take the output of <code>fascut</code> as its input and
+return the reverse complemeht in fasta file to <code>STDOUT</code>:
+</p>
+
+
+
+<pre class="example">fascut 186512..186853 t/data/chr01.fsa | fasrc
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2_2_4" class="outline-4">
+<h4 id="sec-2_2_4"><span class="section-number-4">2.2.4</span> Translating a sequence with <code>fasxl</code> </h4>
+<div class="outline-text-4" id="text-2_2_4">
+
+
+<p>
+To translate this sequence, we extend the pipeline with the <code>fasxl</code> utility:
+</p>
+
+
+
+<pre class="example">fascut 186512..186853 t/data/chr01.fsa | fasrc | fasxl
+</pre>
+
+
+
+<p>
+Examine the output, we will see that the peptide starts with a
+methionine, and ends with a stop codon, indicated by the <code>*</code> character
+by default. 
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2_2_5" class="outline-4">
+<h4 id="sec-2_2_5"><span class="section-number-4">2.2.5</span> Computing codon usage with <code>fascodon</code> </h4>
+<div class="outline-text-4" id="text-2_2_5">
+
+
+<p>
+If we are interested in the codon usage of our gene, we can edit the
+last command-line (by typing <code>up-arrow</code> on most UNIX shells) and
+replace <code>fasxl</code> with <code>fascodon</code> at the end of our pipeline. <code>fascodon</code>
+outputs a space-delimited table indicating the normalized counts of
+each codon with information on starts and stops. With the following
+code, we can see that the most frequently used codon in this example
+is <code>AAT</code> (encoding an Asparagine)
+</p>
+
+
+
+<pre class="example">fascut 186512..186853 t/data/chr01.fsa | fasrc | fascodon
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2_2_6" class="outline-4">
+<h4 id="sec-2_2_6"><span class="section-number-4">2.2.6</span> Computing base composition with <code>fascomp</code> </h4>
+<div class="outline-text-4" id="text-2_2_6">
+
+
+<p>
+<code>fascomp</code> will return the base/protein composition of a sequence. If
+we are interested in the normalized base composition of the first
+chromosome, we can run the following:
+</p>
+
+
+
+<pre class="example">fascomp -n t/data/chr01.fsa
+</pre>
+
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-2_3" class="outline-3">
+<h3 id="sec-2_3"><span class="section-number-3">2.3</span> Example 2: Reformatting, selecting and transforming alignments in FAST </h3>
+<div class="outline-text-3" id="text-2_3">
+
+
+
+</div>
+
+<div id="outline-container-2_3_1" class="outline-4">
+<h4 id="sec-2_3_1"><span class="section-number-4">2.3.1</span> Reformatting alignment data with <code>fasconvert</code> </h4>
+<div class="outline-text-4" id="text-2_3_1">
+
+
+<p>
+A file with protein sequences that match a search for "P450" is
+available in <code>t/data/P450.fas</code> under the FAST installation
+directory. Another file contains this data aligned using <code>clustalw</code>
+with the name <code>P450.clustalw2.aln</code>. The <code>fasconvert</code> tool can convert
+from fasta to many formats, or from many formats to fasta, including
+clustalw to fasta as showin in the following example
+</p>
+
+
+
+<pre class="example">fasconvert -i clustalw -f t/data/P450.clustalw2.aln
+</pre>
+
+
+
+<p>
+The previous command automatically saves its output to an output file
+saves output to the same basename and an extension of <code>.fas</code>. The
+<code>faswc</code> utility will append sequence lengths to the sequence
+descriptions. To look at the length of all sequences, use the
+following code.
+</p>
+
+
+
+<pre class="example">faswc t/data/P450.clustalw2.fas | head -1
+</pre>
+
+
+
+<p>
+which outputs <code>length:557</code> to <code>STDOUT</code>.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2_3_2" class="outline-4">
+<h4 id="sec-2_3_2"><span class="section-number-4">2.3.2</span> Selecting sequences with <code>fasgrep</code> </h4>
+<div class="outline-text-4" id="text-2_3_2">
+
+
+<p>
+We can subset the output in many ways to get information we are
+interested in, for example, if we want to get the original sequence
+with the gi number "86475799", we can use <code>fasgrep</code>, which will pull
+out sequences that match a Perl regular expression. By default,
+<code>fasgrep</code> attempts to match sequence identifiers:
+</p>
+
+
+
+<pre class="example">fasgrep "86475799" P450.fas
+</pre>
+
+
+
+<p>
+We can retrieve the aligned version of this sequence as it has the
+same identifier
+</p>
+
+
+
+<pre class="example">fasgrep "86475799" P450.clustalw2.fas
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2_3_3" class="outline-4">
+<h4 id="sec-2_3_3"><span class="section-number-4">2.3.3</span> Reformatting gap characters with <code>fastr</code> </h4>
+<div class="outline-text-4" id="text-2_3_3">
+
+
+<p>
+<code>fastr</code> may be useful when we must change specific characters based on
+the requirements of a bioinformatic program. For example, to reformat
+gap characters in a fasta-format alignment from "-" to ".".
+</p>
+
+
+
+<pre class="example">fastr -s "-" "." P450.clustalw2.fas
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2_3_4" class="outline-4">
+<h4 id="sec-2_3_4"><span class="section-number-4">2.3.4</span> Degapping sites with <code>alndegap</code> </h4>
+<div class="outline-text-4" id="text-2_3_4">
+
+
+<p>
+<code>alndegap</code> allows for editing of alignments based on their gap
+profile. To remove sites with at least one gap in all sequences, we
+can do the following:
+</p>
+
+
+
+<pre class="example">alndegap -a P450clustalw2.clustalw.fas
+</pre>
+
+
+
+<p>
+We can then determine the length of the alignment by looking at the
+first identifier for your output after running the following:
+</p>
+
+
+
+<pre class="example">alndegap -a P450clustalw2.clustalw.fas | faswc | head -1 | cut -f2 -d" "
+</pre>
+
+
+
+<p>
+And if we are interested in retaining only unique sequences, 
+<i>fasuniq</i> appended to the output will collapse duplicate sequences to
+one, appending all of the identifiers to one large identifier. 
+</p>
+
+
+
+<pre class="example">alndegap -a P450clustalw2.clustalw.fas | faslen | fasuniq
+</pre>
+
+
+</div>
+</div>
+</div>
+</div>
+<div id="postamble">
+<p class="author"> Author: Katherine C.H. Amrine \& David H. Ardell
+</p>
+<p class="date"> Date: 2014-06-16 07:42:21 PDT</p>
+<p class="creator">HTML generated by org-mode 7.4 in emacs 23</p>
+</div>
+</div>
+</body>
+</html>

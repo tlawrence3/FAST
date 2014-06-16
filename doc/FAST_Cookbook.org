@@ -1,135 +1,223 @@
-#+TITLE:FAST // Fast Analysis of Sequences Toolbox // Quick Cooking with FAST
-#+AUTHOR: Katherine C.H. Amrine, David H. Ardell
-#+OPTIONS:H:5 num:t toc:t \n:nil @:t ::t ^:nil *:t LaTeX:t d:nil email:nil creator:nil
+#+TITLE:FAST:Fast Analysis of Sequences Toolbox Cookbook
+#+AUTHOR: Katherine C.H. Amrine \& David H. Ardell
+#+LANGUAGE:  en
+#+TEXT:      These examples are executable from the installation directory.
+#+OPTIONS:   H:5 num:t toc:t \n:nil @:t ::t |:t ^:t *:t TeX:t d:nil
+#+LATEX_HEADER: \usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}
 #+STARTUP: align
 
-These examples may be executed as a demo 
+* Recipes
 
+* Tutorials
 
-* simple examples
+** Prelude 
 
-** example 1: Cut, reverse complement, and transcribe a section of a genome
+*** The FAST definition of "FastA format"
 
- =Chromosome 1 from the Saccharomyces cerevisiae genome is included as=
- /chr01.fsa/.
-\\
-\\
- /faslen/ concatinates the length of sequences in a fasta/multifasta file to the
- sequence identifier(s). To easily determine the length of the
- chromosome I we can do the following:
+FastA format began with the FastA search utilities of William
+Pearson. For FAST, "fasta format" means what is conventionally called
+"multi-fasta" format of sequence or alignment data, largely as
+implementated in BioPerl in the module =Bio::SeqIO::fasta=. 
+
+In the FAST implementation of "fasta format", multiple sequence
+records may appear in a single file or input stream. Sequence data may
+contain gap characters. The logical elements of a sequence record are
+its /identifier/, /description/ and /sequence/. The /identifier/
+(indicated with =id= in the example here) and /description/ (=desc=)
+together make the /identifier line/ of a sequence record, that must
+begin with the sequence record start symbol =>= on a single line. The
+/description/ begins after the first block of white-space on this line
+(indicated with =<space>=). The /sequence/ of a record
+appears immediately after its identifier line and may continue over
+multiple lines until the next record. 
+
+In FAST, the description may be broken into multiple /fields/ defined
+by a /delimiter/ (indicated with =<delim>=). FAST uses a "one-based"
+indexing of fields as indicated here:
+
+#+BEGIN_EXAMPLE
+>seq1-id<space>seq1-desc-field1<delim>seq1-desc-field2<delim>...
+seq1-sequence
+seq1-sequence
+...
+seq1-sequence
+>seq2-id<space>seq2-desc-field1<delim>seq2-desc-field2<delim>...
+seq2-sequence
+seq2-sequence
+...
+seq2-sequence
+#+END_EXAMPLE
+
+*** Use =man= pages for full documentation
+
+All FAST utilities follow UNIX conventions in having default and
+optional behaviors. For more information about how to use and modify
+the behavior of any FAST utility such as =faswc=, consult its manual
+page with /e.g./:
 
 #+BEGIN_SRC shell
-faslen chr01.fsa | egrep ">"
+man faswc
 #+END_SRC
 
-/fascut/ will cut a subset of a sequence. 
-Example 1: We know the location of the gene YAR030C in ChrI of the yeast genome is from
-186512 - 186853 on the minus strand. Let's cut this from our chromosome. The following
-code will give a fasta file to standard out with the desired subset of the sequence:
+or alternatively:
 
 #+BEGIN_SRC shell
-fascut 186512..186853 chr01.fsa
+perldoc faswc
 #+END_SRC
 
-Knowing that this is on the minus strand, we need the reverse complement of this sequence.
-/fasrc/ will give this result, and the following code will return a fasta file to the standard
-output:
+** Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome
+
+*** Calculating sequence length
+
+Chromosome 1 from the /Saccharomyces cerevisiae/ genome is available
+in =t/data/chr01.fsa=. By default, =faswc= calculates the lengths of
+sequence records on its input, and outputs its input, augmenting
+sequence descriptions with its calculations using the tag (or name)
+=length= and a (name,value) separator =:=, as in =length:872=. We can
+therefore easily obtain the length of this chromosome sequence as
+follows:
 
 #+BEGIN_SRC shell
-fascut 186512..186853 chr01.fsa | fasrc
+faswc t/data/chr01.fsa | egrep ">"
 #+END_SRC
 
-To translate this sequence, we can use the /fasxl/ utility and append it to the unix pipeline:
+Alternatively, =faswc -c= will output the length of the chromosome
+directly to =STDOUT=:
 
 #+BEGIN_SRC shell
-fascut 186512..186853 chr01.fsa | fasrc | fasxl
+faswc -c t/data/chr01.fsa
 #+END_SRC
 
-If we examine the sequence, we will see that the peptide starts with a methionine, and ends
-with a stop codon, indicated by the * character. If we are interested
-in the codon usage of our gene, we can instead append /fascodon/ to the end
-of our pipeline, and the program gives a space-delimited table
-indicating the normalized counts of each codon with information on
-starts and stops. With the following code, we can see that the most
-frequently used codon in this example is AAT (encoding an Asparagine)
+*** Cut out a subsequence by coordinate with =fascut=
+
+=fascut= will cut a subsequence by coordinate. For example, suppose we
+know that the location of gene =YAR030C= in yeast chromosome 1 begins
+186512 and ends 186853 on the minus strand. Let's cut this from our
+chromosome. The following code will extract this subsequence in fasta
+format to =STDOUT=:
 
 #+BEGIN_SRC shell
-fascut 186512..186853 chr01.fsa | fasrc | fascodon
+fascut 186512..186853 t/data/chr01.fsa
+#+END_SRC
+
+*** Computing reverse complement of a sequence with =fasrc=
+
+Knowing that this is on the minus strand, we need to obtain the
+reverse complement of this sequence.  =fasrc= will compute this.  The
+following code will take the output of =fascut= as its input and
+return the reverse complemeht in fasta file to =STDOUT=:
+
+#+BEGIN_SRC shell
+fascut 186512..186853 t/data/chr01.fsa | fasrc
+#+END_SRC
+
+*** Translating a sequence with =fasxl=
+
+To translate this sequence, we extend the pipeline with the =fasxl= utility:
+
+#+BEGIN_SRC shell
+fascut 186512..186853 t/data/chr01.fsa | fasrc | fasxl
+#+END_SRC
+
+Examine the output, we will see that the peptide starts with a
+methionine, and ends with a stop codon, indicated by the =*= character
+by default. 
+
+*** Computing codon usage with =fascodon=
+
+If we are interested in the codon usage of our gene, we can edit the
+last command-line (by typing =up-arrow= on most UNIX shells) and
+replace =fasxl= with =fascodon= at the end of our pipeline. =fascodon=
+outputs a space-delimited table indicating the normalized counts of
+each codon with information on starts and stops. With the following
+code, we can see that the most frequently used codon in this example
+is =AAT= (encoding an Asparagine)
+
+#+BEGIN_SRC shell
+fascut 186512..186853 t/data/chr01.fsa | fasrc | fascodon
 #+END_SRC 
 
-/fascomp/ will return
-the base/protein composition of a sequence. If we are interested in
-the normalized base composition of the first chromosome, we can run the following:
+*** Computing base composition with =fascomp=
+
+=fascomp= will return the base/protein composition of a sequence. If
+we are interested in the normalized base composition of the first
+chromosome, we can run the following:
 
 #+BEGIN_SRC shell
-fascomp -n chr01.fsa
+fascomp -n t/data/chr01.fsa
 #+END_SRC
 
-** example 2: convert, select, and change fasta sequences
+** Example 2: Reformatting, selecting and transforming alignments in FAST
 
- =First 9 protein sequence that match a search for "P450" on ncbi named=
- /P450.fas/ 
- =then aligned using clustalw included as= 
- /P450clustalw2.clustalw.css/
-\\
-\\
-The /fasconvert/ tool can convert from fasta to many formats, 
-or from many formats to fasta, including clustalw to fasta
-as showin in the following example 
+*** Reformatting alignment data with =fasconvert=
+
+A file with protein sequences that match a search for "P450" is
+available in =t/data/P450.fas= under the FAST installation
+directory. Another file contains this data aligned using =clustalw=
+with the name =P450.clustalw2.aln=. The =fasconvert= tool can convert
+from fasta to many formats, or from many formats to fasta, including
+clustalw to fasta as showin in the following example
 
 #+BEGIN_SRC shell
-fasconvert -i clustalw -f P450clustalw2.clustalw.css
+fasconvert -i clustalw -f t/data/P450.clustalw2.aln
 #+END_SRC
 
-The previous command saves the output to the same filename with /.fas/ 
-replacing /.css/. The /faslen/ utility will append the length of a sequence to it's 
-identifier. To look at the length of all sequences, use the following
-code. 
+The previous command automatically saves its output to an output file
+saves output to the same basename and an extension of =.fas=. The
+=faswc= utility will append sequence lengths to the sequence
+descriptions. To look at the length of all sequences, use the
+following code.
 
 #+BEGIN_SRC shell
-faslen P450clustalw2.clustalw.fas | head -1 | cut -f2 -d" "
+faswc t/data/P450.clustalw2.fas | head -1
 #+END_SRC
 
-which returns faslen:557. 
+which outputs =length:557= to =STDOUT=.
 
-We can subset the output in many ways
-to get information we are interested in, for example, if we want to
-get the original sequence with the gi number "86475799", we can use
-the /fasgrep/ utility, which will pull sequences matching a perl
-regular expression, by default, in the identifier:
+*** Selecting sequences with =fasgrep=
+
+We can subset the output in many ways to get information we are
+interested in, for example, if we want to get the original sequence
+with the gi number "86475799", we can use =fasgrep=, which will pull
+out sequences that match a Perl regular expression. By default,
+=fasgrep= attempts to match sequence identifiers:
 
 #+BEGIN_SRC shell
 fasgrep "86475799" P450.fas
 #+END_SRC
 
-And if we want to retrieve the aligned sequence with the gi number "86475799"
+We can retrieve the aligned version of this sequence as it has the
+same identifier
 
 #+BEGIN_SRC shell
-fasgrep "86475799" P450clustalw2.clustalw.fas
+fasgrep "86475799" P450.clustalw2.fas
 #+END_SRC
 
-/fastr/ can be useful when we are having to change specific
-characters based on the requirements of a bioinformatic program. For
-example, we may need to change the way we represent gapped
-characters in a fasta alignment from "-" to ".". 
+*** Reformatting gap characters with =fastr=
+
+=fastr= may be useful when we must change specific characters based on
+the requirements of a bioinformatic program. For example, to reformat
+gap characters in a fasta-format alignment from "-" to ".".
 
 #+BEGIN_SRC shell
-fastr -s "-" "." P450clustalw2.clustalw.fas
+fastr -s "-" "." P450.clustalw2.fas
 #+END_SRC 
 
-/alndegap/ allows for editing of alignments based on their gap
-profile. To remove sites with at least one gap from all sequences, we
+*** Degapping sites with =alndegap=
+
+=alndegap= allows for editing of alignments based on their gap
+profile. To remove sites with at least one gap in all sequences, we
 can do the following:
 
 #+BEGIN_SRC shell
 alndegap -a P450clustalw2.clustalw.fas
 #+END_SRC
 
-we can then determine the length of the alignment by looking at the
+We can then determine the length of the alignment by looking at the
 first identifier for your output after running the following:
 
 #+BEGIN_SRC shell
-alndegap -a P450clustalw2.clustalw.fas | faslen
+alndegap -a P450clustalw2.clustalw.fas | faswc | head -1 | cut -f2 -d" "
 #+END_SRC
 
 And if we are interested in retaining only unique sequences, 
