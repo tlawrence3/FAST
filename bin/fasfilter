@@ -30,10 +30,10 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 
-my $filter_description    = undef;  # -d
-my $filter_field          = undef;  # -f
-my $filter_tag            = undef;  # -t 
-my $filter_regex          = undef;  # -x
+my $description    = undef;  # -d
+my $field          = undef;  # -f
+my $tag            = undef;  # -t 
+my $regex          = undef;  # -x
 my $split_on_regex       = $def_split_on_regex;   # -S 
 
 
@@ -52,22 +52,22 @@ GetOptions('help|h'         		 => \$help,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
 
-           'filter-description|d'        => \$filter_description,
-	   'filter-field|f=i'            => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --filter-field or -f option expects non-zero integer argument\n" 
+           'description|d'               => \$description,
+	   'field|f=i'                   => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --field or -f option expects non-zero integer argument\n" 
 						    unless $val != 0; 
-						  $filter_field = $val;
+						  $field = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
-	   'filter-tag|t=s'              => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --filter-tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
+	   'tag|t=s'                     => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
 						    unless $val =~ /^[a-zA-Z0-9_-]+$/; 
-						  $filter_tag = $val;
+						  $tag = $val;
 						},
-	   'filter-regex|x=s'            => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --filter-regex or -x option expects regex argument with exactly one capture buffer\n" 
+	   'regex|x=s'                   => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --regex or -x option expects regex argument with exactly one capture buffer\n" 
 						    unless $val =~ /^[^()]*\([^)]+\)[^()]*$/; 
-						  $filter_regex = $val;
+						  $regex = $val;
 						},
 
 	  ) 
@@ -97,16 +97,16 @@ foreach my $RANGE (@RANGES) {
     $U = $1;
     push @intervals, [$1,$1];
   }
-  elsif ($RANGE =~ /^\.\.(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) { 
+  elsif ($RANGE =~ /^(\.\.|:)(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) { 
     push @intervals, [undef,$1];
   } 
-  elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)\.\.$/) {
+  elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)(\.\.|:)$/) {
     push @intervals, [$1,undef];
   }
-  elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)\.\.(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) {
+  elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)(\.\.|:)(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) {
     $L = $1;
-    $U = $6;
-    die "$NAME: RANGE $RANGE should have form L..U with L <= U\n" unless ($L <= $U);
+    $U = $7;
+    die "$NAME: RANGE $RANGE should have form L..U or L:U with L <= U\n" unless ($L <= $U);
     push @intervals, [$1,$6];
   }
   else {
@@ -120,26 +120,26 @@ if ($split_on_regex) {
   $split_re = qr/$split_on_regex/;
 }
 my $index;
-if ($filter_field and $filter_field > 0) {
-  $index = $filter_field - 1;
+if ($field and $field > 0) {
+  $index = $field - 1;
 }
-elsif ($filter_field and $filter_field < 0) { 
-  $index = $filter_field;
+elsif ($field and $field < 0) { 
+  $index = $field;
 }
 
 my $valf;
-if ($filter_tag) {
-  $valf = sub { my $s = shift; my $re = qr/$filter_tag[:=](\S+)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return;} };
+if ($tag) {
+  $valf = sub { my $s = shift; my $re = qr/$tag[:=](\S+)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return;} };
 }
-elsif ($filter_regex) {
+elsif ($regex) {
   my $m = 'id'; 
-     $m = 'desc' if ($filter_description); 
-  $valf = sub { my $s = shift;  my $re = qr/$filter_regex/p; my $r = $s->$m(); if ($r =~ $re) { return $1;} else {return;} };
+     $m = 'desc' if ($description); 
+  $valf = sub { my $s = shift;  my $re = qr/$regex/p; my $r = $s->$m(); if ($r =~ $re) { return $1;} else {return;} };
 }
-elsif ($filter_field) {
+elsif ($field) {
   $valf = sub { my $s = shift; my @fields = split $split_re,$s->desc(); if (exists $fields[$index]) {return $fields[$index]} else {return;} };
 }
-elsif ($filter_description) {
+elsif ($description) {
   $valf = sub { my $s = shift; $s->desc() };
 }
 else {
@@ -208,7 +208,9 @@ B<fasfilter> [OPTION]... RANGES [MULTIFASTA-FILE...]
 
 RANGES : { RANGE | RANGE,RANGES }
 
-RANGE  : { POINT | BOUND.. | BOUND..UBOUND | ..BOUND }
+RANGE  : { POINT | BOUND<SEP> | BOUND<SEP>UBOUND | <SEP>BOUND 
+
+<SEP>  : {  ..   |    :   }
 
 POINT  :  a number, as defined in perlnumber 
 
@@ -237,10 +239,10 @@ If the first range begins with a negative number, you should terminate
 option processing with "--".
 
 Options specific to B<fasfilter>:
-  B<-d>, B<--filter-description>	      filter on description
-  B<-f>, B<--filter-field>=<int>	      filter on field in description
-  B<-t>, B<--filter-tag>=<string>         filter on value of a (tag,value) pair in the description
-  B<-x>, B<--filter-regex>=<regex>        filter on value of a regex capture
+  B<-d>, B<--description>	             filter on description
+  B<-f>, B<--field>=<int>	              filter on field in description
+  B<-t>, B<--tag>=<string>                filter on value of a (tag,value) pair in the description
+  B<-x>, B<--regex>=<regex>               filter on value of a regex capture
   B<-S>, B<--split-on-regex>=<regex>      split description for field-based filtering using regex 
   B<-v>, B<--negate>                      print records whose values fall outside of all specified ranges
 
@@ -274,14 +276,14 @@ decreasing priority: B<-t> > B<-xd> > B<-x> > B<-f> > B<-d>
 =over 8
 
 =item B<-d>,
-      B<--filter-description> 		
+      B<--description> 		
 
 Filter sequence records by their descriptions. If used in combination
-with the B<-x>, B<--filter-regex> option, filters records by values of
+with the B<-x>, B<--regex> option, filters records by values of
 a regex capture applied to their descriptions.
 
 =item B<-f [int]>,
-      B<--filter-field=[int]>     
+      B<--field=[int]>     
 
 Filter sequece records by a specific field in their descriptions. With
 this option, the description is split into fields using strings of
@@ -310,7 +312,7 @@ the shell. The regex is often helpfully enclosed by double-quote (")
 delimiters but never by forward slashes (/).
 
 =item B<-t [string]>,
-      B<--filter-tag=[string]>   
+      B<--tag=[string]>   
 
 Filter sequence records by values of a named tag in the description.
 Name-value pairs in the description are expected to have the format
@@ -322,7 +324,7 @@ specified tag does not exist will not be written to output. Currently
 only the first (left-most) occcurence of a tag is tested.
 
 =item B<-x [regex]>,
-      B<--filter-regex=[regex]>   
+      B<--regex=[regex]>   
 
 Filter sequence records by values of a regex capture applied to
 identifers (by default) or descriptions (in combination with the -d
