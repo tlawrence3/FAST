@@ -35,7 +35,7 @@ my $identifier           = undef;               # -i
 my $description          = undef;               # -d
 my $field                = undef;               # -f
 my $split_on_regex       = $def_split_on_regex; # -S 
-my $field_join           = $def_field_join;     # -j
+my $join                 = $def_field_join;     # -j
 #my $spawn                = undef;               # -w
 
 GetOptions('help|h'         		 => \$help, 
@@ -169,9 +169,9 @@ record: while (my $seq = $IN->next_seq()) {
       my $newdata;
       my $newseq;
       foreach my $range (@ranges){
-	if ($spawn) {
-	  @newdata = ();
-	}
+	# if ($spawn) {
+	#   @newdata = ();
+	# }
 	my ($b,$e,$by) = @$range;
 	## interpret negative indices
 	$b = ($b < 0 ? $length + $b + 1 : $b);
@@ -238,7 +238,7 @@ __END__
 
 =head1 NAME
 
-B<fascut> - select biosequence record data by character or field index
+B<fascut> - select biosequence record data by character or field ranges
 
 =head1 SYNOPSIS
 
@@ -283,7 +283,7 @@ indexing in B<fascut> is also one-based.
 
 Negative indices count backwards from last characters and fields. If
 the first range begins with a negative index, you will need to
-terminate option processing with "--".  Ater converting negative
+terminate option processing with "--" before the range-string argument.  After converting negative
 indices to positive indices for any given sequence on input, B<fascut>
 expects every "from" index to be less than its respective "to" index
 for every range unless a negative "by" parameter is given, in which
@@ -299,17 +299,17 @@ If "spawn-mode" (-w) is enabled, each range-input combination produces
 a distinct sequence to output.
 
 Options specific to fascut:
-  -i, --identifier                 cuts identifiers by character
-  -d, --description                cuts descriptions by character
-  -f, --field                      cuts descriptions by field
-  -S, --split-on-regex=<regex>     split description to fields using <regex>
-  -j, --join=<string>              join selected field ranges using <string>
-  -s, --strict                     strict range-checking; skips sequences with 
-                                    warnings if ranges are out-of-bounds
+  -i, --identifier                  cuts identifiers by character
+  -d, --description                 cuts descriptions by character
+  -f, --field                       cuts descriptions by field
+  -S, --split-on-regex=<regex>      split description to fields using <regex>
+  -j, --join=<string>               join selected field ranges using <string>
+  -s, --strict                      strict range-checking; skips sequences with 
+                                      warnings if ranges are out-of-bounds
 
 Options general to FAST:
-  -h, --help                  	    print a brief help message
-  --man             	            print full documentation
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
   --version                         print version
   -l, --log                         create/append to logfile	
   -L, --logname=<string>            use logfile name <string>
@@ -329,17 +329,35 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-a>
-      B<--append>
+=item B<-i>
+      B<--identifier>
 
-This option will output each comma-separated range or position to a 
-new sequence (stated in description)
+Cuts identifiers by character.
 
-=item B<-r string>
-      B<--rename string>
+=item B<-d>
+      B<--description>
 
-This option will rename the id of the sequence with the string that you
-provide.
+Cuts descriptions by character.
+
+=item B<-f>
+      B<--field>
+
+Cuts descriptions by field.
+
+=item B<-S regex >
+      B<--split-on-regex regex>
+
+Use B<regex> to split description into fields (with B<-f>). Instead of
+the perl default (which splits on one or more whitespace
+characters). Special characters must be quoted to protect them from
+the shell.
+
+
+=item B<-j string>
+      B<--join string>
+
+Paste selected fields together with string B<string> for new
+description. Default is a single space character " ".
 
 =item B<-s>
       B<--strict>
