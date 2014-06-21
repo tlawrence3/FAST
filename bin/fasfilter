@@ -103,7 +103,7 @@ foreach my $RANGE (@RANGES) {
   elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)(\.\.|:)$/) {
     push @intervals, [$1,undef];
   }
-  elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)(\.\.|:)(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) {
+  elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)(\.\.|:|-)(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) {
     $L = $1;
     $U = $7;
     die "$NAME: RANGE $RANGE should have form L..U or L:U with L <= U\n" unless ($L <= $U);
@@ -202,21 +202,16 @@ B<fasfilter> - Select sequences by numerical values of name,value pairs in their
 
 =head1 SYNOPSIS
 
-B<fasfilter> [OPTION]... RANGES [MULTIFASTA-FILE...]
+B<fasfilter> [OPTION]... [RANGES] [MULTIFASTA-FILE...]
 
 =head1 RANGE SPECIFICATION
 
-RANGES : { RANGE | RANGE,RANGES }
-
-RANGE  : { POINT | BOUND<SEP> | BOUND<SEP>UBOUND | <SEP>BOUND 
-
-<SEP>  : {  ..   |    :   }
-
-POINT  :  a number, as defined in perlnumber 
-
-BOUND  :  a number, as defined in perlnumber 
-
-UBOUND :  a number, as defined in perlnumber, greater than or equal to BOUND
+        RANGES  : { RANGE | RANGE,RANGES }
+         RANGE  : { POINT | BOUND>SEP<UBOUND }
+         >SEP<  : {    ..     |       :       |       -      }
+         POINT  : a number, as defined in B<perlnumber> 
+         BOUND  : a number, as defined in B<perlnumber>, or the empty string 
+         UBOUND : a number >= BOUND, as defined in B<perlnumber>, or the empty string 
 
 =head1 DESCRIPTION
 

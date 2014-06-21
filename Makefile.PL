@@ -28,6 +28,7 @@ WriteMakefile(
         'Sort::MergeSort' => 0,
         'File::Temp' => 0,
         'Storable'   => 0,
+        'List::Gen'   => 0,
 
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

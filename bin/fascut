@@ -4,11 +4,12 @@ use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
+use List::Gen qw/range/;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "Select subsequences based on coordinate lists and ranges.\n";
+$DESC    = "Select and reorder sequence record data based on index lists and ranges.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -19,19 +20,23 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_split_on_regex = ' ';
+my $def_field_join     = " ";
 
 ## OPTION VARIABLES
-my $man                  = undef;  # --man
-my $help                 = undef;  # -h
-my $moltype              = undef;  # -m, in case bioperl can't tell
-my $log                  = undef;        # -l
-my $logname              = $def_logname; # -L
-my $comment              = undef;        # -C
-my $rename               = undef;	 # -r
-my $append               = undef;        # -a
-my $strict               = undef;        # -s
-
-my @COORDS = ();
+my $man                  = undef;               # --man
+my $help                 = undef;               # -h
+my $moltype              = undef;               # -m, in case bioperl can't tell
+my $log                  = undef;               # -l
+my $logname              = $def_logname;        # -L
+my $comment              = undef;               # -C
+my $strict               = undef;               # --strict
+my $identifier           = undef;               # -i
+my $description          = undef;               # -d
+my $field                = undef;               # -f
+my $split_on_regex       = $def_split_on_regex; # -S 
+my $field_join           = $def_field_join;     # -j
+#my $spawn                = undef;               # -w
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -43,27 +48,82 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'strict|s'                    => \$strict,
-	   
-	
+	   'strict'                      => \$strict,
+	   'identifier|i'                => \$identifier,
+	   'description|d'               => \$description,
+	   'field|f'                     => \$field,
+	   'split-on-regex|S=s'          => \$split_on_regex,
+	   'join|j=s'                    => \$join,
+#	   'spawn|w'                     => \$spawn,
 	  ) 
   or exit(1);
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$NAME: Requires at least two arguments <coordinate> <fasta-file1> [fasta-file2...fasta-fileN]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
-pod2usage("$NAME: Requires one argument <coordinate> when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV == 0);
+pod2usage("$NAME: expects one range-string argument and at least one input filename or glob. Try \"perldoc $NAME\"") if ((-t STDIN) && (@ARGV < 2));
+pod2usage("$NAME: expects one range-string argument when input is on STDIN. Try \"perldoc $NAME\"") if ((!(-t STDIN)) && @ARGV != 1);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 ##PARSE MULTICOORDS
-if ($ARGV[0] =~ /,/) {
-    @COORDS = split (/,/,$ARGV[0]);
-    shift (@ARGV);
+my @RANGES = ();
+my $ranges = shift @ARGV;
+if ($ranges =~ /,/) {
+    @RANGES = split (/,/,$ranges);
   }
 else {
-  $COORDS[0] = shift (@ARGV);
+  $RANGES[0] = $ranges;
 }
+my @ranges = ();
+foreach my $range (@RANGES) {
+  my ($b,$e,$by);
+  if ($range =~ /^([\d-]+)?(\.\.|:|-)([\d-]+)?(:([\d-]+))?$/) {
+    if ($1) {
+      $b = $1 + 0;
+    }
+    else {
+      $b = 1;
+    }
+    if ($3) {
+      $e = $3 + 0;
+    }
+    else {
+      $e = -1;
+    }
+    if ($5) {
+      $by = $5 + 0;
+    }
+    else {
+      $by = undef;
+    }
+  }
+  elsif ($range =~ /^([\d-]+)$/){
+    $b = $1 + 0;
+    $e = $b;
+    $by = undef;
+  }
+  else {
+    die "$NAME: Bad range \"$range\"\n";
+  }
+  push @ranges, [$b,$e,$by];
+}
+
+my ($selector,$type);
+if ($identifier) {
+  $selector = "id";
+  $type = "identifier"
+}
+elsif ($description || $field) {
+  $selector = "desc";
+  $type = "description";
+  $type .= " field" if ($field);
+}
+else {
+  $selector = "seq";
+  $type = "sequence";
+}
+
+my $split_re = qr/$split_on_regex/;
 
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
@@ -92,67 +152,83 @@ while ($IN or @ARGV) {
     }
   }
   if ($IN) { 
-sequence: while (my $seq = $IN->next_seq()) {
-     my @seqs = ();
-     my $seqlen = $seq->length;
-     my $seqid  = $seq->id;  
-     my $seqseq = '';
-     my $subseq = undef;
-     foreach my $coord (@COORDS) {
-       my ($b,$e);
-       if ($coord =~ /([\d-]+)\.\.([\d-]+)/) {
-         $b = $1 + 0;
-         $e = $2 + 0; 
-       }
-       else {
-         $coord =~ /([\d-]+)/;
-         $b = $1 + 0;
-         $e = $b + 0;  
-       }
-       ## interpret negative coords
-       $b = ($b < 0 ? $seqlen + $b + 1 : $b);
-       $e = ($e < 0 ? $seqlen + $e + 1 : $e);
-       ## check length bounds
-       if ($strict) { ## strict; warns and skips sequence if coords are out of bounds,
-	 if ($e < $b) {
-	   warn "$NAME: Skipped sequence $seqid with length $seqlen: bad range with end $e less than $b.\n";
-	   next sequence;
-	 }
-	 if ($b < 1 or $e < 1 or $b > $seqlen or $e > $seqlen) {
-	   warn "Skipped sequence $seqid with length $seqlen: coord $coord out-of-bounds.\n";
-	   next sequence;
-	 }
-       }
-       else {        ## otherwise, returns longest possible non-null subsequence within range
-	 if ($e < $b) {
-	   next;
-	 }
-	 if ($b < 1) {
-	   $b = 1;
+record: while (my $seq = $IN->next_seq()) {
+      my $olddata = $seq->$selector();
+      my $seqid = $seq->id(); # for error messages if necessary
+      my $length; 
+      my @olddata = ();
+      if ($field) {
+	@olddata = split $split_re,$olddata;
+	$length = scalar @olddata;
+      }
+      else {
+	@olddata = split //,$olddata;
+	$length = length $olddata;      
+      }
+      my @newdata = ();
+      my $newdata;
+      my $newseq;
+      foreach my $range (@ranges){
+	if ($spawn) {
+	  @newdata = ();
+	}
+	my ($b,$e,$by) = @$range;
+	## interpret negative indices
+	$b = ($b < 0 ? $length + $b + 1 : $b);
+	$e = ($e < 0 ? $length + $e + 1 : $e);
+	## check length bounds
+	if ($strict) { ## strict; warns and skips sequence if indices are out of bounds,
+	  if (!$by && $e < $b) {
+	    warn "$NAME: Skipped sequence $seqid with $type length $length: bad range with end $e less than $b.\n";
+	    next record;
+	  }
+	  if ($b < 1 or $e < 1 or $b > $length or $e > $length) {
+	    warn "$NAME: Skipped sequence $seqid with $type length $length: indices $b and/or $e out-of-bounds.\n";
+	    next record;
+	  }
+	}
+	else {        ## otherwise, returns longest possible result within range
+	  if (!$by && $e < $b) {
+	    next;
+	  }
+	  if ($b < 1) {
+	    $b = 1;
+	  } 
+	  elsif ($b > $length) {
+	    next;
+	  }
+	  if ($e > $length) {
+	   $e = $length;
 	 } 
-	 elsif ($b > $seqlen) {
-	   next;
-	 }
-	 if ($e > $seqlen) {
-	   $e = $seqlen;
-	 } 
-	 elsif ($e < 0) {
-	   next;
-	 }
-       }
-       push @seqs, $seq->subseq($b,$e);#$seqseq .= $seq->subseq($b,$e);
-     }
-     if (@seqs) {
-       my $seqseq = join "",@seqs;
-       if ($moltype) {
-         $subseq = new FAST::Bio::Seq(-seq => $seqseq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
-       }
-       else {
-         $subseq = new FAST::Bio::Seq(-seq => $seqseq,-id => $seq->id,-desc => $seq->desc);
-       }
-       print $OUT $subseq;
-     }
-   }
+	  elsif ($e < 0) {
+	    next;
+	  }
+	}
+	$b -= 1;
+	$e -= 1;
+	my @slice = ();
+	if ($b == $e) {
+	  push @newdata,$olddata[$b];
+	}
+	elsif ($by) {
+	  push @newdata,@olddata[@{ List::Gen::range ($b,$e,$by) }];
+	}
+	else {
+	  push @newdata,@olddata[@{ List::Gen::range ($b,$e) }];
+	}
+      }
+      ## if -sequence and no @newdata, don't print
+      next if (!(scalar @newdata));
+      $newdata = join (($field ? $join : ""),@newdata);
+      if ($moltype) {
+	$newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
+      }
+      else {
+	$newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc);
+      }
+      $newseq->$selector($newdata);
+      print $OUT $newseq;
+    }
     undef $IN;
   }
 }
@@ -162,58 +238,74 @@ __END__
 
 =head1 NAME
 
-fascut - extract subsequences from fasta input by coordinate
+B<fascut> - select biosequence record data by character or field index
 
 =head1 SYNOPSIS
 
-fascut COORDS [options] < fasta-file > fasta-file
+B<fascut> [OPTION]... [RANGES] [MULTIFASTA-FILE]...
 
-=head1 DESCRIPTION
+=head1 RANGE SPECIFICATION
 
-  COORDS: {POSITION|RANGE} | {POSITION|RANGE},COORDS
-   RANGE: POSITION..POSITION with certain rules, see below
-POSITION: nonzero integer 
-              positive integers are sequence based (bioperl) position coordinates
-              negative integers count from the end of each sequence starting with -1
-              
-              In a range "a..b" on a sequence of length L, the following rule must hold 
-              for every sequence on input: 
-                 a <= b or 
-                 a <= (L - b + 1) or 
-                 (L - a + 1) <= b or
-                 (L - a + 1) <= (L - b + 1)  
+        RANGES  : { RANGE | RANGE,RANGES }
+         RANGE  : { INDEX | FROM>SEP<TO | FROM>SEP<TO:BY } 
+         >SEP<  : {    ..     |       :       |       -      }
+         INDEX  : nonzero integer
+       FROM,TO  : nonzero integer or the empty string 
+                   -- positive integers count from the first character or field         
+                   -- negative integers count back from the last character or field
+            BY  : a nonzero integer
+                   -- positive integers step forward       
+                   -- negative integers step backward
 
-           That is, after converting negative positions to positions from the end of the sequence, 
-           the begin position must be less than the end position to be legal. If this rule is violated
-           for a given range and sequence, that range will be skipped for that sequence. If strict-mode (-s) 
-           is used, such a bad range specification will cause that sequence to be skipped entirely.
+=head1 DESCRIPTION 
 
-OUTPUT:
-         * a range corresponds to the subsequence occuring from the begin to the end 
-              positions __inclusively__
-         * Comma-separated positions and ranges in the coordinate argument are arbitrary with
-              respect to one another, e.g. they may overlap, be redundant, or be out of order.
-              The result is not simplified or reduced.
-         * Unless the strict option (-s) is used, the longest overlapping non-null subsequence
-              will be chopped for each position or range (ie end-positions greater than the 
-	      length of the sequence will reduce to the end of the sequence)
-         * If the strict option is used, when any position or range in the coordinate argument 
-              is out-of-bounds for a sequence, it will cause that sequence to be skipped 
-              with a warning to standard error.
-         * Unless the strict option (-s) is used, a coordinate argument resulting in a 
-              a null sequence will cause that sequence to be silently skipped on output
-         * If the coordinate argument begins with a negative POSITION or RANGE, precede 
-             it with "--" to stop parsing the command-line for options 
+B<fascut> takes biological sequence records on input and outputs the
+transformation of those records under index-based selection and
+reordering of their sequence data (by default), identifiers or
+descriptions. By default, B<fascut> cuts data per-character. For
+sequence data, this utility outputs the concatenation of slices from
+each sequence specified by a comma-separated list of coordinates and
+coordinate ranges, allowing arbitrary reordering and repetition.
+
+The one mandatory argument to B<fascut> is a sequence of indices or
+index ranges separated by commas (,). The ranges may be specified in
+Perl-style (or Genbank coordinate range-style) as in "from..to", in
+R/Octave-style as in "from:to" or UNIX B<cut>-style as in
+"from-to". If the index bounds of a simple range are missing, "from"
+defaults to "1" and "to" defaults to "-1". An optional ":by" suffix
+specifies an integer step-increment. 
+
+B<One-based indexing> applies when B<fascut> cuts sequences (or
+optionally identifiers or descriptions) by character (like B<cut
+-c>). B<fascut -f> cuts descriptions by field, after the descriptions
+are split by strings of white-space or user-defined regex. Field
+indexing in B<fascut> is also one-based.
+
+Negative indices count backwards from last characters and fields. If
+the first range begins with a negative index, you will need to
+terminate option processing with "--".  Ater converting negative
+indices to positive indices for any given sequence on input, B<fascut>
+expects every "from" index to be less than its respective "to" index
+for every range unless a negative "by" parameter is given, in which
+case "from" is expected to be greater than "to". If any of this is
+violated for a given range and sequence, then that range will be
+skipped for that sequence. If after conversions, "from" is negative,
+it defaults to "1". If "to" is greather than a sequence length, it
+defaults to "-1".  However, if strict-mode (-s) is enabled, then both
+types of bad range specifications will abort processing of a sequence
+record with no output for that sequence except a warning.
+
+If "spawn-mode" (-w) is enabled, each range-input combination produces
+a distinct sequence to output.
 
 Options specific to fascut:
-  -a, --append                              output each comma-separated range or position
-                                            to a new sequence (stated in description)
-  -r <string>, --rename <string>            rename id of sequence to <string>
-  -s, --strict                              strict range-checking on coords; skips a
-                                            sequence with warning if coords are
-                                            out-of-bounds on that sequence. 
-                                            (default behavior is to give longest
-                                            possible subsequence within range)
+  -i, --identifier                 cuts identifiers by character
+  -d, --description                cuts descriptions by character
+  -f, --field                      cuts descriptions by field
+  -S, --split-on-regex=<regex>     split description to fields using <regex>
+  -j, --join=<string>              join selected field ranges using <string>
+  -s, --strict                     strict range-checking; skips sequences with 
+                                    warnings if ranges are out-of-bounds
 
 Options general to FAST:
   -h, --help                  	    print a brief help message
@@ -378,3 +470,5 @@ If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
 Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
 
 =cut
+
+
