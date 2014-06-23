@@ -5,7 +5,7 @@ use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
 use strict;
-no warnings 'once';
+#no warnings 'once';
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
@@ -29,31 +29,27 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $delete               = undef;
-my $squeeze              = undef;
-my $complement           = undef;
-my $strict               = undef;
-my $iupac                = undef;
-my $sequence             = undef;
-my $description          = undef;
-my $append_info          = undef;
-my $ambig_char           = undef;
+my $sequence             = undef; # -s
+my $description          = undef; # -d
+my $delete               = undef; # -D
+my $squash               = undef; # -S
+my $no_replace           = undef; # -n
+my $complement           = undef; # -c
+my $strict               = undef; # --strict implies "-sc $strict_symbols{$moltype} ($ambig_char || $ambig{$moltype})"
+my $iupac                = undef; # --iupac  implies "-sc $iupac_symbols{$moltype} ($ambig_char || $ambig{$moltype})"
+my $ambig_char           = undef; # -a
 
-
-my $component            = 'id'; #default
-my $search               = undef;
-my $replace              = ''; #default value for replace
 my %strict_symbols       = ();
 my %iupac_symbols        = ();
 my %ambig                = ();
 
 ## TO GO INTO DICTIONARY
-$strict_symbols{'dna'}     = '[ACTGactg\-]';
-$iupac_symbols{'dna'}      = '[ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\-]';
-$strict_symbols{'rna'}     = '[ACUGacug\-]';
-$iupac_symbols{'rna'}      = '[ACUGacugMRWSYKVHDBXNmrwsykvhdbxn\-]';
-$strict_symbols{'protein'} = '[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy\-]';
-$iupac_symbols{'protein'}  = '[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwyBZX\.bzx\*\-]';
+$strict_symbols{'dna'}     = 'ACTGactg\-';
+$iupac_symbols{'dna'}      = 'ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\-';
+$strict_symbols{'rna'}     = 'ACUGacug\-';
+$iupac_symbols{'rna'}      = 'ACUGacugMRWSYKVHDBXNmrwsykvhdbxn\-';
+$strict_symbols{'protein'} = 'ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy\-';
+$iupac_symbols{'protein'}  = 'ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwyBZX\.bzx\*\-';
 
 $ambig{'dna'}              = 'N';
 $ambig{'rna'}              = 'N';
@@ -70,39 +66,56 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'delete|D=s'                  => \$delete,
-	   'squeeze|S=s'                 => \$squeeze,
+	   'delete|D'                    => \$delete,
+	   'squash|S'                    => \$squash,
 	   'complement|c'                => \$complement,
 	   'strict'                      => \$strict,
 	   'iupac'                       => \$iupac,
 	   'sequence|s'                  => \$sequence,
 	   'description|d'               => \$description,
-	   'ambig|a'                      => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
-						    unless $val =~ /dna|rna|protein/i; 
-						  $moltype = $val;
+	   'ambig|a'                     => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --ambig or -a option arg must be length 1\n" 
+						    unless (length $val == 1); 
+						  $ambig_char = $val;
 						},
+           'no-replace|n'                => \$no_replace,
 	  ) 
   or pod2usage(2);
+
+my $iupac_or_strict  = ($iupac  || $strict);
+my $delete_or_squash = ($delete || $squash);
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$NAME: Requires two arguments SEARCH REPLACE --delete, --squeeze, --strict, or --iupac, or <search> <replace>. Try $NAME -h for help.") if (!(-t STDIN) && $delete && $squeeze && @ARGV != 2 && $iupac && $strict);
-pod2usage("$NAME: Requires --delete, --squeeze, --strict, --iupac, or <search> <replace> <fasta file1 .. fasta fileN>. Try $NAME -h for help.") if ((-t STDIN) && @ARGV == 0);
-pod2usage("$NAME: -D, -S, --strict, and --iupac are mutually exclusive options. Try $NAME -h for help.") if (grep($_, $strict, $iupac, $delete, $squeeze) > 1);
-pod2usage("$NAME: -s and -d are mutually exclusive options. Try $NAME -h for help.") if (grep($_, $seq_match, $desc_match) > 1);
+pod2usage("$NAME: with --strict or --iupac, no other options except --ambig are allowed.\n")      if ( ($iupac_or_strict) &&  ($delete_or_squash || $complement || $description || $sequence || $no_replace));  
+pod2usage("$NAME: expects exactly two arguments unless --no-replace/-n if input on STDIN.\n")        if (!(-t STDIN) && !($iupac_or_strict) && !($no_replace) && @ARGV != 2);
+pod2usage("$NAME: expects at least three arguments unless --no-replace/-n if input from file\n")     if ( (-t STDIN) && !($iupac_or_strict) && !($no_replace) && @ARGV  < 3);
+pod2usage("$NAME: expects exactly one arguments with --no-replace/-n if input on STDIN.\n")          if (!(-t STDIN) && !($iupac_or_strict) &&  ($no_replace) && @ARGV != 1);
+pod2usage("$NAME: expects at least two arguments with --no-replace/-n if input from file\n")         if ( (-t STDIN) && !($iupac_or_strict) &&  ($no_replace) && @ARGV  < 2);
+pod2usage("$NAME: with --strict or --iupac expects zero arguments if input on STDIN.\n")          if (!(-t STDIN) &&  ($iupac_or_strict) && @ARGV  > 0);
+pod2usage("$NAME: with --strict or --iupac expects at least one argument if input from file.\n")  if ( (-t STDIN) &&  ($iupac_or_strict) && @ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-$component = 'desc' if ($desc_match);
-$component = 'seq'  if ($seq_match or $strict or $iupac);
-
-if (!$delete and !$squeeze and !$strict and !$iupac){
-$search = shift @ARGV;
-$replace = shift @ARGV;
+my ($selector,$type);
+if ($iupac_or_strict) {
+  $selector = "seq";
+  $type = "sequence";
+  $complement = 1;
 }
-elsif ($delete) {$search = $delete;}
-elsif ($squeeze){$search = $squeeze;} 
+elsif ($sequence) {
+  $selector = "seq";
+  $type = "sequence"
+}
+elsif ($description) { 
+  $selector = "desc";
+  $type = "description";
+}
+else {
+  $selector = "id";
+  $type = "identifier";
+}
+
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
@@ -113,6 +126,18 @@ unless (@ARGV) {
     else {
 	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
     }
+}
+
+my ($search,$replace); 
+unless ($iupac_or_strict) {
+  $search               = shift @ARGV;
+  unless ($no_replace) {
+    $replace              = shift @ARGV;
+  }
+  else {
+    $replace              = "";
+  }
+      
 }
 
 while ($IN or @ARGV) {
@@ -131,21 +156,28 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      my $matchfield = $seq->$component();
-      $moltype = $seq->alphabet if (!$moltype);
+      my $data = $seq->$selector();
+      $moltype ||= $seq->alphabet;
+      if ($iupac) {
+	$search = $iupac_symbols{$moltype};
+	$replace = $ambig_char || $ambig{$moltype};
+      }
+      if ($strict) {
+	$search = $strict_symbols{$moltype};
+	$replace = $ambig_char || $ambig{$moltype};
+      }
       my $count;
       my @options = ();
-      push @options, 'c' if ($complement or $strict or $iupac);
+      push @options, 'c' if ($complement);
       push @options, 'd' if ($delete);
-      push @options, 's' if ($squeeze);
+      push @options, 's' if ($squash);
       my $options = join '',@options;
-      if ($strict){$search = $strict_symbols{$moltype}; $replace = $ambig{$moltype};}
-      elsif ($iupac){$search = $iupac_symbols{$moltype}; $replace = $ambig{$moltype};}  
-      eval "\$count = \$matchfield =~ tr/$search/$replace/$options";
-      $seq->$component($matchfield);
-      if ($append_info) {
-  $seq->desc(join ' ',$seq->desc(),"fastr: $search|$replace|$options:$count");
-      }
+      eval "\$count = \$data =~ tr/$search/$replace/$options";
+      die "$NAME: $@\n" if $@;
+      $seq->$selector($data);
+      # if ($append_info) {
+      # 	$seq->desc(join ' ',$seq->desc(),"fastr: $search|$replace|$options:$count");
+      # }
       print $OUT $seq;
     }
     undef $IN;
@@ -158,31 +190,39 @@ __END__
 
 =head1 NAME
 
-B<fastr> - character-based transformations on sequences
+B<fastr> - character-based transformations on sequence records
 
 =head1 SYNOPSIS
 
-fastr [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<fastr>     [OPTION]... [SEARCHLIST] [REPLACELIST] [MULTIFASTA-FILE...]
+
+B<fastr -n>  [OPTION]... [SEARCHLIST]               [MULTIFASTA-FILE...]
+
+B<fastr --strict> [B<--ambig>=<char>]                  [MULTIFASTA-FILE...]
+
+B<fastr --iupac>  [B<--ambig>=<char>]                  [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-fastr takes multifasta format sequence or alignment data as input,
-and faciliates the application of a tr/// operator. This faciliates 
-character remapping, case changes, deletions, degapping, squeezing of
-repeated characters, and more. Various case-spellings are allowed 
-such as strict alphabet, iupac alphabet, upper case only and the 
-replacement of ambigious characters with a defined character rather 
-than 'N' or 'X'. 
+B<fastr> takes multifasta format sequence or alignment data as input,
+and faciliates character transliterations on identifiers (by default),
+sequences or descriptions using the Perl B<tr///> character
+transliteration operator. This faciliates character remapping, case
+changes, character deletions, degapping, squashing of repeated
+characters, and more. Special modes B<--strict> and B<--iupac>
+facilitate enforcement of sequence alphabets, and remapping illegal
+characters to 'N' or 'X' or a user-defined character.
 
 Options specific to fastr:
-  -D                           Delete
-  -S                           Squeeze
-  --strict                     Strict DNA or RNA (ACGTacgt)
-  --iupac                      Allows sequence ambiguities
-  -s                           Match on Sequence
-  -d                           Match on description
-  -a, --append                 Append information section
-  -c, --complement             Delete opposite of indicated
+  B<-s>, B<--sequences>              transliterate sequences
+  B<-d>, --description             transliterate descriptions  
+  B<-D>, --delete                  delete found characters not replaced
+  B<-S>, --squash                  squash duplicate replaced characters 
+  B<-n>, --no-replace              squash or delete all characters in searchlist 
+  B<-c>, --complement              complement searchlist as a character set
+  B<--strict>                      map ambiguous/illegal seq characters besides '-' to 'X'/'N'
+  B<--iupac>                       map illegal sequence characters besides '-' to 'X'/'N'
+  -a, --ambig=<char>               use <char> to replace illegal sequence characters   
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -193,6 +233,19 @@ Options general to FAST:
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
   --moltype=<[dna|rna|protein]>      specify input sequence type
+
+=head1 SEARCHLIST AND REPLACELIST
+
+These arguments are strings of characters, or character ranges with
+hyphens (like "A-Z" "0-9"), separated by the empty string. Characters
+are remapped in corresponding order. If SEARCHLIST is longer than
+REPLACELIST, the last character of REPLACELIST is repeated unless in
+"delete-mode," in which case unmatched characters are deleted. In
+"squash-mode" transliteration happens before squashing. With the
+"no-replace" option, only SEARCHLIST is provided, no transliteration
+occurs, and SEARCHLIST characters are directly squashed and
+deleted. For more information see documentation for B<tr///> in the
+B<perlop> manpage.
 
 =head1 INPUT AND OUTPUT
 
@@ -206,41 +259,56 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-D>
-
-Delete defined characters or spaces. Default:[match on identifier]
-
-=item B<-S>
-
-Squeezes defined characters or spaces into one character or space.
-Default:[match on identifier]
-
 =item B<-s>
+      B<--sequence>
 
-This option will match defined REGEX on the sequences.
+Transliterate sequences (identifiers by default).
 
 =item B<-d>
+      B<--description>
 
-This option will match defined REGEX on description.
+Transliterate descriptions.
 
-=item B<--strict>
+=item B<-D>
+      B<--delete>
 
-This option will replace anything that is not a ACTGU/actgu with N.
+Delete found but unreplaced characters. 
 
-=item B<--iupac>
+=item B<-S>
+      B<--squash>
 
-This option will replace any charcter that is not an IUPAC ambiguity
-with an N.
+Squash duplicate replaced characters.
 
 =item B<-c>
       B<--complement>
 
-This option will match and act on any character other than the REGEX.
+Character complement SEARCHLIST.
+
+=item B<-n>
+      B<--no-replace>
+
+Delete or squash characters in SEARCHLIST. 
+
+=item B<--strict>
+
+Transliterate illegal sequence characters to "N" (DNA or RNA) or
+"X" (protein). For DNA, equivalent to:
+
+C<fastr -sc ACTGactg\- N>
+
+=item B<--iupac>
+
+Transliterate illegal sequence characters (including IUPAC
+ambiguities) to "N" (DNA or RNA) or "X" (protein). For DNA, equivalent
+to:
+
+C<fastr -sc ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\- N>
 
 =item B<-a>
-      B<--append>
+      B<--ambig char>
 
-This option will append the description 
+Use <char> to replace illegal characters instead of "N" or "X" with
+B<--strict> or B<--iupac>
 
 =item B<-h>,
       B<--help>

@@ -66,21 +66,21 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 
 
-	   'sort-description|d'          => \$sort_description,
-	   'sort-sequence|s'             => \$sort_sequence,
-	   'sort-field|f=i'              => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --sort-field or -f option expects non-zero integer argument\n" 
+	   'description|d'          => \$sort_description,
+	   'sequence|s'             => \$sort_sequence,
+	   'field|f=i'              => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --field or -f option expects non-zero integer argument\n" 
 						    unless $val != 0; 
 						  $sort_field = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
-	   'sort-tag|t=s'                => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --sort-tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
+	   'tag|t=s'                => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
 						    unless $val =~ /^[a-zA-Z0-9_-]+$/; 
 						  $sort_tag = $val;
 						},
-	   'sort-regex|x=s'              => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --sort-regex or -x option expects regex argument with exactly one capture buffer\n" 
+	   'regex|x=s'              => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --regex or -x option expects regex argument with exactly one capture buffer\n" 
 						    unless $val =~ /^[^()]*\([^)]+\)[^()]*$/; 
 						  $sort_regex = $val;
 						},
@@ -94,8 +94,8 @@ GetOptions('help|h'         		 => \$help,
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 
-pod2usage("$NAME: Requires at least one argument file1 [file2…fileN] unless taking input from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 1));
-pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV == 0);
+pod2usage("$NAME: Requires at least one argument file1 [file2…fileN] unless taking input from STDIN.\n") if ((-t STDIN) && (@ARGV < 1));
+pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN.\n") if (!(-t STDIN) && @ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 

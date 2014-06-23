@@ -10,14 +10,16 @@ FAST - FAST Analysis of Sequences Toolbox
 
 =head1 VERSION
 
-Version 0.04
+Version 1.00
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '1.0';
 
 our $DEF_FORMAT  = "fasta";
 our $DEF_LOGNAME = "FAST.log.txt";
+our $DEF_JOIN_STRING = " ";
+our $DEF_SPLIT_REGEX = ' ';
 
 sub log {
   my ($logname, $DATE, $COMMAND, $comment) = @_;

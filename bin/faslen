@@ -3,12 +3,12 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
-use strict;
 use FAST::Bio::SeqIO;
+use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "regex-based substitutions on sequence records";
+$DESC    = "annotate sequence lengths to descriptions";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -19,18 +19,18 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_join_string = $FAST::DEF_JOIN_STRING;
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
 my $help                 = undef;  # -h
 my $moltype              = undef;  # -m, in case bioperl can't tell
+my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $sequence             = undef;        # -s
-my $description          = undef;        # -d
-my $insensitive          = undef;        # -i
-my $global               = undef;        # -g
+my $table                = undef;        # -t
+my $join                 = $def_join_string; # -j
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -39,129 +39,98 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
+	   'format=s'                    => \$format,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-           'global|g'                    => \$global,
-           'insensitive|i'               => \$insensitive,
-           'sequence|s'                  => \$sequence,
-           'description|d'               => \$description,
+	   'table|t'                     => \$table,
+	   'join|j=s'                    => \$join,
 	  ) 
-
-  or pod2usage(2);
+  or exit(1);
 		  
+$format = lc ($format);
+
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$NAME: expects at least three arguments when input from file.\n") if ( (-t STDIN) && (@ARGV < 3));
-pod2usage("$NAME: expects exactly two arguments when input on STDIN.\n")    if (!(-t STDIN) &&  @ARGV != 2);
+pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input is from STDIN.\n") if ((-t STDIN) && (@ARGV == 0));
+pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $NAME -h for help.\n")      if (!(-t STDIN) && (@ARGV != 0));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-my $re_string = shift @ARGV;
-my $string = shift @ARGV;
 
-my $re;
-if ($insensitive) {
-  $re = qr/$re_string/i;
-}
-else {
-  $re = qr/$re_string/;
-}
-
-
-my ($selector,$type);
-if ($sequence) {
-  $selector = "seq";
-  $type = "sequence";
-}
-elsif ($description) { 
-  $selector = "desc";
-  $type = "description";
-}
-else {
-  $selector = "id";
-  $type = "identifier";
-}
-
-
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
+my $numseqs;
+my $numchars;
+my $file;
+my $numseqsfile;
+my $numcharsfile;
 while ($IN or @ARGV) {
   if (@ARGV) {
-    my $file = shift (@ARGV);
+    $file = shift (@ARGV);
+    $numseqsfile = $numcharsfile = 0;
     unless (-e $file) {
       warn "$NAME: Could not find file $file. Skipping.\n";
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
+  }
+  else {
+    undef $file;
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      my $data = $seq->$selector();
-      if ($data =~ m/$re/) {
-	if ($global) {
-	  eval "\$data =~ s/$re/$string/g;";
-	}
-	else {
-	  eval "\$data =~ s/$re/$string/;";
-	}
-	die "$NAME: $@\n" if $@;
-	$seq->$selector($data);
+      my $length = $seq->length();
+      if ($table) {
+	my $id = $seq->id();
+	print join eval(qq|\"$join\"|),$id,$length;
+	print "\n";
       }
-      print $OUT $seq;
+      else {
+	my $olddesc = $seq->desc();
+	$seq->desc(join eval(qq|\"$join\"|),$olddesc,"length:$length");     
+	print $OUT $seq;
+      }
     }
     undef $IN;
   }
 }
 
-
-
 __END__
 
 =head1 NAME
 
-B<fassub> -- regex-based substitutions on sequence records
+B<faslen> -- annotate sequence lengths to descriptions
 
 =head1 SYNOPSIS
 
-B<fassub> [OPTION]... [PERL-REGEX] [SUBSTITUTION] [MULTIFASTA-FILE]...
+B<faslen> [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-B<fassub> takes multifasta format sequence or alignment data as input,
-and faciliates text substitutions on sequence identifiers (by
-default), sequences or descriptions using the Perl B<s///>
-substitution operator. B<fassub> takes two mandatory arguments
-corresponding to the two arguments of B<s///>; the first a Perl regex
-matching a set of strings to be substituted and the second,
-replacement text, possibly including special characters that require
-backslash quoting or capture buffer expressions. The first regex
-argument may require quoting to protect special characters from
-interpretation by the shell.  By default, only the left-most match is
-substituted, use B<--global>/B<-g> to substitute all matches. Use
-single quotes on arguments at the shell to deploy numbered match
-variables like "$1" in your substitutions, which will back-reference
-capture groups in your regex.
+B<faslen> takes sequence or alignment data on input, computes sequence
+lengths, and annotates sequence record descriptions with their lengths
+in the format "length:<value>."  All sequence characters get counted,
+including gap characters. Identifiers and lengths may optionally be
+printed in a table to STDOUT.
 
-Options specific to B<fassub>:
-  B<-s>, B<--sequence>              substitute on sequences
-  B<-d>, B<--description>           substitute on descriptions  
-  B<-i>, B<--insensitive>           match text case-insensitively
-  B<-g>, B<--global>                substitute all matches in the data  
+Options specific to B<faslen>:
+  -t, --table                   Print lengths with ids in a table
+  -j, --join=<string>           Use <string> to join data 
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -170,15 +139,15 @@ Options general to FAST:
   -l, --log                         create/append to logfile	
   -L, --logname=<string>            use logfile name <string>
   -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input 
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
-B<fassub> is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<faslen> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
-STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
-reformat other formats to and from multifasta.
+STDIN. Output occurs to STDOUT.  
 
 =head1 OPTIONS
 
@@ -216,7 +185,7 @@ Include comment [string] in logfile. No comment is saved by default.
 
 =item B<--format=[format]> 		  
 
-Use alternative format for input. See man page for "fasconvert" for
+Use alternative format for input. See man page for "faslen" for
 allowed formats. This is for convenience; the FAST tools are designed
 to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
@@ -232,24 +201,41 @@ processing data).
 
 =head1 EXAMPLES
 
-Reverse genus and species in t/data/P450.fas:
+Print length of all sequences:
 
 =over 8
 
-C<fassub -d '\[(\w+) (\w+)\]' '[$2 $1]' t/data/P450.fas>
+faslen sequences.fas > measured.fas
 
 =back
 
+Print tab-delimited table of lengths:
+
+=over 8
+
+faslen -tj "\t" sequences.fas
+
+=back
+
+Filtering sequences to have length >= 300:
+
+=over 8
+
+faslen sequences.fas | fasfilter -t length 300.. 
+
+=back
+
+Sorting sequences by length:
+
+=over 8
+
+faswc sequences.fas | fassort -t length
+
+=back
 
 =head1 SEE ALSO
 
 =over 8
-
-=item C<man perlre>
-
-=item C<perldoc perlre>
-
-Documentation on perl regular expressions.
 
 =item C<man FAST>
 
@@ -263,7 +249,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
 Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
 
 =cut

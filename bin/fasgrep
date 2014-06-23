@@ -196,18 +196,18 @@ __END__
 
 =head1 NAME
 
-B<fasgrep> - print sequences matching a pattern
+B<fasgrep> - print sequence records matching a pattern
 
 =head1 SYNOPSIS
 
-B<fasgrep> [OPTION]... [PERL-REGEX] [MULTIFASTA-FILE...]
+B<fasgrep> [OPTION]... [PERL-REGEX] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
 B<fasgrep> takes sequence or alignment data as input, and outputs
 sequence records whose data match a perl regular expression (regex)
-argument. By default, the regex is tested to match against sequence
-identifiers. B<fasgrep> takes one argument, a perl regular
+argument. By default, the regex is tested for matching against
+sequence identifiers. B<fasgrep> takes one argument, a perl regular
 expression. Regex arguments may require quoting to protect special
 characters from interpretation by the shell.
 

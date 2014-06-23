@@ -20,8 +20,8 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_split_on_regex = ' ';
-my $def_field_join     = " ";
+my $def_split_on_regex = $FAST::DEF_SPLIT_REGEX; # ' '
+my $def_field_join     = $FAST::DEF_JOIN_STRING; # " "
 
 ## OPTION VARIABLES
 my $man                  = undef;               # --man
@@ -332,12 +332,12 @@ reformat other formats to and from multifasta.
 =item B<-i>
       B<--identifier>
 
-Cuts identifiers by character.
+Cut identifiers by character.
 
 =item B<-d>
       B<--description>
 
-Cuts descriptions by character.
+Cut descriptions by character.
 
 =item B<-f>
       B<--field>
