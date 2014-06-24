@@ -60,10 +60,12 @@ GetOptions('help|h'         		 => \$help,
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$NAME: expects one range-string argument and at least one input filename or glob. Try \"perldoc $NAME\"") if ((-t STDIN) && (@ARGV < 2));
-pod2usage("$NAME: expects one range-string argument when input is on STDIN. Try \"perldoc $NAME\"") if ((!(-t STDIN)) && @ARGV != 1);
+my $fromSTDIN = ((-t STDIN) ? false : true);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+pod2usage("$NAME: expects one range-string argument and at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN && (@ARGV < 2));
+pod2usage("$NAME: expects one range-string argument when input is on STDIN. Try \"perldoc $NAME\"") if ($fromSTDIN) && @ARGV != 1);
+
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
 ##PARSE MULTICOORDS
 my @RANGES = ();

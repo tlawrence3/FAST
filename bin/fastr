@@ -87,6 +87,8 @@ my $delete_or_squash = ($delete || $squash);
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
+my $fromSTDIN = ((-t STDIN) ? false : true);
+
 pod2usage("$NAME: with --strict or --iupac, no other options except --ambig are allowed.\n")      if ( ($iupac_or_strict) &&  ($delete_or_squash || $complement || $description || $sequence || $no_replace));  
 pod2usage("$NAME: expects exactly two arguments unless --no-replace/-n if input on STDIN.\n")        if (!(-t STDIN) && !($iupac_or_strict) && !($no_replace) && @ARGV != 2);
 pod2usage("$NAME: expects at least three arguments unless --no-replace/-n if input from file\n")     if ( (-t STDIN) && !($iupac_or_strict) && !($no_replace) && @ARGV  < 3);
@@ -95,7 +97,7 @@ pod2usage("$NAME: expects at least two arguments with --no-replace/-n if input f
 pod2usage("$NAME: with --strict or --iupac expects zero arguments if input on STDIN.\n")          if (!(-t STDIN) &&  ($iupac_or_strict) && @ARGV  > 0);
 pod2usage("$NAME: with --strict or --iupac expects at least one argument if input from file.\n")  if ( (-t STDIN) &&  ($iupac_or_strict) && @ARGV == 0);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
 my ($selector,$type);
 if ($iupac_or_strict) {

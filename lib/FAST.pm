@@ -22,20 +22,25 @@ our $DEF_JOIN_STRING = " ";
 our $DEF_SPLIT_REGEX = ' ';
 
 sub log {
-  my ($logname, $DATE, $COMMAND, $comment) = @_;
+  my ($logname, $DATE, $COMMAND, $comment, $fromSTDIN) = @_;
   unless ($logname and $DATE and $COMMAND) {
     carp join "","FAST::log: logname, DATE, or COMMAND undefined; logging not possible.\n";
     return;
   }
   open (LOG, ">>$logname") or carp "FAST::log: cannot open logfile $logname\n";
   if (*LOG) {
-    print LOG "$COMMAND # FAST $VERSION $DATE ";
-    print LOG "$comment" if ($comment);
-    print LOG "\n";
+    if (!$fromSTDIN) {
+      print LOG "\n# FAST $VERSION $DATE ";
+      print LOG "$comment" if ($comment);
+      print LOG "\n";
+      print LOG "$COMMAND"
+    }
+    else {
+      print LOG " | $COMMAND" 
+    }
     close LOG;
   }
 }
-
 
 
 =head1 SYNOPSIS

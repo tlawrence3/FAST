@@ -21,11 +21,12 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  # "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; # "FAST.log.txt";
+my $def_join_string = $FAST::DEF_JOIN_STRING;
 
 my $def_stop_char = '*'; # -s
 my $def_unk_char  = 'X'; # -u
 my $def_frame     = 0;   # -F
-my $def_code      = 1;   # -t // TABLE_ID (CODE)
+my $def_table     = 1;   # -t // TABLE_ID (CODE)
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -36,21 +37,25 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 
+my $annotate             = undef;        # -a
+my $join                 = $def_join_string; # -j
+
+my $brand                = undef;        # -b
+
 my $gapped               = undef;        # -g, gapped one-letter aa IUPAC transalation, aligns to codons
-my $keep_msg             = undef;        # -k, forces -i
+my $keep                 = undef;        # -k, keep input sequences on output
 my $xl_as_cds            = undef;        # --cds, force all translations to start with M
-my $expand_gaps          = undef;        # -e, expand gaps
+my $codon2aa             = undef;        # -o, turn codon aln to aa aln
 my $moltype              = undef;        # -m, force moltype
 
-my $stop_char            = $def_stop_char; # -s
-my $unk_char             = $def_unk_char;  # -u
+my $stop                 = $def_stop_char; # -s
+my $unknown              = $def_unk_char;  # -u
 my $frame                = $def_frame;     # -F
-my $code                 = $def_code;      # -c
+my $table                = $def_table;     # -t
 
 ## in increasing priority:
 my $all_three            = undef;        # -3
 my $all_six              = undef;        # -6
-my $keep_dna             = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -58,48 +63,52 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+	   'annotate|a'                  => \$annotate,
+	   'join|j=s'                    => \$join,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\"" 
 						    unless $val =~ /dna|rna/i; 
 						  $moltype = $val;
 						},
-           'stop-char|s=s'               => sub{  my (undef,$val) = @_; 
-		   				  die "$NAME: --stop-char or -s option takes a single character argument in POSIX class [:print:]." 
+           'stop|s=s'                    => sub{  my (undef,$val) = @_; 
+		   				  die "$NAME: --stop or -s option takes a single character argument in POSIX class [:print:]." 
 						    unless $val =~ /\A[[:print:]]\Z/;
-						  $stop_char = $val;
+						  $stop = $val;
 						},
-           'unk-char|u=s'                => sub{  my (undef,$val) = @_; 
-		   				  die "$NAME: --unk-char or -u option takes a single character argument in POSIX class [:print:]." 
+           'unknown|u=s'                 => sub{  my (undef,$val) = @_; 
+		   				  die "$NAME: --unknown or -u option takes a single character argument in POSIX class [:print:]." 
 						    unless $val =~ /\A[[:print:]]\Z/;
-						  $unk_char = $val;
+						  $unknown = $val;
 						},	   
            'frame|f=i'                   => sub{  my (undef,$val) = @_; 
 		   				  die "$NAME: --frame or -f option takes an integer argument between 0 and 2 inclusively." 
 						    unless $val >= 0 and $val <= 2;
 						  $frame = $val;
 						},
-	   'code|c=i'                    => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --code or -c option takes an integer argument, an NCBI genetic code identifer in the set {1..6,9..16,21..23}. See man page." 
+	   'table|t=i'                    => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --table or -t option takes an integer argument, an NCBI genetic code table index in the set {1..6,9..16,21..23}." 
 						    unless $val >= 1 and $val <= 6 or $val >= 9 and $val <= 16 or $val >= 21 and $val <= 23;
-						  $code = $val;
+						  $table = $val;
 						},
 	   'all-three|3'                 => \$all_three,
 	   'all-six|6'                   => \$all_six,	   
 	   'gapped|g'                    => \$gapped,
-	   'keep-msg|k'                  => \$keep_msg,
-	   'cds'                         => \$xl_as_cds,
-	   'expand-gaps|e'               => \$expand_gaps,
-	   'keep-dna|d'                  => \$keep_dna,
+	   'keep|k'                      => \$keep,
+	   'cds|c'                       => \$xl_as_cds,
+	   'codon2aa|o'                  => \$codon2aa,
 	  )
   or pod2usage(2);
 		  
-pod2usage(1) if $help;
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-#pod2usage("$0: Requires zero arguments when reading from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 0));
+my $fromSTDIN = ((-t STDIN) ? false : true);
+pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input from STDIN.\n") if (!($fromSTDIN) && (@ARGV == 0));
+pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
+pod2usage("$NAME: Options --annotate/-a and --keep/-k are incompatible.\n") if ($annotate && $keep);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
-$keep_dna and do {
+$keep and do {
   $gapped = true;
 };
 
@@ -129,26 +138,27 @@ while ($IN or @ARGV) {
     }
   }
   if ($IN) { 
-    while (my $nseq = $IN->next_seq()) {
-      $keep_msg and do {
-	print $OUT $nseq;
+    while (my $seq = $IN->next_seq()) {
+      $keep and do {
+	print $OUT $seq;
       };
       if ($all_six) {
-	&xl_3_frames($nseq);
-	my $rc = $nseq->revcom;
-	my $id = join '-',$nseq->display_id,'rc';
+	&xl_3_frames($seq,$seq,false);
+	my $rc = $seq->revcom;
+	my $id = join '-',$seq->display_id,'rc';
 	$rc->display_id($id);
-	$keep_dna and do {
+	$keep and do {
 	  print $OUT $rc;
 	};
-	&xl_3_frames($rc);
+	&xl_3_frames($seq,$rc,true);
       }
       elsif ($all_three) {
-	&xl_3_frames($nseq);
+	&xl_3_frames($seq,$seq,false);
       }
       else {
-	&xl ($nseq,$frame);
+	&xl ($seq,$seq,$frame,false);
       }
+      print $OUT $seq if ($annotate);
     }
     undef $IN;
   }
@@ -159,8 +169,10 @@ while ($IN or @ARGV) {
 sub xl_3_frames {
 #-----------------------
   my $seq = shift;
+  my $xlseq = shift;
+  my $rc  = shift;
   for ($frame=0;$frame<3;$frame++) {
-    &xl ($seq,$frame);
+    &xl ($seq,$xlseq,$frame,$rc);
   }
 }
 
@@ -168,26 +180,30 @@ sub xl_3_frames {
 sub xl {
 #-----------------------
   my $seq = shift;
+  my $xlseq = shift;
   my $frame = shift;
+  my $rc = shift;
+
+  my $rcprint = ($rc ? "rc-" : "");
 
   my $aa;
   if ($gapped) {
-    my $gapseq = FAST::Bio::GapSeq->copy($seq);
+    my $gapseq = FAST::Bio::GapSeq->copy($xlseq);
     $gapseq->alphabet($seq->alphabet());
-    $aa = $gapseq->translate($stop_char,$unk_char,$frame,$code,$xl_as_cds); 
+    $aa = $gapseq->translate($stop,$unknown,$frame,$table,$xl_as_cds); 
   }
-  elsif ($expand_gaps) {
+  elsif ($codon2aa) {
     my @aaseq = ();
-    my $seqseq = $seq->seq;
+    my $seqseq = $xlseq->seq;
     my @seqparts = split /(-+)/,$seqseq;
     foreach my $part (@seqparts) {
       if ($part =~ /-/) {
-	$_ =~ s/---/-/g;
-	push @aaseq,$_;
+	$part =~ s/---/-/g;
+	push @aaseq,$part;
       }
       else {
-	my $seq = FAST::Bio::Seq->new(-seq => $part, -alphabet => $seq->alphabet());
-	my $as = $seq->translate($stop_char,$unk_char,$frame,$code,undef); ## handle cds 
+	my $seq = FAST::Bio::Seq->new(-seq => $part, -alphabet => $xlseq->alphabet());
+	my $as = $seq->translate($stop,$unknown,$frame,$table,undef); ## handle cds 
 	push @aaseq, $as->seq;
       }
     }
@@ -195,16 +211,22 @@ sub xl {
     $aa = FAST::Bio::Seq->new(-seq => $aaseq, -alphabet => $seq->alphabet());
   }
   else {
-    if ($seq->seq() =~ /-/) {
-      die "$0: expects gap-free input unless -g or -e options are used. Try fasdegap or fastr.";
+    if ($xlseq->seq() =~ /-/) {
+      die "$NAME: expects gap-free input unless -g or -o options are used.\n";
     }
-    $aa = $seq->translate($stop_char,$unk_char,$frame,$code,$xl_as_cds); 
+    $aa = $xlseq->translate($stop,$unknown,$frame,$table,$xl_as_cds); 
     my $aaFix = join '',('-' x $frame),$aa->seq;
     $aa->seq($aaFix);
   }
-  my $id = join '-',$seq->display_id,"xl$frame";   
-  $aa->display_id("$id");
-  print $OUT $aa;  
+  if ($annotate) {
+    my $olddesc = $seq->desc();
+    $seq->desc(join eval(qq|\"$join\"|),$olddesc,(join "",$rcprint,"xl$frame:",$aa->seq())); 
+  }
+  else {
+    my $id = join '-',$seq->display_id,(join "",$rcprint,"xl$frame");   
+    $aa->display_id("$id");
+    print $OUT $aa; 
+  }
 }
 
 
@@ -212,7 +234,7 @@ __END__
 
 =head1 NAME
 
-fasxl - translate sequences by a genetic code.
+fasxl -- translate sequences by a genetic code.
 
 =head1 SYNOPSIS
 
@@ -220,22 +242,38 @@ fasxl [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-fasxl takes multifasta format DNA or RNA codon sequences or alignments
-as input, and generates biological translations of those sequences as
-output. Gapped sequences on input are allowed. 
+B<fasxl> takes multifasta format DNA or RNA codon sequences or
+alignments as input, and generates biological translations of those
+sequences as output. Gapped sequences on input are allowed with the
+-g, -k or -o options; the gap character "-" is required for correct
+interpretation.
 
-Options:
-  -s, --match-sequence              match on sequence 
-  -d, --match-description           match on description 
-  -v, --negate                      output sequences that do not match
-  -i, --insensitive                 match case-insensitively
-  -e, --iupac-expand-nuc            expand ambiguities for DNA/RNA
-  -r, --revcom-iupac-expand-nuc     reverse complement and expand 
-  -p, --iupac-expand-prot           expand ambiguities for protein
-  -m, --moltype=I<protein|rna|dna>     force moltype of input sequences 
+Options specific to fasxl:
+  -a, --annotate          output translations as tagged values in descriptions 
+  -j, --join=<string>     use <string> to join data 
+  -g, --gapped            gapped translations in alignment with input
+  -k, --keep              keep input sequences in output (forces -g).
+  -o, --codon2aa          turn codon alignment into a protein alignment 
+                           (best used for codon-based alignments, where gaps are mod 3 
+                            length and seqs are to be translated in frame 0)
+  -c, --cds               treat as CDS (for bacterial code, for example, treat init codons as M)
+                           (deprecated) 
+  -f, --frame=<int>       frame for translation [0 (default),1, or 2].
+  -t, --table=<int>       NCBI genetic code tableID for translating sequences [1]
+  -3                      translate each sequence in all three forward frames
+  -6                      translate each sequence in all six frames
+  -s, --stop=<char>       string representing stop codons ["*"]
+  -u, --unknown=<char>    string representing unknown amino acids ["X"]
+
+Options general to FAST:
   -h, --help                  	 print a brief help message
   --man             	           print full documentation
   --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  -m, --moltype=<[dna|rna|protein]> specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
@@ -318,51 +356,6 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
-
-=over 8
-
-cat data.fas | fasgrep "-DNA" > data.dna.fas
-
-=back
-
-Print all seqs with "mammal", "Mammal" or "MAMMAL" in the description:
-
-=over 8
-
-fasgrep -di "mammal" < data.fas > mammal.fas     
-
-=back
-
-Print all sequences with the motif MSDQ in them:
-
-=over 8
-
-fasgrep -s  "MSDQ"  < data.fas > MSDQ.fas       
-    
-=back
-
-Print all sequences that don't start with S or R:
-    
-=over 8
-
-fasgrep -v "^[SR]" < data.fas > sub.fas         
-
-=back
-
-Print all sequences matching purine-purine-pyrimidine:
-
-=over 8
-
-fasgrep -sem dna "RRY"  < data.fas > RRY.fas 
-   
-fasgrep -se "RRY"  < data.fas > RRY.fas        
-
-fasgrep -s "[AG][AG][CT]" < data.fas > RRY.fas
-
-fasgrep -s "[AG]{2}[CT]" < data.fas > RRY.fas
-
-=back
 
 =head1 SEE ALSO
 

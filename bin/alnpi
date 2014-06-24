@@ -198,21 +198,21 @@ while ( my $aln = $IN->next_aln){
   printf "%10s ",$ids[$i];
     }
     print ($latex ? "\\\\\n" : "\n");
-
+    
     ## PRINT MATRIX
     for my $i (1..$nseq) {
       printf "%10s ",$ids[($i-1)];
-
-  for my $j (1..($i-1)) { 
-  print ($latex ? '& ' : '  '); ## LATEX MODE
-  my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
-  my $return_val = &calculate($pair,$output);
-  printf "%10.6f ",$return_val;
+      
+      for my $j (1..($i-1)) { 
+	print ($latex ? '& ' : '  '); ## LATEX MODE
+	my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
+	my $return_val = &calculate($pair,$output);
+	printf "%10.6f ",$return_val;
       }
       if ($latex) {
-  for my $j ($i..($nseq-1)) { 
-    print "&",(' ' x 12);
-  }
+	for my $j ($i..($nseq-1)) { 
+	  print "&",(' ' x 12);
+	}
       }
       print ($latex ? " \\\\\n" : "\n");
     }
@@ -221,9 +221,9 @@ while ( my $aln = $IN->next_aln){
     print $nseq,"\n";
     for my $i (1..$nseq) {
       for my $j (($i+1)..$nseq) { 
-  my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
-  print join ' ',$i,$j;
-  my $return_val = &calculate($pair,'p');
+	my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
+	print join ' ',$i,$j;
+	my $return_val = &calculate($pair,'p');
       }
     }
   }

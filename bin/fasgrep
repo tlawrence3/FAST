@@ -82,10 +82,13 @@ GetOptions('help|h'         		 => \$help,
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$NAME: expects one regex argument and at least one input filename or glob. Try \"perldoc $NAME\"") if ((-t STDIN) && (@ARGV < 2));
-pod2usage("$NAME: expects one regex argument when input is on STDIN. Try \"perldoc $NAME\"") if ((!(-t STDIN)) && @ARGV != 1);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+my $fromSTDIN = ((-t STDIN) ? false : true);
+
+pod2usage("$NAME: expects one regex argument and at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 2));
+pod2usage("$NAME: expects one regex argument when input is on STDIN. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 1);
+
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
 my $arg = shift @ARGV;
 my $re_string;

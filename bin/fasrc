@@ -44,7 +44,7 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val =~ /dna|rna/i; 
 						  $moltype = $val;
 						},
-	   'nobrand|n'                     => \$nobrand,
+	   'nobrand|n'                   => \$nobrand,
 	  )
   or pod2usage(2);
 		  
