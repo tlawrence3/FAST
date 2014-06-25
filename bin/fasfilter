@@ -100,7 +100,7 @@ foreach my $RANGE (@RANGES) {
     push @intervals, [$1,$1];
   }
   elsif ($RANGE =~ /^(\.\.|:)(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)$/) { 
-    push @intervals, [undef,$1];
+    push @intervals, [undef,$2];
   } 
   elsif ($RANGE =~ /^(-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)(\.\.|:)$/) {
     push @intervals, [$1,undef];
@@ -109,7 +109,7 @@ foreach my $RANGE (@RANGES) {
     $L = $1;
     $U = $7;
     die "$NAME: RANGE $RANGE should have form L..U or L:U with L <= U\n" unless ($L <= $U);
-    push @intervals, [$1,$6];
+    push @intervals, [$L,$U];
   }
   else {
     die "$NAME: RANGE $RANGE has an invalid syntax; Try \"$NAME -h\"\n";
