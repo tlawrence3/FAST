@@ -178,7 +178,7 @@ while ($IN or @ARGV) {
       die "$NAME: $@\n" if $@;
       $seq->$selector($data);
       # if ($append_info) {
-      # 	$seq->desc(join ' ',$seq->desc(),"fastr: $search|$replace|$options:$count");
+      # 	$seq->desc(join ' ',$seq->desc(),"B<fastr>: $search|$replace|$options:$count");
       # }
       print $OUT $seq;
     }
@@ -215,7 +215,7 @@ characters, and more. Special modes B<--strict> and B<--iupac>
 facilitate enforcement of sequence alphabets, and remapping illegal
 characters to 'N' or 'X' or a user-defined character.
 
-Options specific to fastr:
+Options specific to B<fastr>:
   B<-s>, B<--sequences>              transliterate sequences
   B<-d>, --description             transliterate descriptions  
   B<-D>, --delete                  delete found characters not replaced
@@ -296,7 +296,7 @@ Delete or squash characters in SEARCHLIST.
 Transliterate illegal sequence characters to "N" (DNA or RNA) or
 "X" (protein). For DNA, equivalent to:
 
-C<fastr -sc ACTGactg\- N>
+B<fastr> -sc ACTGactg\- N>
 
 =item B<--iupac>
 
@@ -304,7 +304,7 @@ Transliterate illegal sequence characters (including IUPAC
 ambiguities) to "N" (DNA or RNA) or "X" (protein). For DNA, equivalent
 to:
 
-C<fastr -sc ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\- N>
+B<fastr> -sc ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\- N>
 
 =item B<-a>
       B<--ambig char>

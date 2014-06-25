@@ -238,7 +238,7 @@ Reverse genus and species in t/data/P450.fas:
 
 =over 8
 
-C<fassub -d '\[(\w+) (\w+)\]' '[$2 $1]' t/data/P450.fas>
+B<fassub> -d '\[(\w+) (\w+)\]' '[$2 $1]' t/data/P450.fas>
 
 =back
 

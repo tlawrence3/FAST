@@ -186,7 +186,7 @@ Include comment [string] in logfile. No comment is saved by default.
 
 =item B<--format=[format]> 		  
 
-Use alternative format for input. See man page for "faslen" for
+Use alternative format for input. See man page for "B<faslen>" for
 allowed formats. This is for convenience; the FAST tools are designed
 to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
@@ -206,7 +206,7 @@ Print length of all sequences:
 
 =over 8
 
-faslen sequences.fas > measured.fas
+B<faslen> sequences.fas > measured.fas
 
 =back
 
@@ -214,7 +214,7 @@ Print tab-delimited table of lengths:
 
 =over 8
 
-faslen -tj "\t" sequences.fas
+B<faslen> -tj "\t" sequences.fas
 
 =back
 
@@ -222,7 +222,7 @@ Filtering sequences to have length >= 300:
 
 =over 8
 
-faslen sequences.fas | fasfilter -t length 300.. 
+B<faslen> sequences.fas | fasfilter -t length 300.. 
 
 =back
 

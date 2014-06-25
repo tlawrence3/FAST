@@ -214,7 +214,7 @@ sequence identifiers. B<fasgrep> takes one argument, a perl regular
 expression. Regex arguments may require quoting to protect special
 characters from interpretation by the shell.
 
-Options specific to fasgrep:
+Options specific to B<fasgrep>:
   -s, --sequence                    match on sequence 
   -d, --description                 match on description 
   -f, --field=<int>                 match field <int> in description
@@ -287,7 +287,7 @@ In fasta files, the identifier occurs between the record separator
 (">") and the first whitespace on the identifier line, and the
 description is everything after the first string of white space on the
 identifier line. Therefore the identifier is counted as the 0th field,
-which is what fasgrep matches by default. 
+which is what B<fasgrep> matches by default. 
 
 =item B<-t [string]>,
       B<--tag=[string]>   

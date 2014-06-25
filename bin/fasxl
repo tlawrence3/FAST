@@ -234,11 +234,11 @@ __END__
 
 =head1 NAME
 
-fasxl -- translate sequences by a genetic code.
+B<fasxl> -- translate sequences by a genetic code.
 
 =head1 SYNOPSIS
 
-fasxl [OPTION]... [MULTIFASTA-FILE]...
+B<fasxl> [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
@@ -248,7 +248,7 @@ sequences as output. Gapped sequences on input are allowed with the
 -g, -k or -o options; the gap character "-" is required for correct
 interpretation.
 
-Options specific to fasxl:
+Options specific to B<fasxl>:
   -a, --annotate          output translations as tagged values in descriptions 
   -j, --join=<string>     use <string> to join data 
   -g, --gapped            gapped translations in alignment with input
@@ -277,7 +277,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-fasxl is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fasxl> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can

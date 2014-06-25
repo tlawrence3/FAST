@@ -41,11 +41,11 @@ my $comment              = undef;                 # -C
 my $split_on_regex       = $def_split_on_regex;   # -S 
 
 ## in increasing priority:
-my $sort_sequence       = undef;  # -s
-my $sort_description    = undef;  # -d
-my $sort_field          = undef;  # -f
-my $sort_regex          = undef;  # -x
-my $sort_tag            = undef;  # -t 
+my $sequence       = undef;  # -s
+my $description    = undef;  # -d
+my $field          = undef;  # -f
+my $regex          = undef;  # -x
+my $tag            = undef;  # -t 
 
 my $reverse             = undef;  # -r
 my $numeric             = undef;  # -n
@@ -66,23 +66,23 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 
 
-	   'description|d'          => \$sort_description,
-	   'sequence|s'             => \$sort_sequence,
+	   'description|d'          => \$description,
+	   'sequence|s'             => \$sequence,
 	   'field|f=i'              => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --field or -f option expects non-zero integer argument\n" 
 						    unless $val != 0; 
-						  $sort_field = $val;
+						  $field = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'tag|t=s'                => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
 						    unless $val =~ /^[a-zA-Z0-9_-]+$/; 
-						  $sort_tag = $val;
+						  $tag = $val;
 						},
 	   'regex|x=s'              => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --regex or -x option expects regex argument with exactly one capture buffer\n" 
 						    unless $val =~ /^[^()]*\([^)]+\)[^()]*$/; 
-						  $sort_regex = $val;
+						  $regex = $val;
 						},
 	   'reverse|r'                   => \$reverse,
 	   'numeric|n'                   => \$numeric,   
@@ -132,22 +132,22 @@ else {
 }
 
 my $keyf;
-if ($sort_tag) {
-  $keyf = sub { my $s = shift; my $re = qr/$sort_tag[:=](\S+)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return;} };
+if ($tag) {
+  $keyf = sub { my $s = shift; my $re = qr/$tag[:=](\S+)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return;} };
 }
-elsif ($sort_regex) {
+elsif ($regex) {
   my $m = 'id'; 
-     $m = 'seq'  if ($sort_sequence);
-     $m = 'desc' if ($sort_description); 
-  $keyf = sub { my $s = shift;  my $re = qr/$sort_regex/p; my $r = $s->$m(); if ($r =~ $re) { return $1;} else {return;} };
+     $m = 'seq'  if ($sequence);
+     $m = 'desc' if ($description); 
+  $keyf = sub { my $s = shift;  my $re = qr/$regex/p; my $r = $s->$m(); if ($r =~ $re) { return $1;} else {return;} };
 }
-elsif ($sort_field) {
+elsif ($field) {
   $keyf = sub { my $s = shift; my @fields = split $split_re,$s->desc(); if (exists $fields[$index]) {return $fields[$index]} else {return;} };
 }
-elsif ($sort_description) {
+elsif ($description) {
   $keyf = sub { my $s = shift; $s->desc() };
 }
-elsif ($sort_sequence) {
+elsif ($sequence) {
   $keyf = sub { my $s = shift; $s->seq() };
 }
 else {
@@ -270,11 +270,11 @@ sequences may be sorted by their sequences, descriptions or components
 of descripions.
 
 Options specific to B<fassort>:
-  B<-d>, B<--sort-description>	           sort on description
-  B<-s>, B<--sort-sequence>		      sort on sequence
-  B<-f>, B<--sort-field>=<int>	           sort on field in description
-  B<-t>, B<--sort-tag>=<string>           sort on value of a (tag,value) pair in the description
-  B<-x>, B<--sort-regex>=<regex>          sort on value of a regex capture
+  B<-d>, B<--description>	          sort on description
+  B<-s>, B<--sequence>                    sort on sequence
+  B<-f>, B<--field>=<int>	          sort on field in description
+  B<-t>, B<--tag>=<string>                sort on value of a (tag,value) pair in the description
+  B<-x>, B<--regex>=<regex>               sort on value of a regex capture
   B<-S>, B<--split-on-regex>=<regex>      split description for field matching using regex 
   B<-r>, B<--reverse>                     reverse result of comparisons
   B<-n>, B<--numeric>                     compare according to string numerical value
@@ -310,21 +310,21 @@ decreasing priority: B<-t> > B<-xd> > B<-xs> > B<-x> > B<-f> > B<-d> > B<-s>
 =over 8
 
 =item B<-d>,
-      B<--sort-description> 		
+      B<--description> 		
 
 Sort sequence records by their descriptions. If used in combination with the 
--x, --sort-regex option, sort records by values of a regex capture
+-x, --regex option, sort records by values of a regex capture
 applied to their descriptions. 
 
 =item B<-s>,
       B<--match-sequence> 		
 
 Sort sequence records by their sequences. If used in combination with the 
--x, --sort-regex option, sort records by values of a regex capture
+-x, --regex option, sort records by values of a regex capture
 applied to their sequences.   
 
 =item B<-f [int]>,
-      B<--sort-field=[int]>     
+      B<--field=[int]>     
 
 Sort sequence records by values at a specific field in sequence descriptions.
 With this option, the description is split into fields using strings of white
@@ -348,7 +348,7 @@ characters). Special characters must be quoted to protect them from
 the shell.
 
 =item B<-t [string]>,
-      B<--sort-tag=[string]>   
+      B<--tag=[string]>   
 
 Sort sequence records by values of a named tag in the description.
 Name-value pairs in the description are expected to have the format
@@ -359,7 +359,7 @@ string of non-whitespace characters. Sequence records for which the
 specified tag does not exist will sort on a null key.
 
 =item B<-x [regex]>,
-      B<--sort-regex=[regex]>   
+      B<--regex=[regex]>   
 
 Sort sequence records by values of a regex capture applied to
 identifers (by default), descriptions (in combination with the -d

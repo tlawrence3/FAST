@@ -125,11 +125,11 @@ __END__
 
 =head1 NAME
 
-faswc - tally sequences and sequence characters
+B<faswc> - tally sequences and sequence characters
 
 =head1 SYNOPSIS
 
-faswc [OPTION]... [MULTIFASTA-FILE...]
+B<faswc> [OPTION]... [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
@@ -139,7 +139,7 @@ to B<wc>). If a list of files are given as arguments to B<faswc>,
 tallies are calculated by file as well as in total. If input is over
 STDIN, only totals are output.
 
-Options specific to faswc:
+Options specific to B<faswc>:
   -s, --sequences                   tally sequences only
   -c, --characters                  tally characters only
 
