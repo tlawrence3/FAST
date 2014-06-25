@@ -70,6 +70,10 @@ unless (@ARGV) {
     }
 }
 
+if ($join eq '\t'){
+  $join = "\t";
+} 
+
 my $numseqs;
 my $numchars;
 my $file;
@@ -98,12 +102,12 @@ while ($IN or @ARGV) {
       my $length = $seq->length();
       if ($table) {
 	my $id = $seq->id();
-	print join eval(qq|\"$join\"|),$id,$length;
+	print join $join,$id,$length;
 	print "\n";
       }
       else {
 	my $olddesc = $seq->desc();
-	$seq->desc(join eval(qq|\"$join\"|),$olddesc,"length:$length");     
+	$seq->desc(join $join,$olddesc,"length:$length");     
 	print $OUT $seq;
       }
     }

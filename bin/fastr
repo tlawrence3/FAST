@@ -107,7 +107,7 @@ if ($iupac_or_strict) {
 }
 elsif ($sequence) {
   $selector = "seq";
-  $type = "sequence"
+  $type = "sequence";
 }
 elsif ($description) { 
   $selector = "desc";
@@ -116,18 +116,6 @@ elsif ($description) {
 else {
   $selector = "id";
   $type = "identifier";
-}
-
-
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
-my $IN;
-unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
-    }
 }
 
 my ($search,$replace); 
@@ -140,6 +128,18 @@ unless ($iupac_or_strict) {
     $replace              = "";
   }
       
+}
+
+
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $IN;
+unless (@ARGV) {
+    if ($moltype) {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+    }
+    else {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+    }
 }
 
 while ($IN or @ARGV) {

@@ -221,7 +221,13 @@ record: while (my $seq = $IN->next_seq()) {
       }
       ## if -sequence and no @newdata, don't print
       next if (!(scalar @newdata));
-      $newdata = join (($field ? $join : ""),@newdata);
+      if ($field && $join eq '\t'){
+	$join = "\t";
+      }
+      else (unless $field) {
+	$join = "";
+      }
+      $newdata = join $join,@newdata);
       if ($moltype) {
 	$newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
       }

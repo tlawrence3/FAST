@@ -112,6 +112,10 @@ $keep and do {
   $gapped = true;
 };
 
+if ($join eq '\t'){
+  $join = "\t";
+}
+
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
@@ -220,7 +224,7 @@ sub xl {
   }
   if ($annotate) {
     my $olddesc = $seq->desc();
-    $seq->desc(join eval(qq|\"$join\"|),$olddesc,(join "",$rcprint,"xl$frame:",$aa->seq())); 
+    $seq->desc(join $join,$olddesc,(join "",$rcprint,"xl$frame:",$aa->seq())); 
   }
   else {
     my $id = join '-',$seq->display_id,(join "",$rcprint,"xl$frame");   
