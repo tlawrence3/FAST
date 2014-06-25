@@ -401,7 +401,7 @@ Output sequences with length greater than or equal to 515
 
 =over 8
 
-B<faswc> t/data/P450.fas | B<fasfilter> -t length 515..
+B<faslen> t/data/P450.fas | B<fasfilter> -t length 515..
 
 =back
 
