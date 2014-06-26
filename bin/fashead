@@ -1,0 +1,268 @@
+#!/usr/bin/perl -w
+use POSIX;
+use Getopt::Long qw(:config bundling require_order auto_version);
+use Pod::Usage;
+use FAST;
+use FAST::Bio::SeqIO;
+use File::Basename;
+use strict;
+
+use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
+$VERSION = $FAST::VERSION; 
+$DESC    = "output the first n seqences";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+$COMMAND = join " ",$NAME,@ARGV;
+$DATE = POSIX::strftime("%c",localtime());
+
+use constant { true => 1, false => 0 };
+
+## DEFAULT OPTION VALUES
+my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
+my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_join_string = "";
+my $def_print_num = 10;
+
+## OPTION VARIABLES
+my $man                  = undef;  # --man
+my $help                 = undef;  # -h
+my $moltype              = undef;  # -m, in case bioperl can't tell
+my $format               = $def_format;  # --format
+my $log                  = undef;        # -l
+my $logname              = $def_logname; # -L
+my $comment              = undef;        # -C
+my $n			 = $def_print_num; # -n
+my $verbose              = undef; # -v
+my $silent               = undef; # -q
+
+GetOptions('help|h'         		 => \$help, 
+	   'man'            		 => \$man,
+	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						    unless $val =~ /dna|rna|protein/i; 
+						  $moltype = $val;
+						},
+	   'format=s'                    => \$format,
+	   'log|l'                       => \$log,
+	   'logname|L=s'                 => \$logname,
+	   'comment|C=s'                 => \$comment,
+	   'n=i'                         => sub{  my (undef,$val) = @_; 
+						  die "$NAME: -n option expects a positive integer argument\n" 
+						    unless $val > 0;
+						  $n = $val;
+					       },
+	   'v|verbose'                   => \$verbose,
+	   'q|quiet|silent'              => \$silent,
+	  ) 
+  or exit(1);
+
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+my $fromSTDIN = ((-t STDIN) ? false : true);
+
+pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN) && !(@ARGV));
+
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+
+my $append_file_name = (!$silent and ($verbose or (!($fromSTDIN) and @ARGV > 1)));
+
+my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
+my $IN;
+unless (@ARGV) {
+    if ($moltype) {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
+    }
+    else {
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
+    }
+}
+
+my $file = undef;
+my $seq_count = 0;
+while ($IN or @ARGV) {
+  if (@ARGV) {
+    $file = shift (@ARGV);
+    unless (-e $file) {
+      warn "$NAME: Could not find file $file. Skipping.\n";
+      next;
+    }
+    elsif ($moltype) {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
+    }
+    else {
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
+    }
+  }
+  
+  if ($IN) { 
+    while ($seq_count < $n and my $seq = $IN->next_seq()) {
+	if ($append_file_name) {
+	  $seq->desc(join $seq->desc(), (fileparse($file))[0]);
+	}
+
+	print $OUT $seq;
+      $seq_count += 1;
+    }
+    undef $IN;
+    $seq_count = 0;
+  }
+}
+
+__END__
+
+=head1 NAME
+
+B<fashead> - print the first n sequences
+
+=head1 SYNOPSIS
+
+B<fashead> [OPTION]... [MULTIFASTA-FILE]...
+
+=head1 DESCRIPTION
+
+B<fashead> takes sequence or alignment data as input, and outputs
+the first n sequence records for each inputed file. B<fashead> by
+default prints the first 10 sequence records.
+
+Options specific to B<fashead>:
+  -n=<integer>                      the number of sequences to print
+  -v, --verbose                     append file name to sequence descriptions
+  -q, --quiet, --silent             do not append file name to sequence
+                                     descriptions
+
+Options general to FAST:
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>      specify input sequence type
+
+=head1 INPUT AND OUTPUT
+
+B<fashead> is part of FAST, the FAST Analysis of Sequences Toolbox, based
+on Bioperl. Most core FAST utilities expect input and return output in
+multifasta format. Input can occur in one or more files or on
+STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
+reformat other formats to and from multifasta.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-n [integer]>
+
+The number of sequences to print. Must be a positive integer. Defaults to 10
+if the parameter is not specified.
+
+=item B<-v>,
+      B<--verbose>
+
+Always append file names to sequence descriptions.
+Defaults to on if multiple files are passed.
+
+=item B<-q>,
+      B<--quiet>,
+      B<--silent>
+
+Never append file names to sequence descriptions.
+Defaults to on if only one file is passed or if data is on STDIN. 
+Takes priority over verbose.
+
+=item B<-h>,
+      B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+=item B<--version>
+
+Print version information and exit.
+
+=item B<-l>,
+      B<--log>
+
+Creates, or appends to, a generic FAST logfile in the current working
+directory. The logfile records date/time of execution, full command
+with options and arguments, and an optional comment.
+
+=item B<-L [string]>,
+      B<--logname=[string]>
+
+Use [string] as the name of the logfile. Default is "FAST.log.txt".
+
+=item B<-C [string]>,
+      B<--comment=[string]>
+
+Include comment [string] in logfile. No comment is saved by default.
+
+=item B<--format=[format]> 		  
+
+Use alternative format for input. See man page for "fasconvert" for
+allowed formats. This is for convenience; the FAST tools are designed
+to exchange data in Fasta format, and "fasta" is the default format
+for this tool.
+
+
+=back
+
+=head1 EXAMPLES
+
+Print the first 10 sequences:
+
+=over 8
+
+cat data.fas | B<fashead> > data.dna.fas
+
+=back
+
+Print the first 5 sequences:
+
+=over 8
+
+cat data.fas | B<fashead> -n 5 > data.dna.fas
+
+=back
+
+Print the first 5 sequences with file name added to the description:
+
+=over 8
+
+cat data.fas | B<fashead> -v -n 5 > data.dna.fas
+    
+=back
+
+Print the first 5 sequences without file name added to the description:
+    
+=over 8
+
+B<fashead> -q -n 5 data.fas data2.fas > data.dna.fas
+
+=back
+
+=head1 SEE ALSO
+
+=over 8
+
+=item C<man FAST>
+
+=item C<perldoc FAST>
+
+Introduction and cookbook for FAST
+
+=item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
+
+=back 
+
+=head1 CITING
+
+If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+
+=cut
