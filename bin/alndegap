@@ -192,20 +192,20 @@ will remove gap characters from sequence. Gaps can be all removed or removed
 based on a frequency of gaps per column.
 
 Options specific to alndegap:
-  -g, --gap-freq                  removes gap columns based on an indicated frequency                
-  -a, --remove-gapped             removes columns with gap sites
-  -d, --degap                     removes all gaps from individual sequences
-  -i, --indices                   used with -a will show sites left after removal of gaps
+  B<-g>, B<--gap-freq>                  removes gap columns based on an indicated frequency                
+  B<-a>, B<--remove-gapped>             removes columns with gap sites
+  B<-d>, B<--degap>                     removes all gaps from individual sequences
+  B<-i>, B<--indices>                   used with -a will show sites left after removal of gaps
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>     specify input sequence type
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           	 print full documentation
+  B<--version>                           print version
+  B<-l>, B<--log>                        create/append to logfile	
+  B<-L>, B<--logname>=<string>           use logfile name <string>
+  B<-C>, B<--comment>=<string>           save comment <string> to log
+  B<--format>=<format>                 	 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
 
 =head1 INPUT AND OUTPUT
 

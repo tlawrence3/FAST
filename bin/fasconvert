@@ -214,12 +214,13 @@ Options specific to fasconvert:
   -M <integer>, --maxlength=<integer>   for phylip output, truncate identifiers to specified length                                      
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           	 print full documentation
+  B<--version>                           print version
+  B<-l>, B<--log>                        create/append to logfile	
+  B<-L>, B<--logname>=<string>           use logfile name <string>
+  B<-C>, B<--comment>=<string>           save comment <string> to log
+
 
 =head1 INPUT AND OUTPUT
 

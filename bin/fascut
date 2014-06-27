@@ -307,23 +307,23 @@ If "spawn-mode" (-w) is enabled, each range-input combination produces
 a distinct sequence to output.
 
 Options specific to B<fascut>:
-  -i, --identifier                  cuts identifiers by character
-  -d, --description                 cuts descriptions by character
-  -f, --field                       cuts descriptions by field
-  -S, --split-on-regex=<regex>      split description to fields using <regex>
-  -j, --join=<string>               join selected field ranges using <string>
-  -s, --strict                      strict range-checking; skips sequences with 
+  -B<i>, B<--identifier>                  cuts identifiers by character
+  -B<d>, B<--description>                 cuts descriptions by character
+  -B<f>, B<--field>                       cuts descriptions by field
+  -B<S>, B<--split-on-regex>=<regex>      split description to fields using <regex>
+  -B<j>, B<--join>=<string>               join selected field ranges using <string>
+  -B<s>, B<--strict>                      strict range-checking; skips sequences with 
                                       warnings if ranges are out-of-bounds
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>     specify input sequence type
+  -B<h>, B<--help>                  	 print a brief help message
+  B<--man>             	                 print full documentation
+  B<--version>                           print version
+  B<-l>, B<--log>                        create/append to logfile	
+  -B<L>, B<--logname>=<string>           use logfile name <string>
+  -B<C>, B<--comment>=<string>           save comment <string> to log
+  B<--format>=<format>                   use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
 
 =head1 INPUT AND OUTPUT
 

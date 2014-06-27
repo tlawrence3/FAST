@@ -166,13 +166,13 @@ Options specific to B<fassub>:
   B<-g>, B<--global>                substitute all matches in the data  
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input 
+  B<-h>, B<--help>                  print a brief help message
+  B<--man>             	            print full documentation
+  B<--version>                      print version
+  B<-l>, B<--log>                   create/append to logfile	
+  B<-L>, B<--logname>=<string>      use logfile name <string>
+  B<-C>, B<--comment>=<string>      save comment <string> to log
+  B<--format>=<format>              use alternative format for input 
 
 =head1 INPUT AND OUTPUT
 
