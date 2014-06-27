@@ -6,7 +6,6 @@ use FAST;
 use FAST::Bio::SeqIO;
 use FAST::Bio::PrimarySeq;
 use FAST::Bio::Tools::MySeqStats;
-use Carp;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -22,76 +21,92 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_join_string = $FAST::DEF_JOIN_STRING;
 
 ## OPTION VARIABLES
+my $normalize            = undef; # -n
+my $table                = undef; # -t
+my $join                 = $def_join_string; #-j
+
 my $man                  = undef;  # --man
 my $help                 = undef;  # -h
 my $moltype              = undef;  # -m, in case bioperl can't tell
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $norm                 = undef; #-n
-my $total                = undef; #-t
-my $append               = undef; #-a
 my $strict               = undef;
 my $iupac                = undef;
-my $case                 = undef;
-my $position             = 1; #default value
+my $alphabet             = undef;
+my $width                = undef;
+my $precision            = 3;
 
-my $warned;
-my $job_alphabet;
-my $alphabet;
-my $filter;
-
+## TO GO INTO DICTIONARY
+my %strict_symbols = ();
+my %iupac_symbols = ();
+$strict_symbols{'dna'}     = [split //,'AGCT'];
+$iupac_symbols{'dna'}      = [split //,'AGCTRYSWKMBHDVXN'];
+$strict_symbols{'rna'}     = [split //,'AGCU'];
+$iupac_symbols{'rna'}      = [split //,'AGCTRYSWKMBHDVXN'];
+$strict_symbols{'protein'} = [split //,'ACDEFGHIKLMNPQRSTVWY*'];
+$iupac_symbols{'protein'}  = [split //,'ACDEFGHIKLMNPQRSTVWYBZX*'];
 
 GetOptions('help|h'              => \$help, 
-     'man'                 => \$man,
-     'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-              die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
-                unless $val =~ /dna|rna|protein/i; 
-              $moltype = $val;
-            },
-     'log|l'                       => \$log,
-     'logname|L=s'                 => \$logname,
-     'comment|C=s'                 => \$comment,
-     'norm|n'                      => \$norm,
-     'total|t'                     => \$total,
-     'append|a'                    => \$append,
-     'iupac|i'                     => \$iupac,
-     'strict|s'                    => \$strict,
-     'ignore|c'                    => \$case,
-     'position|p=i'                => \$position,
-
-     )
+	   'man'                 => \$man,
+	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						    unless $val =~ /dna|rna|protein/i; 
+						  $moltype = $val;
+						},
+	   'log|l'                       => \$log,
+	   'logname|L=s'                 => \$logname,
+	   'comment|C=s'                 => \$comment,
+	   'normalize|n'                 => \$normalize,
+	   'table|t'                     => \$table,
+	   'strict|s'                    => \$strict,
+	   'iupac|i'                     => \$iupac,
+	   'join|j=s'                    => \$join,
+	   'alphabet|a=s'                => \$alphabet,
+	   'width|w=i'                   => \$width,
+	   'precision|p=i'               => \$precision
+	  )
   or pod2usage(2);
 		  
-pod2usage(1) if $help;
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires at least one argument (a fasta-file). Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 0));
-pod2usage("$0: Expects zero arguments when reading input from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV != 0);
+my $fromSTDIN = ((-t STDIN) ? false : true);
+pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input from STDIN.\n") if (!($fromSTDIN) && (@ARGV == 0));
+pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
 
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
+my $alpha_keys;
+if ($alphabet) {
+  $alpha_keys = [ split //,$alphabet ];
+}
 
-my %alpha_hash;
-$alpha_hash{'dnastrict'}     = qr/[ACTGactg]/;
-$alpha_hash{'dnaiupac'}      = qr/[ACTGactgMRWSYKVHDBXNmrwsykvhdbxn]/;
-$alpha_hash{'rnastrict'}     = qr/[ACUGacug]/;
-$alpha_hash{'rnaiupac'}      = qr/[ACUGacugMRWSYKVHDBXNmrwsykvhdbxn]/;
-$alpha_hash{'proteinstrict'} = qr/[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy]/;
-$alpha_hash{'proteiniupac'}  = qr/[ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwyBZX\.bzx\*]/; 
+if ($normalize && !$width) {
+  $width = $precision + 3;
+}
+elsif (!$width) {
+  $width = 4;
+}
+
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
-    }
+  if ($moltype) {
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
+  }
+  else {
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
+  }
 }
 
+my $sum = {};
+my $grandtotal;
+my $firstseq = 1;
+my ($warned,$job_alphabet);
 while ($IN or @ARGV) {
   if (@ARGV) {
     my $file = shift (@ARGV);
@@ -106,232 +121,192 @@ while ($IN or @ARGV) {
       $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
     }
   }
-  my $sum= [];
   if ($IN) {   
     while (my $seqobj = $IN->next_seq()) {
-      process ($seqobj,$sum);
-    }
-    $total and do {
-      for my $i (0..($position-1)) {
-      &print_pos($i,$$sum[$i],'',$filter);
+      if ($firstseq) {
+	$job_alphabet = $moltype || $seqobj->alphabet;
+	undef $firstseq;
+	if ($table && ($iupac || $strict || $alphabet)){
+	  my $keys = &keys();
+	  print join "", map {sprintf "%${width}s",$_} @$keys;
+	  print "   total" unless ($normalize);
+	  print "\n";
+	}
       }
-    };
+      my ($freq,$total,$sum) = &process ($seqobj,$sum);
+      $grandtotal += $total;
+      &print ($freq,$total,$seqobj)
+    }
     undef $IN;
   }
-
-  
 }
+$table and do {
+  if ($normalize){
+    my $normalizer;
+    my $keys = &keys($sum);
+    foreach my $key (@$keys) {
+      $normalizer += $$sum{$key};
+    }
+    if ($normalizer > 0) {
+      foreach my $key (@$keys) {
+	$$sum{$key} /= $normalizer;
+      }
+    }
+    &print($sum,undef,undef);
+  }
+  else {
+    &print($sum,$grandtotal,undef);
+  }
+};
+
 
 #-----------------------
 sub process {
 #-----------------------
-  (my $seqobj, my $sum) = @_;
+  my ($seqobj, $sum) = @_;
   
   if ($moltype){
-       $seqobj->alphabet($moltype);
+    $seqobj->alphabet($moltype);
+  }
+  unless ($warned) {
+    $job_alphabet and do {
+      if ($seqobj->alphabet ne $job_alphabet) {
+        warn "$NAME: input sequences of different alphabets.\n";
       }
-
-      unless ($warned) {
-      $job_alphabet and do {
-        if ($seqobj->alphabet ne $job_alphabet) {
-        warn "Sequences appear not to be of the same type.\n";
-        }
-        $warned = 1;
-       };
-      }
-    
-    unless ($job_alphabet) {
-      $job_alphabet = $seqobj->alphabet;
-    }
- 
-    $filter = qr/./; ## MATCH ANY CHARACTER
-    
-    $strict and do {
-      $alphabet = ($seqobj->alphabet . "strict"); 
-      $filter = $alpha_hash{$alphabet};
+      $warned = 1;
     };
-    
-    $iupac and do {
-      $alphabet = ($seqobj->alphabet . "iupac"); 
-      $filter = $alpha_hash{$alphabet};
-    };
-
-  my $primseq;
-  if (!$case) {
-    $primseq = $seqobj->primary_seq;
-  } else {
-    $primseq = FAST::Bio::PrimarySeq->new(uc $seqobj->seq);
-  }
-  ## HERE WE FACTOR THE SEQUENCE INTO CUTS BY POSITION
-  my @bits = split //,$primseq->seq;
-  my @cuts = ();
-  my @primseqs = ();
-  if (@bits % $position > 0) {
-    carp "Sequence length ", ($#bits+1)," is not an even multiple of the chunk-size $position that you requested...\nProceeding anyway...\n";
-  }
-  for (my $i = 0; $i < @bits; $i++) {
-    push @{ $cuts[($i % $position)] }, $bits[$i];
-  }
-  for (my $i = 0; $i < $position; $i++) {
-    $primseqs[$i] = FAST::Bio::PrimarySeq->new(join '',@{ $cuts[$i] });
-  }
+  }  
   
-  my $old_desc;
-  my $new_desc;
-  my $append_count=0; #count so we don't print faspos more than once
-
-  for my $i (0..$#primseqs) {
-    my $primseq = $primseqs[$i]; 
-    my $seqstats = FAST::Bio::Tools::MySeqStats->new($primseq);
-    my $hash_ref = $seqstats->count_monomers();
-    if ($total) {
-      foreach my $mono (keys %$hash_ref) {
-        $$sum[$i]{$mono} += $$hash_ref{$mono};
+  my $seqstats = FAST::Bio::Tools::MySeqStats->new($seqobj);
+  my $freq = $seqstats->count_monomers();
+  my $keys = &keys($freq);
+  my $normalizer = 0;
+  foreach my $key (@$keys) {
+    $$sum{$key} += ( exists $$freq{$key} ? $$freq{$key} : 0);
+    $normalizer += ( exists $$freq{$key} ? $$freq{$key} : 0);
+  }
+  if ($normalize && $normalizer > 0) {
+    foreach my $key (@$keys) {
+      if (exists $$freq{$key} ) {
+	$$freq{$key} /= $normalizer;
       }
     }
-    elsif ($append){  
-     $old_desc = $seqobj->desc();
-     if ($append_count == 0){#first append need faspos label
-     $new_desc .= (join '',"fascomp:",&print_pos($i,$hash_ref,$seqobj->display_id,$filter));
-     }
-     else{ #additional appends no need for faspos label
-      $new_desc .= &print_pos($i,$hash_ref,$seqobj->display_id,$filter);
-     } 
-     $append_count++;   
-    }
-    else {
-      &print_pos($i,$hash_ref,$seqobj->display_id,$filter);
-    }
   }
-  if ($append){
-    $seqobj->desc($old_desc . $new_desc);
-    print $OUT $seqobj;
-  }
+  return ($freq,$normalizer,$sum);
 }
 
 #-----------------------
-sub print_pos {
+sub keys {
 #-----------------------
-  my ($pos,$hashref,$id,$filter) = @_;
-  my ($normalizer,@keys);
+  my $freq = shift;
+  my $keys;
+  if ($alphabet) {
+    $keys = $alpha_keys;
+  }
+  elsif ($strict) {
+    $keys = $strict_symbols{$job_alphabet};
+  }
+  elsif ($iupac) {
+    $keys = $iupac_symbols{$job_alphabet};
+  }
+  else {
+    $keys = [ sort keys %$freq ];
+  }
+  return $keys;
+}
 
-  if ($strict or $iupac) {
-    foreach my $key (keys %$hashref) {
-      if ($key !~ $filter) {
-  warn "Sequence", ($id ? " $id" : '(s)'), " contained excluded character \'$key\'.\n";
-      }
-    }
-    unless ($case) {$filter =~ tr/a-z\\//d;}
-    $filter =~ /\[(.+)\]/; ## REGEXP A REGEXP
-    my $allowed = $1;
-    @keys = split //,$allowed;
-  } else {
-    @keys = sort keys %$hashref;
-  }
-  if (!$append){
-  print '> ';
-  foreach my $key (@keys) {
-    printf ("%8s",$key);
-  }
-  print " TOTAL";
-  if ($position == 1) {print " // $id\n  ";}
-  else {print " // $id-(POS $pos)\n  ";} ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
-  if ($norm) {
-    foreach my $key (@keys) {
-      $normalizer += (exists $$hashref{$key} ? $$hashref{$key} : 0);
-    }
-    foreach my $key (@keys) {
-      printf "%8.3f", ((exists $$hashref{$key} and $normalizer != 0) ? ($$hashref{$key}/$normalizer) : 0);
-    }
-  } else {
-    foreach my $key (@keys) {
-      $normalizer += (exists $$hashref{$key} ? $$hashref{$key} : 0);
-      printf "%8d", (exists $$hashref{$key} ? $$hashref{$key} : 0);
-    }
-      printf "%8d", $normalizer;
-  }
-  print "\n";
-  }
-  else { #append true
-  my $append_desc;
-  #if ($position == 1) {print " // $id\n  ";}
-  #else {print " // $id-(POS $pos)\n  ";} ## THE TRAILING SPACES PRIME FOR THE NEXT LINE
-  
-  if ($norm) {
-    foreach my $key (@keys) {
-      $normalizer += (exists $$hashref{$key} ? $$hashref{$key} : 0);
-    }
-    foreach my $key (@keys) {
-      if ($position != 1){
-      $append_desc .= sprintf ("POS_%d:%s %.3f|",$pos, $key, ((exists $$hashref{$key} and $normalizer != 0) ? ($$hashref{$key}/$normalizer) : 0));
-      }
-      else{
-        $append_desc .= sprintf ("%s %.3f|",$key, ((exists $$hashref{$key} and $normalizer != 0) ? ($$hashref{$key}/$normalizer) : 0));
-      }
-    }
-    return $append_desc;
 
-  } else {
-    foreach my $key (@keys) {
-      if ($position != 1){
-      $append_desc .= sprintf ("POS_%d:%s %.3f|",$pos, $key, (exists $$hashref{$key} ? $$hashref{$key} : 0));
+#-----------------------
+sub print {
+#-----------------------
+  my ($freq,$total,$obj) = @_;
+  my $keys = &keys($freq);
+  my $label;
+  if ($obj) {
+    $label = $obj->id() 
+  }
+  else {
+    $label = "# ALL DATA";
+  }
+
+  if ($table){
+    if ($iupac || $strict || $alphabet) {
+      if ($normalize) {
+	print join "",map {sprintf "%${width}.${precision}f",(exists $$freq{$_} ? $$freq{$_} : 0)} @$keys;
       }
       else {
-      $append_desc .= sprintf ("%s %.3f|",$key, (exists $$hashref{$key} ? $$hashref{$key} : 0));
+	print join "",map {sprintf "%${width}d",  (exists $$freq{$_} ? $$freq{$_} : 0)} @$keys;
+	printf "%8d",$total;
       }
     }
-    return $append_desc;
-}
-
-###################################
-  # if ($norm) { #append and normalize
-   #   foreach $key (@keys) {
-    #  $normalizer += $$hashref{$key} ? $$hashref{$key} : 0;
-     # }
-     # foreach $key (@keys) {
-     # $append_desc .= sprintf ("%s:%.3f|", $key, ($$hashref{$key} && $normalizer) ? ($$hashref{$key}/$normalizer) : 0);
-     # }
-     # return $append_desc;
-   # }
-   # else{ #append abs
-   #   foreach $key (@keys) {
-   #   $append_desc .= sprintf ("%s:%d|",$key, $$hashref{$key} ? $$hashref{$key} : 0);
-   #   }
-   #   return $append_desc
-   # }
-##################################################
-
+    else {
+      if ($normalize) {
+	print join " ",map {sprintf "%s:%-${width}.${precision}f",$_,(exists $$freq{$_} ? $$freq{$_} : 0)} @$keys;
+      }
+      else {
+	print join " ",map {sprintf "%s:%-${width}d",  $_,(exists $$freq{$_} ? $$freq{$_} : 0)} @$keys;
+	printf " total:%-${width}d",$total;
+      }
+    }
+    printf "  %-${width}s\n",$label;
   }
+   else{  
+     my $olddesc = $obj->desc();
+     my $compstring;
+     if ($normalize) {
+       $compstring = join $join,map { (sprintf "comp_%s:%.${precision}f",$_,$$freq{$_}) } @$keys;
+     }
+     else{
+       $compstring = join $join,map { (sprintf "comp_%s:%d",$_,$$freq{$_})   } @$keys;
+     }
+     $obj->desc(join $join,$olddesc,$compstring);
+     print $OUT $obj;
+   }
 }
 __END__
 
 =head1 NAME
 
-name - what it does
+B<fascomp> -- analysis of monomer frequencies 
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<fascomp>   [OPTION]... [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+B<fascomp> takes multifasta format sequence or alignment data as
+input, and counts the absolute or relative frequencies of monomers in
+each sequence individually and for all data on input. By default,
+absolute frequencies are computed and appended to the
+description. Optionally, B<fascomp> will output a frequency table to
+STDOUT as tagged values. With this kind of output, if the character
+alphabet of the job is determined by either setting B<--moltype> or
+from the type of the first sequence on input, and either B<--strict>,
+B<--iupac> or B<--alphabet> is set, header labels will be output.
 
-Options specific to name:
+Options specific to B<fascomp>:
+  B<-n>, B<--normalize>               compute relative frequencies
+  B<-t>, B<--table>                   table-mode, output a table to STDOUT 
+  B<-j>, B<--join>=<string>           use <string> to join tagged values in descriptions
+  B<-s>, B<--strict>                  output moltype-dependent character header for table-mode
+  B<-i>, B<--iupac>                   output character header including ambiguities for table-mode
+  B<-a>, B<--alphabet>=<string>       tally only characters if they are in the set <string>, as in "ACGT-"
+  B<-p>, B<--precision>=<int>         print relative frequencies with <int> digits after the decimal point 
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  B<-h>, B<--help>                     print a brief help message
+  B<--man>             	               print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                      create/append to logfile	
+  B<-L, B<--logname>=<string>          use logfile name <string>
+  B<-C, B<--comment>=<string>          save comment <string> to log
+  B<--format>=<format>                 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fascomp> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -340,6 +315,64 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-s>
+      B<--sequence>
+
+Transliterate sequences (identifiers by default).
+
+=item B<-d>
+      B<--description>
+
+Transliterate descriptions.
+
+=item B<-D>
+      B<--delete>
+
+Delete found but unreplaced characters. 
+
+=item B<-S>
+      B<--squash>
+
+Squash duplicate replaced characters.
+
+=item B<-c>
+      B<--complement>
+
+Character complement SEARCHLIST.
+
+=item B<-n>
+      B<--no-replace>
+
+Delete or squash characters in SEARCHLIST. 
+
+=item B<--strict>
+
+Transliterate illegal sequence characters to "N" (DNA or RNA) or
+"X" (protein). For DNA, equivalent to:
+
+C<fastr -sc ACTGactg\- N>
+
+=item B<--iupac>
+
+Transliterate illegal sequence characters (including IUPAC
+ambiguities) to "N" (DNA or RNA) or "X" (protein). For DNA, equivalent
+to:
+
+C<fastr -sc ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\- N>
+
+=item B<--degap>
+
+Delete gap characters "-" from each sequence. Equivalent to
+to:
+
+C<fastr -snD -- ->
+
+=item B<-a>
+      B<--ambig char>
+
+Use <char> to replace illegal characters instead of "N" or "X" with
+B<--strict> or B<--iupac>
 
 =item B<-h>,
       B<--help>
@@ -389,11 +422,11 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Change all bars "|" to hashes ("#") in IDs: 
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+fastr '|' '#' t/data/P450.fas
 
 =back
 

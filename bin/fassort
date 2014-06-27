@@ -105,11 +105,11 @@ if ($split_on_regex) {
 }
 
 my $index;
-if ($sort_field and $sort_field > 0) {
-  $index = $sort_field - 1;
+if ($field and $field > 0) {
+  $index = $field - 1;
 }
-elsif ($sort_field and $sort_field < 0) { # $match_field < 0
-  $index = $sort_field;
+elsif ($field and $field < 0) { # $match_field < 0
+  $index = $field;
 }
 
 

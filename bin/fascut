@@ -57,13 +57,13 @@ GetOptions('help|h'         		 => \$help,
 #	   'spawn|w'                     => \$spawn,
 	  ) 
   or exit(1);
-		  
+
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects one range-string argument and at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN && (@ARGV < 2));
-pod2usage("$NAME: expects one range-string argument when input is on STDIN. Try \"perldoc $NAME\"") if ($fromSTDIN) && @ARGV != 1);
+pod2usage("$NAME: expects one range-string argument and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 2));
+pod2usage("$NAME: expects one range-string argument when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 1);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
@@ -79,7 +79,7 @@ else {
 my @ranges = ();
 foreach my $range (@RANGES) {
   my ($b,$e,$by);
-  if ($range =~ /^([\d-]+)?(\.\.|:|-)([\d-]+)?(:([\d-]+))?$/) {
+  if ($range =~ /^(-?\d+)?(\.\.|:|-)(-?\d+)?(:(-?\d+))?$/) {
     if ($1) {
       $b = $1 + 0;
     }
@@ -113,7 +113,7 @@ foreach my $range (@RANGES) {
 my ($selector,$type);
 if ($identifier) {
   $selector = "id";
-  $type = "identifier"
+  $type = "identifier";
 }
 elsif ($description || $field) {
   $selector = "desc";
@@ -224,10 +224,10 @@ record: while (my $seq = $IN->next_seq()) {
       if ($field && $join eq '\t'){
 	$join = "\t";
       }
-      else (unless $field) {
+      elsif (!$field) {
 	$join = "";
       }
-      $newdata = join $join,@newdata);
+      $newdata = join $join,@newdata;
       if ($moltype) {
 	$newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
       }
