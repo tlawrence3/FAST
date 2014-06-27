@@ -35,6 +35,7 @@ my $delete               = undef; # -D
 my $squash               = undef; # -S
 my $no_replace           = undef; # -n
 my $complement           = undef; # -c
+my $degap                = undef; # --degap
 my $strict               = undef; # --strict implies "-sc $strict_symbols{$moltype} ($ambig_char || $ambig{$moltype})"
 my $iupac                = undef; # --iupac  implies "-sc $iupac_symbols{$moltype} ($ambig_char || $ambig{$moltype})"
 my $ambig_char           = undef; # -a
@@ -71,6 +72,7 @@ GetOptions('help|h'         		 => \$help,
 	   'complement|c'                => \$complement,
 	   'strict'                      => \$strict,
 	   'iupac'                       => \$iupac,
+	   'degap'                       => \$degap,
 	   'sequence|s'                  => \$sequence,
 	   'description|d'               => \$description,
 	   'ambig|a'                     => sub{  my (undef,$val) = @_; 
@@ -89,13 +91,13 @@ pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: with --strict or --iupac, no other options except --ambig are allowed.\n")      if ( ($iupac_or_strict) &&  ($delete_or_squash || $complement || $description || $sequence || $no_replace));  
-pod2usage("$NAME: expects exactly two arguments unless --no-replace/-n if input on STDIN.\n")        if (!(-t STDIN) && !($iupac_or_strict) && !($no_replace) && @ARGV != 2);
-pod2usage("$NAME: expects at least three arguments unless --no-replace/-n if input from file\n")     if ( (-t STDIN) && !($iupac_or_strict) && !($no_replace) && @ARGV  < 3);
-pod2usage("$NAME: expects exactly one arguments with --no-replace/-n if input on STDIN.\n")          if (!(-t STDIN) && !($iupac_or_strict) &&  ($no_replace) && @ARGV != 1);
-pod2usage("$NAME: expects at least two arguments with --no-replace/-n if input from file\n")         if ( (-t STDIN) && !($iupac_or_strict) &&  ($no_replace) && @ARGV  < 2);
-pod2usage("$NAME: with --strict or --iupac expects zero arguments if input on STDIN.\n")          if (!(-t STDIN) &&  ($iupac_or_strict) && @ARGV  > 0);
-pod2usage("$NAME: with --strict or --iupac expects at least one argument if input from file.\n")  if ( (-t STDIN) &&  ($iupac_or_strict) && @ARGV == 0);
+pod2usage("$NAME: with --strict or --iupac, no other options except --ambig are allowed.\n")      if ( ($iupac_or_strict) &&  ($delete_or_squash || $complement || $description || $sequence || $no_replace || $degap));  
+pod2usage("$NAME: expects exactly two arguments unless --no-replace/-n if input on STDIN.\n")        if (!(-t STDIN) && !($iupac_or_strict || $degap) && !($no_replace) && @ARGV != 2);
+pod2usage("$NAME: expects at least three arguments unless --no-replace/-n if input from file\n")     if ( (-t STDIN) && !($iupac_or_strict || $degap) && !($no_replace) && @ARGV  < 3);
+pod2usage("$NAME: expects exactly one arguments with --no-replace/-n if input on STDIN.\n")          if (!(-t STDIN) && !($iupac_or_strict || $degap) &&  ($no_replace) && @ARGV != 1);
+pod2usage("$NAME: expects at least two arguments with --no-replace/-n if input from file\n")         if ( (-t STDIN) && !($iupac_or_strict || $degap) &&  ($no_replace) && @ARGV  < 2);
+pod2usage("$NAME: with --strict, --iupac or --degap expects zero arguments if input on STDIN.\n")          if (!(-t STDIN) &&  ($iupac_or_strict || $degap) && @ARGV  > 0);
+pod2usage("$NAME: with --strict, --iupac or --degap expects at least one argument if input from file.\n")  if ( (-t STDIN) &&  ($iupac_or_strict || $degap) && @ARGV == 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
@@ -104,6 +106,10 @@ if ($iupac_or_strict) {
   $selector = "seq";
   $type = "sequence";
   $complement = 1;
+}
+elsif ($degap){
+  $selector = "seq";
+  $type = "sequence";
 }
 elsif ($sequence) {
   $selector = "seq";
@@ -158,7 +164,7 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      my $data = $seq->$selector();
+      my $_ = $seq->$selector();
       $moltype ||= $seq->alphabet;
       if ($iupac) {
 	$search = $iupac_symbols{$moltype};
@@ -168,17 +174,22 @@ while ($IN or @ARGV) {
 	$search = $strict_symbols{$moltype};
 	$replace = $ambig_char || $ambig{$moltype};
       }
+      if ($degap) {
+	$delete = 1;
+	$search = '-';
+	$replace = "";
+      }
       my $count;
       my @options = ();
       push @options, 'c' if ($complement);
       push @options, 'd' if ($delete);
       push @options, 's' if ($squash);
       my $options = join '',@options;
-      eval "\$count = \$data =~ tr/$search/$replace/$options";
+      eval sprintf "tr/%s/%s/%s", $search, $replace, $options; 
       die "$NAME: $@\n" if $@;
-      $seq->$selector($data);
+      $seq->$selector($_);
       # if ($append_info) {
-      # 	$seq->desc(join ' ',$seq->desc(),"B<fastr>: $search|$replace|$options:$count");
+      # 	$seq->desc(join ' ',$seq->desc(),"$NAME: $search|$replace|$options:$count");
       # }
       print $OUT $seq;
     }
@@ -217,14 +228,15 @@ characters to 'N' or 'X' or a user-defined character.
 
 Options specific to B<fastr>:
   B<-s>, B<--sequences>              transliterate sequences
-  B<-d>, --description             transliterate descriptions  
+  B<-d>, B<--description>             transliterate descriptions  
   B<-D>, --delete                  delete found characters not replaced
   B<-S>, --squash                  squash duplicate replaced characters 
   B<-n>, --no-replace              squash or delete all characters in searchlist 
   B<-c>, --complement              complement searchlist as a character set
   B<--strict>                      map ambiguous/illegal seq characters besides '-' to 'X'/'N'
   B<--iupac>                       map illegal sequence characters besides '-' to 'X'/'N'
-  -a, --ambig=<char>               use <char> to replace illegal sequence characters   
+  B<-a>, B<--ambig=<char>>         use <char> to replace illegal sequence characters   
+  B<--degap>                       Remove all gap characters ('-') from each sequence
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -296,7 +308,7 @@ Delete or squash characters in SEARCHLIST.
 Transliterate illegal sequence characters to "N" (DNA or RNA) or
 "X" (protein). For DNA, equivalent to:
 
-B<fastr> -sc ACTGactg\- N>
+C<fastr -sc ACTGactg\- N>
 
 =item B<--iupac>
 
@@ -304,7 +316,14 @@ Transliterate illegal sequence characters (including IUPAC
 ambiguities) to "N" (DNA or RNA) or "X" (protein). For DNA, equivalent
 to:
 
-B<fastr> -sc ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\- N>
+C<fastr -sc ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\- N>
+
+=item B<--degap>
+
+Delete gap characters "-" from each sequence. Equivalent to
+to:
+
+C<fastr -snD -- ->
 
 =item B<-a>
       B<--ambig char>
@@ -360,14 +379,47 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Change all bars "|" to hashes ("#") in IDs: 
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+fastr '|' '#' t/data/P450.fas
 
 =back
 
+Change all square brackets to parens in description:
+
+=over 8
+
+fastr -d '[]' '()' t/data/P450.fas
+
+=back
+
+Lower-case all sequence data:
+
+=over 8
+
+fastr -s 'A-Z' 'a-z' t/data/P450.fas
+
+=back
+
+Delete all bars "|" in Genbank IDs: 
+
+=over 8
+
+B<fastr> -D '|' '' t/data/P450.fas
+
+B<fastr> -nD '|' t/data/P450.fas
+
+=back
+
+Delete all non-strict characters from a DNA sequence: 
+
+=over 8
+
+B<fastr> -nscD 'ACGT' t/data/P450.fas
+
+=back
 
 =head1 SEE ALSO
 

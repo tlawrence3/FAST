@@ -5,6 +5,7 @@ use Pod::Usage;
 use FAST;
 use strict;
 use FAST::Bio::SeqIO;
+use Safe;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
@@ -70,6 +71,7 @@ else {
   $re = qr/$re_string/;
 }
 
+my $decoy = "Stylo";
 
 my ($selector,$type);
 if ($sequence) {
@@ -113,16 +115,13 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      my $data = $seq->$selector();
-      if ($data =~ m/$re/) {
-	if ($global) {
-	  eval "\$data =~ s/$re/$string/g;";
-	}
-	else {
-	  eval "\$data =~ s/$re/$string/;";
-	}
+      $_ = $seq->$selector();
+      if (/$re/) {
+	my $options = '';
+        $options = "g" if ($global);
+	eval sprintf "s/%s/%s/%s", $re, $string, $options; 
 	die "$NAME: $@\n" if $@;
-	$seq->$selector($data);
+	$seq->$selector($_);
       }
       print $OUT $seq;
     }
