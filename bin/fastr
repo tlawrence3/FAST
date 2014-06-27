@@ -227,26 +227,25 @@ facilitate enforcement of sequence alphabets, and remapping illegal
 characters to 'N' or 'X' or a user-defined character.
 
 Options specific to B<fastr>:
-  B<-s>, B<--sequences>              transliterate sequences
+  B<-s>, B<--sequences>               transliterate sequences
   B<-d>, B<--description>             transliterate descriptions  
-  B<-D>, --delete                  delete found characters not replaced
-  B<-S>, --squash                  squash duplicate replaced characters 
-  B<-n>, --no-replace              squash or delete all characters in searchlist 
-  B<-c>, --complement              complement searchlist as a character set
-  B<--strict>                      map ambiguous/illegal seq characters besides '-' to 'X'/'N'
-  B<--iupac>                       map illegal sequence characters besides '-' to 'X'/'N'
-  B<-a>, B<--ambig=<char>>         use <char> to replace illegal sequence characters   
-  B<--degap>                       Remove all gap characters ('-') from each sequence
+  B<-D>, B<--delete>                  delete found characters not replaced
+  B<-S>, B<--squash>                  squash duplicate replaced characters 
+  B<-n>, B<--no-replace>              squash or delete all characters in searchlist 
+  B<-c>, B<--complement>              complement searchlist as a character set
+  B<--strict>                         map ambiguous/illegal seq characters besides '-' to 'X'/'N'
+  B<--iupac>                          map illegal sequence characters besides '-' to 'X'/'N'
+  B<-a>, B<--ambig>=<char>            use <char> to replace illegal sequence characters   
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  B<-h>, B<--help>                     print a brief help message
+  B<--man>             	               print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                      create/append to logfile	
+  B<-L, B<--logname>=<string>          use logfile name <string>
+  B<-C, B<--comment>=<string>          save comment <string> to log
+  B<--format>=<format>                 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
 
 =head1 SEARCHLIST AND REPLACELIST
 

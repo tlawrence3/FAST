@@ -4,11 +4,12 @@ use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
+use File::Basename;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "annotate sequence lengths to descriptions";
+$DESC    = "output the first n seqences";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -19,7 +20,8 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_join_string = $FAST::DEF_JOIN_STRING;
+my $def_join_string = "";
+my $def_print_num = 10;
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -29,8 +31,9 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $table                = undef;        # -t
-my $join                 = $def_join_string; # -j
+my $n			 = $def_print_num; # -n
+my $verbose              = undef; # -v
+my $silent               = undef; # -q
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -43,21 +46,26 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'table|t'                     => \$table,
-	   'join|j=s'                    => \$join,
+	   'n=i'                         => sub{  my (undef,$val) = @_; 
+						  die "$NAME: -n option expects a positive integer argument\n" 
+						    unless $val > 0;
+						  $n = $val;
+					       },
+	   'v|verbose'                   => \$verbose,
+	   'q|quiet|silent'              => \$silent,
 	  ) 
   or exit(1);
-		  
-$format = lc ($format);
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
+
 my $fromSTDIN = ((-t STDIN) ? false : true);
-pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input is from STDIN.\n") if ((-t STDIN) && (@ARGV == 0));
-pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $NAME -h for help.\n") if (!(-t STDIN) && (@ARGV != 0));
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN) && !(@ARGV));
 
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+
+my $append_file_name = (!$silent and ($verbose or (!($fromSTDIN) and @ARGV > 1)));
 
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
 my $IN;
@@ -70,19 +78,11 @@ unless (@ARGV) {
     }
 }
 
-if ($join eq '\t'){
-  $join = "\t";
-} 
-
-my $numseqs;
-my $numchars;
-my $file;
-my $numseqsfile;
-my $numcharsfile;
+my $file = undef;
+my $seq_count = 0;
 while ($IN or @ARGV) {
   if (@ARGV) {
     $file = shift (@ARGV);
-    $numseqsfile = $numcharsfile = 0;
     unless (-e $file) {
       warn "$NAME: Could not find file $file. Skipping.\n";
       next;
@@ -94,24 +94,18 @@ while ($IN or @ARGV) {
       $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
-  else {
-    undef $file;
-  }
+  
   if ($IN) { 
-    while (my $seq = $IN->next_seq()) {
-      my $length = $seq->length();
-      if ($table) {
-	my $id = $seq->id();
-	print join $join,$id,$length;
-	print "\n";
-      }
-      else {
-	my $olddesc = $seq->desc();
-	$seq->desc(join $join,$olddesc,"length:$length");     
+    while ($seq_count < $n and my $seq = $IN->next_seq()) {
+	if ($append_file_name) {
+	  $seq->desc(join $seq->desc(), (fileparse($file))[0]);
+	}
+
 	print $OUT $seq;
-      }
+      $seq_count += 1;
     }
     undef $IN;
+    $seq_count = 0;
   }
 }
 
@@ -119,44 +113,64 @@ __END__
 
 =head1 NAME
 
-B<faslen> -- annotate sequence lengths to descriptions
+B<fashead> - print the first n sequences
 
 =head1 SYNOPSIS
 
-B<faslen> [MULTIFASTA-FILE...]
+B<fashead> [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<faslen> takes sequence or alignment data on input, computes sequence
-lengths, and annotates sequence record descriptions with their lengths
-in the format "length:<value>."  All sequence characters get counted,
-including gap characters. Identifiers and lengths may optionally be
-printed in a table to STDOUT.
+B<fashead> takes sequence or alignment data as input, and outputs
+the first n sequence records for each inputed file. B<fashead> by
+default prints the first 10 sequence records.
 
-Options specific to B<faslen>:
-  B<-t>, B<--table>                   Print lengths with ids in a table
-  B<-j>, B<--join>=<string>           Use <string> to join data 
+Options specific to B<fashead>:
+  -n=<integer>                      the number of sequences to print
+  -v, --verbose                     append file name to sequence descriptions
+  -q, --quiet, --silent             do not append file name to sequence
+                                     descriptions
 
 Options general to FAST:
-  B<-h>, B<--help>                  	 print a brief help message
-  B<--man>             	                 print full documentation
-  B<--version>                           print version
-  B<-l>, B<--log>                        create/append to logfile	
-  B<-L>, B<--logname>=<string>           use logfile name <string>
-  B<-C>, B<--comment>=<string>           save comment <string> to log
-  B<--format>=<format>                   use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
-B<faslen> is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fashead> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
-STDIN. Output occurs to STDOUT.  
+STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
+reformat other formats to and from multifasta.
 
 =head1 OPTIONS
 
 =over 8
+
+=item B<-n [integer]>
+
+The number of sequences to print. Must be a positive integer. Defaults to 10
+if the parameter is not specified.
+
+=item B<-v>,
+      B<--verbose>
+
+Always append file names to sequence descriptions.
+Defaults to on if multiple files are passed.
+
+=item B<-q>,
+      B<--quiet>,
+      B<--silent>
+
+Never append file names to sequence descriptions.
+Defaults to on if only one file is passed or if data is on STDIN. 
+Takes priority over verbose.
 
 =item B<-h>,
       B<--help>
@@ -190,51 +204,45 @@ Include comment [string] in logfile. No comment is saved by default.
 
 =item B<--format=[format]> 		  
 
-Use alternative format for input. See man page for "B<faslen>" for
+Use alternative format for input. See man page for "fasconvert" for
 allowed formats. This is for convenience; the FAST tools are designed
 to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
 
-=item B<-m [dna|rna|protein]>,
-      B<--moltype=[dna|rna|protein]> 		  
-
-Specify the type of sequence on input (should not be needed in most
-cases, but sometimes Bioperl cannot guess and complains when
-processing data).
 
 =back
 
 =head1 EXAMPLES
 
-Print length of all sequences:
+Print the first 10 sequences:
 
 =over 8
 
-B<faslen> sequences.fas > measured.fas
+cat data.fas | B<fashead> > data.dna.fas
 
 =back
 
-Print tab-delimited table of lengths:
+Print the first 5 sequences:
 
 =over 8
 
-B<faslen> -tj "\t" sequences.fas
+cat data.fas | B<fashead> -n 5 > data.dna.fas
 
 =back
 
-Filtering sequences to have length >= 300:
+Print the first 5 sequences with file name added to the description:
 
 =over 8
 
-B<faslen> sequences.fas | fasfilter -t length 300.. 
-
+cat data.fas | B<fashead> -v -n 5 > data.dna.fas
+    
 =back
 
-Sorting sequences by length:
-
+Print the first 5 sequences without file name added to the description:
+    
 =over 8
 
-faswc sequences.fas | fassort -t length
+B<fashead> -q -n 5 data.fas data2.fas > data.dna.fas
 
 =back
 
@@ -254,7 +262,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
 Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
 
 =cut

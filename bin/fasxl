@@ -253,31 +253,31 @@ sequences as output. Gapped sequences on input are allowed with the
 interpretation.
 
 Options specific to B<fasxl>:
-  -a, --annotate          output translations as tagged values in descriptions 
-  -j, --join=<string>     use <string> to join data 
-  -g, --gapped            gapped translations in alignment with input
-  -k, --keep              keep input sequences in output (forces -g).
-  -o, --codon2aa          turn codon alignment into a protein alignment 
-                           (best used for codon-based alignments, where gaps are mod 3 
-                            length and seqs are to be translated in frame 0)
-  -c, --cds               treat as CDS (for bacterial code, for example, treat init codons as M)
-                           (deprecated) 
-  -f, --frame=<int>       frame for translation [0 (default),1, or 2].
-  -t, --table=<int>       NCBI genetic code tableID for translating sequences [1]
-  -3                      translate each sequence in all three forward frames
-  -6                      translate each sequence in all six frames
-  -s, --stop=<char>       string representing stop codons ["*"]
-  -u, --unknown=<char>    string representing unknown amino acids ["X"]
+  B<-a>, B<--annotate>          output translations as tagged values in descriptions 
+  B<-j>, B<--join>=<string>     use <string> to join data 
+  B<-g>, B<--gapped>            gapped translations in alignment with input
+  B<-k>, B<--keep>              keep input sequences in output (forces -g).
+  B<-o>, B<--codon2aa>          turn codon alignment into a protein alignment 
+                           	(best used for codon-based alignments, where gaps are mod 3 
+                            	length and seqs are to be translated in frame 0)
+  B<-c<, B<--cds>               treat as CDS (for bacterial code, for example, treat init codons as M)
+                           	(deprecated) 
+  B<-f>, B<--frame>=<int>       frame for translation [0 (default),1, or 2].
+  B<-t>, B<--table>=<int>       NCBI genetic code tableID for translating sequences [1]
+  B<-3>                      	translate each sequence in all three forward frames
+  B<-6>                      	translate each sequence in all six frames
+  B<-s>, B<--stop>=<char>       string representing stop codons ["*"]
+  B<-u>, B<--unknown>=<char>    string representing unknown amino acids ["X"]
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  -m, --moltype=<[dna|rna|protein]> specify input sequence type
+  B<-h>, B<--help>                  	     print a brief help message
+  B<--man>             	                     print full documentation
+  B<--version>                               print version
+  B<-l>, B<--log>                            create/append to logfile	
+  B<-L>, B<--logname>=<string>               use logfile name <string>
+  B<-C>, B<--comment>=<string>               save comment <string> to log
+  B<--format>=<format>                       use alternative format for input  
+  B<-m>, -B<-moltype>=<[dna|rna|protein]>    specify input sequence type
 
 =head1 INPUT AND OUTPUT
 

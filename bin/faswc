@@ -140,18 +140,18 @@ tallies are calculated by file as well as in total. If input is over
 STDIN, only totals are output.
 
 Options specific to B<faswc>:
-  -s, --sequences                   tally sequences only
-  -c, --characters                  tally characters only
+  -B<s>, B<--sequences>                   tally sequences only
+  -B<c>, B<--characters>                  tally characters only
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  -B<h>, B<--help>                  	 print a brief help message
+  B<--man>             	                 print full documentation
+  B<--version>                           print version
+  B<-l>, B<--log>                        create/append to logfile	
+  -B<L>, B<--logname>=<string>           use logfile name <string>
+  -B<C>, B<--comment>=<string>           save comment <string> to log
+  B<--format>=<format>                   use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
 
 =head1 INPUT AND OUTPUT
 

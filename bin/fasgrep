@@ -215,26 +215,26 @@ expression. Regex arguments may require quoting to protect special
 characters from interpretation by the shell.
 
 Options specific to B<fasgrep>:
-  -s, --sequence                    match on sequence 
-  -d, --description                 match on description 
-  -f, --field=<int>                 match field <int> in description
-  -t, --tag=<string>                match on value of a "tag[=:]value" pair in the description
-  -S, --split-on-regex=<regex>      use regex to split description
-  -v, --negate                      output sequences that do not match
-  -i, --insensitive                 match case-insensitively
-  -e, --iupac-expand-nuc            expand ambiguities for DNA/RNA
-  -r, --revcom-iupac-expand-nuc     reverse complement and expand 
-  -p, --iupac-expand-prot           expand ambiguities for protein
+  -B<s>, B<--sequence>                    match on sequence 
+  -B<d>, B<--description>                 match on description 
+  -B<f>, B<--field=<int>>                 match field <int> in description
+  -B<t>, B<--tag>=<string>                match on value of a "tag[=:]value" pair in the description
+  -B<S>, B<--split-on-regex>=<regex>      use regex to split description
+  -B<v>, B<--negate>                      output sequences that do not match
+  -B<i>, B<--insensitive>                 match case-insensitively
+  -B<e>, B<--iupac-expand-nuc>            expand ambiguities for DNA/RNA
+  -B<r>, B<--revcom-iupac-expand-nuc>     reverse complement and expand 
+  -B<p>, B<--iupac-expand-prot>           expand ambiguities for protein
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  -B<h>, B<--help>                  	 print a brief help message
+  B<--man>             	                 print full documentation
+  B<--version>                           print version
+  -B<l>, B<--log>                        create/append to logfile	
+  -B<L>, B<--logname>=<string>           use logfile name <string>
+  -B<C>, B<--comment>=<string>           save comment <string> to log
+  B<--format>=<format>                   use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
