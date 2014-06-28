@@ -30,9 +30,9 @@ my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $negate               = undef;        # -v
 my $strict_negate        = undef;        # -s
-my $match_id             = undef;        # -I
-my $split                = undef;        # -S
-my $regex_split          = undef;        # -F
+my $identifier           = undef;        # -i
+my $field                = undef;        # -f
+my $split_on_regex       = undef;        # -S
 my $noname               = undef;        # -n
 
 GetOptions('help|h'         		 => \$help, 
@@ -46,13 +46,17 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'negate|v'                    => \$negate,
-     'strict-negate|s'             => \$strict_negate,
-     'match-id|I'                  => \$match_id,
-     'split|S=i'                   => \$split,
-     'regex-split|F=s'             => \$regex_split,
-     'no-name-mode|n'              => \$noname,
-
+	   'negate|v'                    => \$negate,
+	   'strict-negate|s'             => \$strict_negate,
+	   'identifier|I'                => \$identifier,
+	   'field|f=i'             => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --field or -f option expects non-zero integer argument\n" 
+						    unless $val != 0; 
+						  $field = $val;
+						},
+	   'split-on-regex|S=s'          => \$split_on_regex,
+	   'no-names|n'                  => \$noname,
+	   
 	  ) 
   or pod2usage(2);
 		  
@@ -132,6 +136,13 @@ while (@queue){
   push @queue, @{ $children{$first} } if (exists  $children{$first});
 }
 
+my $index;
+if (defined $field and $field > 0) {
+  $index = $field - 1;
+}
+else { # $field < 0
+  $index = $field;
+}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
@@ -161,11 +172,15 @@ while ($IN or @ARGV) {
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
       my $data = $seq->desc();
-      $data = $seq->id() if ($match_id);
-      if (defined $split) {
-        my @datae = undef;
-        if($regex_split){@datae = split(qr/$regex_split/,$data);}else{@datae = split $data;} #changed to this with more unique variable names, and added $regex_split option herei nstead of above.  
-	  $data = $datae[$split];
+      $data = $seq->id() if ($identifier);
+      if ($field) {
+        my @datae = ();
+        if($split_on_regex){
+	  @datae = split(qr/$split_on_regex/,$data);}
+	else{
+	  @datae = split $data;
+	} #changed to this with more unique variable names, and added $regex_split option herei nstead of above.  	  
+	$data = $datae[$field];
       }
       next unless $data;
       if ($nonamemode) {
@@ -186,23 +201,29 @@ __END__
 
 =head1 NAME
 
-fastax - Select sequences based on exact matching of part of a description to NCBI taxonomy IDs or names
+B<fastax> -- select sequence records by NCBI taxonomic names or IDs
 
 =head1 SYNOPSIS
 
-fastax [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file [NCBI-taxon-name|NCBI-taxon-ID]
+B<fastax> [OPTION]... [NODES-FILE] [NAMES-FILE] [TAXON] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-fastax needs more documentation
+B<fastax> takes sequence or alignment data on input, and if directed to 
+valid NCBI Taxonomic ID labels in the sequence records, can output
+
+sequence records accordin . By default, the
+regex is tested for matching against sequence desc. B<fasgrep>
+takes one argument, a perl regular expression. Regex arguments may
+require quoting to protect special characters from interpretation by
+the shell.
 
 Options specific to fastax:
   -v, --negate               return all sequences that are not from the taxon
   -s, --strict-negate        return all sequences that are not from the taxon, but only
                                if they are from a recognized taxon
-  -I, --match-id             taxa are searched over sequence identifiers (default is over descriptions)
-  -S, --split=<int>          split-mode, sequence descriptions or identifers are split into fields
-                               and field <int> (0-based) is searched for taxonomic identifiers
+  -i, --identifier             taxa are searched over sequence identifiers (default is over descriptions)
+  -f, --field=<int>          split descriptions or identifers into fields  and field <int> (1-based) 
   -F, --regex-split=<string> in split-mode (-S) split on perl-regex <regex> instead of default separator,
                                which is a tab character \t. Do "man perlre" and "man perlfunc" for split.
   -n, --no-name-mode         no-name mode (only use NCBI taxonomic IDS, which are integer strings)
@@ -240,16 +261,16 @@ return all sequences that are not from the taxon
 return all sequences that are not from the taxon, but only
 if they are from a recognized taxon
 
-=item B<-I>,
-      B<--match-id>
+=item B<-i>,
+      B<--identifier>
 
 taxa are searched over sequence identifiers (default is over descriptions)
 
-=item B<-S [int]>,
-      B<--split=[int]>
+=item B<-f [int]>,
+      B<--field=[int]>
 
-split-mode, sequence descriptions or identifers are split into fields
-and field <int> (0-based) is searched for taxonomic identifiers
+sequence descriptions or identifers are split into fields
+and field <int> (1-based) is searched for taxonomic identifiers
 
 =item B<-F [string]>,
       B<--regex-split=[string]>
