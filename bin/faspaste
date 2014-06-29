@@ -1,0 +1,306 @@
+#!/usr/bin/perl -w
+use POSIX;
+use Getopt::Long qw(:config bundling require_order auto_version);
+use Pod::Usage;
+use FAST;
+use FAST::Bio::SeqIO;
+use File::Basename;
+use strict;
+
+use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
+$VERSION = $FAST::VERSION; 
+$DESC    = "merge sequence of files";
+$NAME    = $0;
+$NAME    =~ s/^.*\///;
+$COMMAND = join " ",$NAME,@ARGV;
+$DATE = POSIX::strftime("%c",localtime());
+
+use constant { true => 1, false => 0 };
+
+## DEFAULT OPTION VALUES
+my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
+my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_join_string = "";
+
+## OPTION VARIABLES
+my $man                  = undef;  # --man
+my $help                 = undef;  # -h
+my $moltype              = undef;  # -m, in case bioperl can't tell
+my $format               = $def_format;  # --format
+my $log                  = undef;        # -l
+my $logname              = $def_logname; # -L
+my $comment              = undef;        # -C
+my $delimiters           = $def_join_string; # -n
+my $serial               = undef; # -s
+my $append_desc          = undef;
+
+GetOptions('help|h'         		 => \$help, 
+	   'man'            		 => \$man,
+	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						    unless $val =~ /dna|rna|protein/i; 
+						  $moltype = $val;
+						},
+	   'format=s'                    => \$format,
+	   'log|l'                       => \$log,
+	   'logname|L=s'                 => \$logname,
+	   'comment|C=s'                 => \$comment,
+	   'd|delimiters=s'              => \$delimiters,
+	   's|serial'                    => \$serial,
+	   'j|description'               => \$append_desc,
+	  ) 
+  or exit(1);
+
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+my $fromSTDIN = ((-t STDIN) ? false : true);
+
+pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!(@ARGV));
+
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+
+my @delims = split //, $delimiters;
+
+my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
+
+my $maxdelim = @delims;
+
+my @seqs = ();
+my $outputseq = undef;
+
+while (@ARGV) {
+  my $file = shift (@ARGV);
+
+  if ($file eq '-') {
+    unless ($fromSTDIN) {
+      warn "$NAME: Could not find any input on STDIN. Skipping.\n";
+    } elsif ($moltype) {
+      push @seqs, FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
+    } else {
+      push @seqs, FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
+    }       
+  } elsif (!(-e $file)) {
+    warn "$NAME: Could not find file $file. Skipping.\n";
+  }
+  elsif ($moltype) {
+    push @seqs, FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
+  }
+  else {
+    push @seqs, FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
+  }
+}
+
+do {
+  undef $outputseq;
+  my $delimpos = 0;
+  my $delim = undef;
+
+  foreach my $seqio (@seqs) {
+    my $seq = undef;
+    unless ($seqio) {
+      next;
+    }
+    
+    $seq = $seqio->next_seq();
+
+    do {
+      unless ($seq) {
+        next;
+      }
+
+      unless($outputseq) {
+         $outputseq = $seq;
+      } else {
+        $delim = $delims[$delimpos];
+        $delimpos += 1;	      
+      
+        if ($delimpos >= $maxdelim) {
+          $delimpos = 0;
+        }
+
+	if ($append_desc) {
+	    print $seq->desc(), "\n";
+          $outputseq->desc(join " ", $outputseq->desc(), $seq->desc());
+	}
+
+        $outputseq->seq(join $delim ? $delim : '', $outputseq->seq(), $seq->seq());
+      }
+    } while ($serial and $seq = $seqio->next_seq());
+
+    if ($serial) {
+      last;
+    }
+  }
+
+  if ($outputseq) {
+    print $OUT $outputseq;
+  }
+
+} while ($outputseq);
+
+__END__
+
+=head1 NAME
+
+B<faspaste> - merge sequences in files
+
+=head1 SYNOPSIS
+
+B<faspaste> [OPTION]... [MULTIFASTA-FILE]...
+
+=head1 DESCRIPTION
+
+B<faspaste> takes sequence or alignment data as input, and joins the sequences. B<faspaste> by
+default joins sequences by file.
+
+Options specific to B<faspaste>:
+  -d, --delimiter=<string>          a list of dilimiters to use when joining
+                                     the sequences
+  -j, --description                 append sequence descriptions when joining
+  -s, --serial                      paste all sequences in a file together,
+                                     instead of file by file.
+
+Options general to FAST:
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>      specify input sequence type
+
+=head1 INPUT AND OUTPUT
+
+B<faspaste> is part of FAST, the FAST Analysis of Sequences Toolbox, based
+on Bioperl. Most core FAST utilities expect input and return output in
+multifasta format. Input can occur in one or more files and or on
+STDIN. A file passed through STDIN must have a '-' arguement to be used.
+Output occurs to STDOUT. The FAST utility B<fasconvert> can reformat 
+other formats to and from multifasta.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-d [string]>,
+      B<--delimiter=[string]>
+
+A list of delimiters to used when joining the sequences, by default the 
+delimiter is an empty string.
+
+=item B<-s>,
+      B<--serial>
+
+Append sequences together by file, so that each file produces one sequence.
+
+=item B<-j>,
+      B<--description>,
+
+Append the description line as well as the sequence. By default this is off,
+and the resulting description will be from the first sequence found.
+
+=item B<-h>,
+      B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+=item B<--version>
+
+Print version information and exit.
+
+=item B<-l>,
+      B<--log>
+
+Creates, or appends to, a generic FAST logfile in the current working
+directory. The logfile records date/time of execution, full command
+with options and arguments, and an optional comment.
+
+=item B<-L [string]>,
+      B<--logname=[string]>
+
+Use [string] as the name of the logfile. Default is "FAST.log.txt".
+
+=item B<-C [string]>,
+      B<--comment=[string]>
+
+Include comment [string] in logfile. No comment is saved by default.
+
+=item B<--format=[format]> 		  
+
+Use alternative format for input. See man page for "fasconvert" for
+allowed formats. This is for convenience; the FAST tools are designed
+to exchange data in Fasta format, and "fasta" is the default format
+for this tool.
+
+
+=back
+
+=head1 EXAMPLES
+
+Print a file from STDIN:
+
+=over 8
+
+cat data.fas | B<faspaste> -
+
+=back
+
+Join sequences from two files together:
+
+=over 8
+
+B<faspaste> data.fas data2.fas
+
+=back
+
+
+Join sequences and description from two files:
+    
+=over 8
+
+B<faspaste> -j data.fas data2.fas
+
+=back
+
+Join sequences with a delimiter from two files: 
+
+=over 8
+
+B<faspaste> -d 'GACT' data.fas data2.fas
+    
+=back
+
+Join all the sequences in a file into one sequence: 
+
+=over 8
+
+B<faspaste> -s data.fas
+    
+=back
+
+=head1 SEE ALSO
+
+=over 8
+
+=item C<man FAST>
+
+=item C<perldoc FAST>
+
+Introduction and cookbook for FAST
+
+=item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
+
+=back 
+
+=head1 CITING
+
+If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+
+=cut
