@@ -98,7 +98,7 @@ while ($IN or @ARGV) {
   if ($IN) { 
     while ($seq_count < $n and my $seq = $IN->next_seq()) {
 	if ($append_file_name) {
-	  $seq->desc(join $seq->desc(), (fileparse($file))[0]);
+	  $seq->desc(join " ", $seq->desc(), (fileparse($file))[0]);
 	}
 
 	print $OUT $seq;
