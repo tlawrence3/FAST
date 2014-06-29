@@ -1,16 +1,16 @@
 FAST --- Fast Analysis of Sequences Toolbox
 Version 1.0
 
-The Fast Analysis of Sequences Toolbox (FAST) is a set of approximately 15
-executable tools designed to interoperate at the UNIX command-line for rapid
-and reproducible prototyping of precise and powerful bioinformatic sequence
-workflows.  Modeled after the UNIX command-line text utilities (such as
-grep, cut, and sort), FAST tools such as fasgrep, fascut and fassort
-exchange data through UNIX pipes (|) in standard bioinformatic formats (such
-as Fasta) and operate on a per-sequence rather than per-line basis. FAST
-tools expose the power of Bioperl in an easy-to-learn command-line paradigm,
-without any programming otherwise required.
-
+The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX utilities
+(for example fasgrep, fascut, fashead and fastr) for sequence bioinformatics
+modeled after the UNIX textutils (such as grep, cut, head, tr, etc). FAST
+workflows are designed for "inline" (serial) processing of flatfile
+biological sequence record databases per-sequence, rather than per-line,
+through UNIX pipelines. The default data exchange format is multifasta
+(specifically, a restriction of BioPerl FastA format). FAST is designed for
+learnability, interoperability, interface consistency, rapid prototyping,
+fine-tuned control, and reproducibility. FAST tools expose the power of Perl
+and BioPerl to users in an easy-to-learn command-line paradigm. 
 
 INSTALLATION
 
@@ -21,12 +21,12 @@ To install this module, run the following commands:
 	make test
 	(sudo) make install
 
-SUPPORT AND DOCUMENTATION
+DOCUMENTATION
 
-After installing, you can find documentation for this module with the
-perldoc command.
+Installation generates a man page for each utility. From the installation
+directory, additional resources are in ./doc, particularly the FAST_Cookbook
 
-    perldoc FAST
+SUPPORT
 
 You can also look for information at:
 
@@ -44,7 +44,7 @@ You can also look for information at:
 
 CITING
 
-If you use FAST please cite the FAST project (Lawrence et al. 2014) and
+If you use FAST please, cite the FAST project (Lawrence et al. 2014) and
 Bioperl (Stajich et al. 2005).
 
 VERSION AND CHANGES
@@ -53,7 +53,7 @@ VERSION AND CHANGES
 
 LICENSE AND COPYRIGHT
 
-Copyright (C) 2013 David H. Ardell
+Copyright (C) 2014 David H. Ardell
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a

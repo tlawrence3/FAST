@@ -1,13 +1,4 @@
-* Combine fastr and fasstrict #This should be done already
-* Fix fascodon
-* Fix fasxl
-* Implement fashead and fastail
-* consolidate/update alndegap, alnpi, alnseg, fascodon
-* test current fassort against:
-** change "in_place" versions with non-in-place forms
-     - 
-
-Make fascodon optionally output to description #This should be done already
-Make alnpi optionally output to description
-
-Check formats in the IO files to fasconvert and test them
+* faspaste
+* fastail
+* fasrand
+* fasnl

@@ -1,0 +1,25 @@
+# Version control files and dirs.
+^\.git
+^.gitignore
+^ignore\.
+
+# Makemaker generated files and dirs.
+^MANIFEST\.
+^Makefile$
+^blib/
+^MakeMaker-\d
+^MYMETA
+^pm_to_blib
+   
+# Temp, old and emacs backup files.
+~$
+\.old$
+^#.*#$
+^\.#
+/\.#
+DS_Store
+
+FAST\.\log\.txt
+^paper/
+HOWTO
+^lib/old
