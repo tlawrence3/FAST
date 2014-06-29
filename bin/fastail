@@ -80,6 +80,7 @@ unless (@ARGV) {
 
 my $file = undef;
 my $seq_count = 0;
+my @seq_list;
 while ($IN or @ARGV) {
   if (@ARGV) {
     $file = shift (@ARGV);
@@ -94,18 +95,25 @@ while ($IN or @ARGV) {
       $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
-  
+ 
   if ($IN) { 
-    while ($seq_count < $n and my $seq = $IN->next_seq()) {
+    while (my $seq = $IN->next_seq()) {
 	if ($append_file_name) {
 	  $seq->desc(join " ", $seq->desc(), (fileparse($file))[0]);
 	}
 
-	print $OUT $seq;
-      $seq_count += 1;
+  if (scalar (@seq_list) < $n){
+      push @seq_list, $seq;
+  }
+  else{
+    shift @seq_list;
+    push @seq_list, $seq;
+  }
     }
     undef $IN;
-    $seq_count = 0;
+    foreach (@seq_list){
+      print $OUT $_;
+    }
   }
 }
 
@@ -113,7 +121,7 @@ __END__
 
 =head1 NAME
 
-B<fashead> - print the first n sequences
+B<fastail> - print the last n sequences
 
 =head1 SYNOPSIS
 
@@ -121,11 +129,11 @@ B<fashead> [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<fashead> takes sequence or alignment data as input, and outputs
+B<fastail> takes sequence or alignment data as input, and outputs
 the first n sequence records for each inputed file. B<fashead> by
 default prints the first 10 sequence records.
 
-Options specific to B<fashead>:
+Options specific to B<fastail>:
   -n=<integer>                      the number of sequences to print
   -v, --verbose                     append file name to sequence descriptions
   -q, --quiet, --silent             do not append file name to sequence
@@ -143,7 +151,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-B<fashead> is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fastail> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -214,35 +222,35 @@ for this tool.
 
 =head1 EXAMPLES
 
-Print the first 10 sequences:
+Print the last 10 sequences:
 
 =over 8
 
-cat data.fas | B<fashead> > data.dna.fas
+cat data.fas | B<fastail> > data.dna.fas
 
 =back
 
-Print the first 5 sequences:
+Print the last 5 sequences:
 
 =over 8
 
-cat data.fas | B<fashead> -n 5 > data.dna.fas
+cat data.fas | B<fastail> -n 5 > data.dna.fas
 
 =back
 
-Print the first 5 sequences with file name added to the description:
+Print the last 5 sequences with file name added to the description:
 
 =over 8
 
-cat data.fas | B<fashead> -v -n 5 > data.dna.fas
+cat data.fas | B<faslast> -v -n 5 > data.dna.fas
     
 =back
 
-Print the first 5 sequences without file name added to the description:
+Print the last 5 sequences without file name added to the description:
     
 =over 8
 
-B<fashead> -q -n 5 data.fas data2.fas > data.dna.fas
+B<fastail> -q -n 5 data.fas data2.fas > data.dna.fas
 
 =back
 
