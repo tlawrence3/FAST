@@ -48,7 +48,7 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 	   'negate|v'                    => \$negate,
 	   'strict-negate|s'             => \$strict_negate,
-	   'identifier|I'                => \$identifier,
+	   'identifier|i'                => \$identifier,
 	   'field|f=i'             => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --field or -f option expects non-zero integer argument\n" 
 						    unless $val != 0; 
@@ -58,14 +58,16 @@ GetOptions('help|h'         		 => \$help,
 	   'no-names|n'                  => \$noname,
 	   
 	  ) 
-  or pod2usage(2);
-		  
-pod2usage(1) if $help;
-pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires at least two arguments NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file [NCBI-taxon-name|NCBI-taxon-ID]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
-pod2usage("$0: Requires at least three arguments when taking input from STDIN. Try $NAME -h for help.") if (@ARGV < 3);
+  or exit(1);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+my $fromSTDIN = ((-t STDIN) ? false : true);
+
+pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
+pod2usage("$NAME: expects path to \"nodes.dmp\" and path to \"names.dmp\" when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
 my $nonamemode;
 my $numquery;
@@ -180,7 +182,7 @@ while ($IN or @ARGV) {
 	else{
 	  @datae = split $data;
 	} #changed to this with more unique variable names, and added $regex_split option herei nstead of above.  	  
-	$data = $datae[$field];
+	$data = $datae[$index];
       }
       next unless $data;
       if ($nonamemode) {
@@ -195,8 +197,6 @@ while ($IN or @ARGV) {
   }
 }
 
-
-
 __END__
 
 =head1 NAME
@@ -209,14 +209,23 @@ B<fastax> [OPTION]... [NODES-FILE] [NAMES-FILE] [TAXON] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<fastax> takes sequence or alignment data on input, and if directed to 
-valid NCBI Taxonomic ID labels in the sequence records, can output
+B<fastax> takes NCBI Taxonomy data and sequence or alignment data on
+input and, if directed to valid NCBI Taxonomic ID labels in the
+sequence records, outputs sequence records that belong to a specific
+taxon. For example, a query of "Alphaproteobacteria" will match data
+such as "Rickettsiales" and "Caulobacter crescentus NA1000" but not
+"Escherichia coli O157:H7" or "Metazoa"
 
-sequence records accordin . By default, the
-regex is tested for matching against sequence desc. B<fasgrep>
-takes one argument, a perl regular expression. Regex arguments may
-require quoting to protect special characters from interpretation by
-the shell.
+NCBI Taxonomy data must be downloaded separately from <NCBI
+Taxonomy|http://www.ncbi.nlm.nih.gov/taxonomy>, particularly one of
+the files marked "taxdump" from for example
+L<ftp://ftp.ncbi.nih.gov/pub/taxonomy>. Only the files "nodes.dmp" and
+"names.dmp" are used.
+
+By default, the entire description must exactly match a valid NCBI
+taxonomic identifier for a record to match. B<fastax> can optionally
+match identifiers or indexed fields in descriptions split by default
+on strings of white-space or a user-defined regex.
 
 Options specific to fastax:
   -v, --negate               return all sequences that are not from the taxon
@@ -224,7 +233,7 @@ Options specific to fastax:
                                if they are from a recognized taxon
   -i, --identifier             taxa are searched over sequence identifiers (default is over descriptions)
   -f, --field=<int>          split descriptions or identifers into fields  and field <int> (1-based) 
-  -F, --regex-split=<string> in split-mode (-S) split on perl-regex <regex> instead of default separator,
+  -S, --regex-split=<string> in split-mode (-S) split on perl-regex <regex> instead of default separator,
                                which is a tab character \t. Do "man perlre" and "man perlfunc" for split.
   -n, --no-name-mode         no-name mode (only use NCBI taxonomic IDS, which are integer strings)
 
@@ -272,10 +281,10 @@ taxa are searched over sequence identifiers (default is over descriptions)
 sequence descriptions or identifers are split into fields
 and field <int> (1-based) is searched for taxonomic identifiers
 
-=item B<-F [string]>,
+=item B<-S [string]>,
       B<--regex-split=[string]>
-In split-mode (-S) split on perl-regex <regex> instead of default separator,
-which is a tab character \t. Do "man perlre" and "man perlfunc" for split.
+in field-mode (B<-f>) split on perl-regex <regex> instead of the default separator,
+which is strings of white-space. Do "man perlre" and "man perlfunc" for split.
 
 =item B<-n>,
       B<--no-name-mode>
@@ -330,30 +339,28 @@ processing data).
 
 =head1 EXAMPLES
 
-Example 1 - does something
+Print sequence that belong to Rhizobiales:
 
 =over 8
 
-fastax [options] NCBI-taxonomy-nodes-file NCBI-taxonomy-names-file [NCBI-taxon-name|NCBI-taxon-ID] < fasta-file1 > fasta-file.
+B<fastax> -f 3 -S " \| " nodes.dmp names.dmp Rhizobiales t/data/tRNAdb-CE.sample2000.fas
 
 =back
 
+=head1 TODO
+
+=over
+
+=item * Create, store and access persistent NCBI taxonomy data for
+easier and faster usage, possibly using Storable and File::Share
+
+=back
 
 =head1 SEE ALSO
 
-=over 8
-
-=item C<man perlre>
-
-=item C<perldoc perlre>
-
-Documentation on perl regular expressions.
-
-=item C<man FAST>
-
-=item C<perldoc FAST>
-
 Introduction and cookbook for FAST
+
+=over
 
 =item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
 
@@ -361,7 +368,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
-Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+Sequences Toolbox.> and Bioperl I<Stajich et al.>.
 
 =cut

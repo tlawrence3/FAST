@@ -45,25 +45,27 @@ sub log {
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX utilities
+(for example fasgrep, fascut, fashead and fastr) for sequence bioinformatics
+modeled after the UNIX textutils (such as grep, cut, head, tr, etc). FAST
+workflows are designed for "inline" (serial) processing of flatfile
+biological sequence record databases per-sequence, rather than per-line,
+through UNIX pipelines. The default data exchange format is multifasta
+(specifically, a restriction of BioPerl FastA format). FAST is designed for
+learnability, interoperability, interface consistency, rapid prototyping,
+fine-tuned control, and reproducibility. FAST tools expose the power of Perl
+and BioPerl to users in an easy-to-learn command-line paradigm. 
 
-Perhaps a little code snippet.
-
-    use FAST;
-
-    my $foo = FAST->new();
-    ...
-
-
-=head1 EXECUTABLES
-
-=head2 fasgrep
-
-
-
-=head1 AUTHOR
+=head1 AUTHORS
 
 David H. Ardell, C<< <dhard at cpan.org> >>
+and members of the Ardell Laboratory 
+and other contributors including:
+Travis Lawrence
+Dane Carper
+Katherine Amrine
+Kyle Kauffman
+Claudia Canales
 
 =head1 BUGS
 
@@ -71,45 +73,12 @@ Please report any bugs or feature requests to C<bug-fast at rt.cpan.org>, or thr
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=FAST>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc FAST
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=FAST>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/FAST>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/FAST>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/FAST/>
-
-=back
-
-
 =head1 ACKNOWLEDGEMENTS
 
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2013 David H. Ardell.
+Copyright 2014 David H. Ardell.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a
