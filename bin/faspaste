@@ -20,7 +20,6 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_join_string = "";
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -30,9 +29,9 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $delimiters           = $def_join_string; # -n
+my $descdelim            = undef; # -d
 my $serial               = undef; # -s
-my $append_desc          = undef;
+my $seqdelims            = undef; # -j
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -45,9 +44,10 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'd|delimiters=s'              => \$delimiters,
-	   's|serial'                    => \$serial,
-	   'j|description'               => \$append_desc,
+	   'delimiters=s'                => \$descdelim,
+	   'serial|s'                    => \$serial,
+	   'join=s'                      => \$seqdelims,
+	   'd'                           => sub { $descdelim = ' '; },
 	  ) 
   or exit(1);
 
@@ -56,18 +56,38 @@ pod2usage(-verbose => 2) if $man;
 
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!(@ARGV));
+pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!$fromSTDIN and !(@ARGV));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
-my @delims = split //, $delimiters;
+my @delims = undef;
+my @descdelims = undef;
+
+if ($seqdelims) {
+  @delims = split //, $seqdelims;
+} else {
+  @delims = ();
+}
+
+if ($descdelim =~ /\\t/) {
+  $descdelim =~ s/\\t/\t/g;
+}
+
+if ($descdelim) {
+  @descdelims = split //, $descdelim;
+}
 
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
 
 my $maxdelim = @delims;
+my $maxdescdelim = @descdelims;
 
 my @seqs = ();
 my $outputseq = undef;
+
+unless (@ARGV and $fromSTDIN) {
+    @ARGV = q/-/;
+}
 
 while (@ARGV) {
   my $file = shift (@ARGV);
@@ -95,6 +115,8 @@ do {
   undef $outputseq;
   my $delimpos = 0;
   my $delim = undef;
+  my $descdelimpos = 0;
+  $descdelim = undef;
 
   foreach my $seqio (@seqs) {
     my $seq = undef;
@@ -119,9 +141,15 @@ do {
           $delimpos = 0;
         }
 
-	if ($append_desc) {
-	    print $seq->desc(), "\n";
-          $outputseq->desc(join " ", $outputseq->desc(), $seq->desc());
+        $descdelim = $descdelims[$descdelimpos];
+        $descdelimpos += 1;	      
+      
+        if ($descdelimpos >= $maxdescdelim) {
+          $descdelimpos = 0;
+        }
+
+	if ($descdelim) {
+          $outputseq->desc(join $descdelim, $outputseq->desc(), $seq->desc());
 	}
 
         $outputseq->seq(join $delim ? $delim : '', $outputseq->seq(), $seq->seq());
@@ -155,9 +183,12 @@ B<faspaste> takes sequence or alignment data as input, and joins the sequences. 
 default joins sequences by file.
 
 Options specific to B<faspaste>:
-  -d, --delimiter=<string>          a list of dilimiters to use when joining
-                                     the sequences
-  -j, --description                 append sequence descriptions when joining
+  -d                                use a space a delimiter when joining
+                                     the descriptions together
+  --delimiter=<string>              a list of dilimiters to use when joining
+                                     the descriptions together
+  -j, --join=<string>               a list of delimiters to use when joining 
+                                     the sequences together
   -s, --serial                      paste all sequences in a file together,
                                      instead of file by file.
 
@@ -184,22 +215,29 @@ other formats to and from multifasta.
 
 =over 8
 
-=item B<-d [string]>,
+=item B<-d>,
       B<--delimiter=[string]>
 
-A list of delimiters to used when joining the sequences, by default the 
-delimiter is an empty string.
+A list of delimiters to used when joining the descriptions. Option B<-d> does 
+not take a list but instead uses a space for the delimiter. If unspecified the 
+descriptions will not be joined together and the resulting description will 
+come from the first file. If the list is shorter than number of joins the
+delimiter wrap around and start over using the first character in the list. The
+characters '\t' will be replaced by a tab if used.
 
 =item B<-s>,
       B<--serial>
 
 Append sequences together by file, so that each file produces one sequence.
 
-=item B<-j>,
-      B<--description>,
+=item B<-j=[string]>,
+      B<--join=[string]>,
 
-Append the description line as well as the sequence. By default this is off,
-and the resulting description will be from the first sequence found.
+A list of delimiters to used when joining the sequences. If unspecified the 
+sequences will be joined together with no delimiter. If the list is shorter 
+than number of joins the delimiter wrap around and start over using the first 
+character in the list. If a character doesn't make sense in a sequence 
+bioperl with throw an error and stop.
 
 =item B<-h>,
       B<--help>
@@ -238,7 +276,6 @@ allowed formats. This is for convenience; the FAST tools are designed
 to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
 
-
 =back
 
 =head1 EXAMPLES
@@ -259,12 +296,19 @@ B<faspaste> data.fas data2.fas
 
 =back
 
-
-Join sequences and description from two files:
+Join descriptions with a space and sequences with no delimiter from two files:
     
 =over 8
 
-B<faspaste> -j data.fas data2.fas
+B<faspaste> -d data.fas data2.fas
+
+=back
+
+Join descriptions with a delimiter and sequences with no delimiter from two files:
+    
+=over 8
+
+B<faspaste> --delimiter '\t' data.fas data2.fas
 
 =back
 
@@ -272,7 +316,7 @@ Join sequences with a delimiter from two files:
 
 =over 8
 
-B<faspaste> -d 'GACT' data.fas data2.fas
+B<faspaste> -j 'GACT' data.fas data2.fas
     
 =back
 
