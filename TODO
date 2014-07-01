@@ -1,9 +1,0 @@
-Combine fastr and fasstrict
-Fix fascodon
-Fix fasxl
-Implement fashead and fastail
-consolidate/update alndegap, alnpi, alnseg, fascodon
-Make fascodon optionally output to description
-Make alnpi optionally output to description
-
-Check formats in the IO files to fasconvert and test them
