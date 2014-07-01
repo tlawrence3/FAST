@@ -7,7 +7,7 @@ lang="en" xml:lang="en">
 <title>FAST:Fast Analysis of Sequences Toolbox Cookbook</title>
 <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-06-16 07:42:21 PDT"/>
+<meta name="generated" content="2014-07-01 12:16:17 PDT"/>
 <meta name="author" content="Katherine C.H. Amrine \& David H. Ardell"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -21,9 +21,6 @@ lang="en" xml:lang="en">
   .target { }
   .timestamp { color: #bebebe; }
   .timestamp-kwd { color: #5f9ea0; }
-  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
-  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
-  .center {margin-left:auto; margin-right:auto; text-align:center;}
   p.verse { margin-left: 3% }
   pre {
 	border: 1pt solid #AEBDCC;
@@ -34,17 +31,10 @@ lang="en" xml:lang="en">
         overflow:auto;
   }
   table { border-collapse: collapse; }
-  td, th { vertical-align: top;  }
-  th.right  { text-align:center;  }
-  th.left   { text-align:center;   }
-  th.center { text-align:center; }
-  td.right  { text-align:right;  }
-  td.left   { text-align:left;   }
-  td.center { text-align:center; }
+  td, th { vertical-align: top; }
   dt { font-weight: bold; }
   div.figure { padding: 0.5em; }
   div.figure p { text-align: center; }
-  textarea { overflow-x: auto; }
   .linenr { font-size:smaller }
   .code-highlighted {background-color:#ffff00;}
   .org-info-js_info-navigation { border-style:none; }
@@ -76,7 +66,6 @@ lang="en" xml:lang="en">
  }
 /*]]>*///-->
 </script>
-
 </head>
 <body>
 <div id="content">
@@ -93,28 +82,33 @@ lang="en" xml:lang="en">
 <li><a href="#sec-1">1 Recipes </a></li>
 <li><a href="#sec-2">2 Tutorials </a>
 <ul>
-<li><a href="#sec-2_1">2.1 Prelude </a>
+<li><a href="#sec-2.1">2.1 Prelude </a>
 <ul>
-<li><a href="#sec-2_1_1">2.1.1 The FAST definition of "FastA format" </a></li>
-<li><a href="#sec-2_1_2">2.1.2 Use <code>man</code> pages for full documentation </a></li>
+<li><a href="#sec-2.1.1">2.1.1 The FAST definition of "FastA format" </a></li>
+<li><a href="#sec-2.1.2">2.1.2 Use <code>man</code> pages for full documentation </a></li>
 </ul>
 </li>
-<li><a href="#sec-2_2">2.2 Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome </a>
+<li><a href="#sec-2.2">2.2 Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome </a>
 <ul>
-<li><a href="#sec-2_2_1">2.2.1 Calculating sequence length </a></li>
-<li><a href="#sec-2_2_2">2.2.2 Cut out a subsequence by coordinate with <code>fascut</code> </a></li>
-<li><a href="#sec-2_2_3">2.2.3 Computing reverse complement of a sequence with <code>fasrc</code> </a></li>
-<li><a href="#sec-2_2_4">2.2.4 Translating a sequence with <code>fasxl</code> </a></li>
-<li><a href="#sec-2_2_5">2.2.5 Computing codon usage with <code>fascodon</code> </a></li>
-<li><a href="#sec-2_2_6">2.2.6 Computing base composition with <code>fascomp</code> </a></li>
+<li><a href="#sec-2.2.1">2.2.1 Calculating sequence length </a></li>
+<li><a href="#sec-2.2.2">2.2.2 Cut out a subsequence by coordinate with <code>fascut</code> </a></li>
+<li><a href="#sec-2.2.3">2.2.3 Computing reverse complement of a sequence with <code>fasrc</code> </a></li>
+<li><a href="#sec-2.2.4">2.2.4 Translating a sequence with <code>fasxl</code> </a></li>
+<li><a href="#sec-2.2.5">2.2.5 Computing codon usage with <code>fascodon</code> </a></li>
+<li><a href="#sec-2.2.6">2.2.6 Computing base composition with <code>fascomp</code> </a></li>
 </ul>
 </li>
-<li><a href="#sec-2_3">2.3 Example 2: Reformatting, selecting and transforming alignments in FAST </a>
+<li><a href="#sec-2.3">2.3 Example 2: Reformatting, selecting and transforming alignments in FAST </a>
 <ul>
-<li><a href="#sec-2_3_1">2.3.1 Reformatting alignment data with <code>fasconvert</code> </a></li>
-<li><a href="#sec-2_3_2">2.3.2 Selecting sequences with <code>fasgrep</code> </a></li>
-<li><a href="#sec-2_3_3">2.3.3 Reformatting gap characters with <code>fastr</code> </a></li>
-<li><a href="#sec-2_3_4">2.3.4 Degapping sites with <code>alndegap</code> </a></li>
+<li><a href="#sec-2.3.1">2.3.1 Reformatting alignment data with <code>fasconvert</code> </a></li>
+<li><a href="#sec-2.3.2">2.3.2 Selecting sequences with <code>fasgrep</code> </a></li>
+<li><a href="#sec-2.3.3">2.3.3 Reformatting gap characters with <code>fastr</code> </a></li>
+<li><a href="#sec-2.3.4">2.3.4 Degapping sites with <code>alndegap</code> </a></li>
+</ul>
+</li>
+<li><a href="#sec-2.4">2.4 Example 3: partitioning files based on ncbi taxonomy </a>
+<ul>
+<li><a href="#sec-2.4.1">2.4.1 Reformat the description to allow for fastax sorting </a></li>
 </ul>
 </li>
 </ul>
@@ -140,17 +134,17 @@ lang="en" xml:lang="en">
 
 </div>
 
-<div id="outline-container-2_1" class="outline-3">
-<h3 id="sec-2_1"><span class="section-number-3">2.1</span> Prelude </h3>
-<div class="outline-text-3" id="text-2_1">
+<div id="outline-container-2.1" class="outline-3">
+<h3 id="sec-2.1"><span class="section-number-3">2.1</span> Prelude </h3>
+<div class="outline-text-3" id="text-2.1">
 
 
 
 </div>
 
-<div id="outline-container-2_1_1" class="outline-4">
-<h4 id="sec-2_1_1"><span class="section-number-4">2.1.1</span> The FAST definition of "FastA format" </h4>
-<div class="outline-text-4" id="text-2_1_1">
+<div id="outline-container-2.1.1" class="outline-4">
+<h4 id="sec-2.1.1"><span class="section-number-4">2.1.1</span> The FAST definition of "FastA format" </h4>
+<div class="outline-text-4" id="text-2.1.1">
 
 
 <p>
@@ -194,13 +188,14 @@ seq2-sequence
 
 
 
-</div>
 
 </div>
 
-<div id="outline-container-2_1_2" class="outline-4">
-<h4 id="sec-2_1_2"><span class="section-number-4">2.1.2</span> Use <code>man</code> pages for full documentation </h4>
-<div class="outline-text-4" id="text-2_1_2">
+</div>
+
+<div id="outline-container-2.1.2" class="outline-4">
+<h4 id="sec-2.1.2"><span class="section-number-4">2.1.2</span> Use <code>man</code> pages for full documentation </h4>
+<div class="outline-text-4" id="text-2.1.2">
 
 
 <p>
@@ -217,6 +212,7 @@ page with <i>e.g.</i>:
 
 
 
+
 <p>
 or alternatively:
 </p>
@@ -228,22 +224,23 @@ or alternatively:
 
 
 
-</div>
-</div>
 
 </div>
-
-<div id="outline-container-2_2" class="outline-3">
-<h3 id="sec-2_2"><span class="section-number-3">2.2</span> Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome </h3>
-<div class="outline-text-3" id="text-2_2">
-
-
+</div>
 
 </div>
 
-<div id="outline-container-2_2_1" class="outline-4">
-<h4 id="sec-2_2_1"><span class="section-number-4">2.2.1</span> Calculating sequence length </h4>
-<div class="outline-text-4" id="text-2_2_1">
+<div id="outline-container-2.2" class="outline-3">
+<h3 id="sec-2.2"><span class="section-number-3">2.2</span> Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome </h3>
+<div class="outline-text-3" id="text-2.2">
+
+
+
+</div>
+
+<div id="outline-container-2.2.1" class="outline-4">
+<h4 id="sec-2.2.1"><span class="section-number-4">2.2.1</span> Calculating sequence length </h4>
+<div class="outline-text-4" id="text-2.2.1">
 
 
 <p>
@@ -263,6 +260,7 @@ follows:
 
 
 
+
 <p>
 Alternatively, <code>faswc -c</code> will output the length of the chromosome
 directly to <code>STDOUT</code>:
@@ -275,13 +273,14 @@ directly to <code>STDOUT</code>:
 
 
 
-</div>
 
 </div>
 
-<div id="outline-container-2_2_2" class="outline-4">
-<h4 id="sec-2_2_2"><span class="section-number-4">2.2.2</span> Cut out a subsequence by coordinate with <code>fascut</code> </h4>
-<div class="outline-text-4" id="text-2_2_2">
+</div>
+
+<div id="outline-container-2.2.2" class="outline-4">
+<h4 id="sec-2.2.2"><span class="section-number-4">2.2.2</span> Cut out a subsequence by coordinate with <code>fascut</code> </h4>
+<div class="outline-text-4" id="text-2.2.2">
 
 
 <p>
@@ -299,13 +298,14 @@ format to <code>STDOUT</code>:
 
 
 
-</div>
 
 </div>
 
-<div id="outline-container-2_2_3" class="outline-4">
-<h4 id="sec-2_2_3"><span class="section-number-4">2.2.3</span> Computing reverse complement of a sequence with <code>fasrc</code> </h4>
-<div class="outline-text-4" id="text-2_2_3">
+</div>
+
+<div id="outline-container-2.2.3" class="outline-4">
+<h4 id="sec-2.2.3"><span class="section-number-4">2.2.3</span> Computing reverse complement of a sequence with <code>fasrc</code> </h4>
+<div class="outline-text-4" id="text-2.2.3">
 
 
 <p>
@@ -322,13 +322,14 @@ return the reverse complemeht in fasta file to <code>STDOUT</code>:
 
 
 
-</div>
 
 </div>
 
-<div id="outline-container-2_2_4" class="outline-4">
-<h4 id="sec-2_2_4"><span class="section-number-4">2.2.4</span> Translating a sequence with <code>fasxl</code> </h4>
-<div class="outline-text-4" id="text-2_2_4">
+</div>
+
+<div id="outline-container-2.2.4" class="outline-4">
+<h4 id="sec-2.2.4"><span class="section-number-4">2.2.4</span> Translating a sequence with <code>fasxl</code> </h4>
+<div class="outline-text-4" id="text-2.2.4">
 
 
 <p>
@@ -342,6 +343,7 @@ To translate this sequence, we extend the pipeline with the <code>fasxl</code> u
 
 
 
+
 <p>
 Examine the output, we will see that the peptide starts with a
 methionine, and ends with a stop codon, indicated by the <code>*</code> character
@@ -351,9 +353,9 @@ by default.
 
 </div>
 
-<div id="outline-container-2_2_5" class="outline-4">
-<h4 id="sec-2_2_5"><span class="section-number-4">2.2.5</span> Computing codon usage with <code>fascodon</code> </h4>
-<div class="outline-text-4" id="text-2_2_5">
+<div id="outline-container-2.2.5" class="outline-4">
+<h4 id="sec-2.2.5"><span class="section-number-4">2.2.5</span> Computing codon usage with <code>fascodon</code> </h4>
+<div class="outline-text-4" id="text-2.2.5">
 
 
 <p>
@@ -373,13 +375,14 @@ is <code>AAT</code> (encoding an Asparagine)
 
 
 
-</div>
 
 </div>
 
-<div id="outline-container-2_2_6" class="outline-4">
-<h4 id="sec-2_2_6"><span class="section-number-4">2.2.6</span> Computing base composition with <code>fascomp</code> </h4>
-<div class="outline-text-4" id="text-2_2_6">
+</div>
+
+<div id="outline-container-2.2.6" class="outline-4">
+<h4 id="sec-2.2.6"><span class="section-number-4">2.2.6</span> Computing base composition with <code>fascomp</code> </h4>
+<div class="outline-text-4" id="text-2.2.6">
 
 
 <p>
@@ -395,22 +398,23 @@ chromosome, we can run the following:
 
 
 
-</div>
-</div>
 
 </div>
-
-<div id="outline-container-2_3" class="outline-3">
-<h3 id="sec-2_3"><span class="section-number-3">2.3</span> Example 2: Reformatting, selecting and transforming alignments in FAST </h3>
-<div class="outline-text-3" id="text-2_3">
-
-
+</div>
 
 </div>
 
-<div id="outline-container-2_3_1" class="outline-4">
-<h4 id="sec-2_3_1"><span class="section-number-4">2.3.1</span> Reformatting alignment data with <code>fasconvert</code> </h4>
-<div class="outline-text-4" id="text-2_3_1">
+<div id="outline-container-2.3" class="outline-3">
+<h3 id="sec-2.3"><span class="section-number-3">2.3</span> Example 2: Reformatting, selecting and transforming alignments in FAST </h3>
+<div class="outline-text-3" id="text-2.3">
+
+
+
+</div>
+
+<div id="outline-container-2.3.1" class="outline-4">
+<h4 id="sec-2.3.1"><span class="section-number-4">2.3.1</span> Reformatting alignment data with <code>fasconvert</code> </h4>
+<div class="outline-text-4" id="text-2.3.1">
 
 
 <p>
@@ -429,6 +433,7 @@ clustalw to fasta as showin in the following example
 
 
 
+
 <p>
 The previous command automatically saves its output to an output file
 saves output to the same basename and an extension of <code>.fas</code>. The
@@ -444,6 +449,7 @@ following code.
 
 
 
+
 <p>
 which outputs <code>length:557</code> to <code>STDOUT</code>.
 </p>
@@ -451,9 +457,9 @@ which outputs <code>length:557</code> to <code>STDOUT</code>.
 
 </div>
 
-<div id="outline-container-2_3_2" class="outline-4">
-<h4 id="sec-2_3_2"><span class="section-number-4">2.3.2</span> Selecting sequences with <code>fasgrep</code> </h4>
-<div class="outline-text-4" id="text-2_3_2">
+<div id="outline-container-2.3.2" class="outline-4">
+<h4 id="sec-2.3.2"><span class="section-number-4">2.3.2</span> Selecting sequences with <code>fasgrep</code> </h4>
+<div class="outline-text-4" id="text-2.3.2">
 
 
 <p>
@@ -471,6 +477,7 @@ out sequences that match a Perl regular expression. By default,
 
 
 
+
 <p>
 We can retrieve the aligned version of this sequence as it has the
 same identifier
@@ -483,13 +490,14 @@ same identifier
 
 
 
-</div>
 
 </div>
 
-<div id="outline-container-2_3_3" class="outline-4">
-<h4 id="sec-2_3_3"><span class="section-number-4">2.3.3</span> Reformatting gap characters with <code>fastr</code> </h4>
-<div class="outline-text-4" id="text-2_3_3">
+</div>
+
+<div id="outline-container-2.3.3" class="outline-4">
+<h4 id="sec-2.3.3"><span class="section-number-4">2.3.3</span> Reformatting gap characters with <code>fastr</code> </h4>
+<div class="outline-text-4" id="text-2.3.3">
 
 
 <p>
@@ -505,13 +513,14 @@ gap characters in a fasta-format alignment from "-" to ".".
 
 
 
-</div>
 
 </div>
 
-<div id="outline-container-2_3_4" class="outline-4">
-<h4 id="sec-2_3_4"><span class="section-number-4">2.3.4</span> Degapping sites with <code>alndegap</code> </h4>
-<div class="outline-text-4" id="text-2_3_4">
+</div>
+
+<div id="outline-container-2.3.4" class="outline-4">
+<h4 id="sec-2.3.4"><span class="section-number-4">2.3.4</span> Degapping sites with <code>alndegap</code> </h4>
+<div class="outline-text-4" id="text-2.3.4">
 
 
 <p>
@@ -527,6 +536,7 @@ can do the following:
 
 
 
+
 <p>
 We can then determine the length of the alignment by looking at the
 first identifier for your output after running the following:
@@ -536,6 +546,7 @@ first identifier for your output after running the following:
 
 <pre class="example">alndegap -a P450clustalw2.clustalw.fas | faswc | head -1 | cut -f2 -d" "
 </pre>
+
 
 
 
@@ -551,15 +562,111 @@ one, appending all of the identifiers to one large identifier.
 </pre>
 
 
+
+
 </div>
+</div>
+
+</div>
+
+<div id="outline-container-2.4" class="outline-3">
+<h3 id="sec-2.4"><span class="section-number-3">2.4</span> Example 3: partitioning files based on ncbi taxonomy </h3>
+<div class="outline-text-3" id="text-2.4">
+
+
+<p>
+The <code>fastax</code> tool is a powerful tool when one wants to partition
+data based on their taxonomic affiliations. We can partition large
+datasets for subset analyses, statistical comparisons, and other
+applications and preparation of data. <code>fastax</code> depends on the user
+supplying a file with the tree structure already defined. In this
+example, we will use NCBI taxonomy. The files necessary include
+a nodes file (in this case <i>nodes.dmp</i>) and a names file (in this
+case, <i>names.dmp</i>). The nodes file consists of a line for each
+taxonomic entry in NCBI with information about its class (superfamily,
+genus, etc) and its parent node, indexed by its numeric identifier. 
+The names.dmp file will link the numeric identifier to any specific 
+name that the entry can be named including its scientific name, common 
+name, and alternative spellings accepted by NCBI. We will not create 
+our own nodes and names files, but note that it can be done if the 
+user disagrees with the NCBI taxonomic structure, or requires more 
+specific partitions of their data. 
+</p>
+<p>
+The importance of structured sequence tags comes into play in this 
+example. As described above, the line above the sequence in a fasta
+file is indexed by a "&gt;" character followed by the identifier, followed
+by a space, and then everything else is located in the description. 
+<code>fastax</code> will need more structure around the taxonomic classification. 
+The program, by default, will search by the description field, but the 
+descrption field will have it's own structure. Note, if your description
+field only contains the species, or the TaxID, then you don't need
+to worry about structuring the description. If it is not the only thing
+in your description, then you need to modify the description a bit, or
+determine if there is a delimiter that already exists between your 
+TaxID and the other components of the description. 
+</p>
+
+</div>
+
+<div id="outline-container-2.4.1" class="outline-4">
+<h4 id="sec-2.4.1"><span class="section-number-4">2.4.1</span> Reformat the description to allow for fastax sorting </h4>
+<div class="outline-text-4" id="text-2.4.1">
+
+
+<p>
+If we look at our P450.fas file, you will see that the description 
+consists of "P450" and then a space, and then a square bracket "[",
+the species name, and then a closing square bracket "]". There is 
+currently no identifier that is unique surrounding only the species
+name. Open bracket and closed bracket are two different characters,
+and using the open bracket as a delimiter will give you the species
+name and the closed bracket in the second field, and this will not 
+match correctly. We will first change our description field to one
+delimiter using the handy <code>fastr</code> tool. Arbitrarily, we will chose 
+the double quote character for our description delimiter.
+</p>
+
+
+
+<pre class="example">fastr -d "[]" "\"" P450.fas
+</pre>
+
+
+
+
+<p>
+Now in standard out, you will see fasta file-formatted text with
+the species name in the description in the sequence tag surrounded
+by quotes. In this file, the beginning of the description is in 
+field one, and the species in field two. We can use this information
+to construct a command to pull out the sequences that are in the 
+taxonomic "Pooideae" tribe. Assuming that nodes.dmp and names.dmp are
+in the same working directory, we can run the following. 
+</p>
+
+
+
+<pre class="example">fastr -d"[]" "\"" P450.fas | fastax -S \" -f 2 nodes.dmp names.dmp "Pooideae"
+</pre>
+
+
+
+
+<p>
+The output of this pipeline should be five sequences, including P450 sequences
+from the <i>Triticum aestivum</i> and <i>Lolium rigidum</i> species (classified as species
+belonging to the <i>Pooideae</i> tribe. 
+</p></div>
 </div>
 </div>
 </div>
 <div id="postamble">
 <p class="author"> Author: Katherine C.H. Amrine \& David H. Ardell
+<a href="mailto:kamrine@Amrine.local">&lt;kamrine@Amrine.local&gt;</a>
 </p>
-<p class="date"> Date: 2014-06-16 07:42:21 PDT</p>
-<p class="creator">HTML generated by org-mode 7.4 in emacs 23</p>
+<p class="date"> Date: 2014-07-01 12:16:17 PDT</p>
+<p class="creator">HTML generated by org-mode 6.33x in emacs 23</p>
 </div>
 </div>
 </body>
