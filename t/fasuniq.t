@@ -1,7 +1,7 @@
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 17;
+use Test::More tests => 18;
 use Test::Script::Run;
 
 open( my $test1, "<", "t/data/fasuniq_test1.fas" ) || die "Can't open"; #fasuniq_test1.fas
@@ -28,12 +28,12 @@ chomp(@output);
 run_output_matches('fasuniq', [qw|-Icd":" t/data/P450.fas|], \@output, []);
 close($test4);
 
-####This test does not currently work. When I diff the file there is no difference T. Lawrence
-#open( my $test5, "<", "t/data/fasuniq_test5.fas" ) || die "Can't open"; #fasuniq_test5.fas
-#@output = <$test5>;
-#chomp(@output);
-#run_output_matches('fasuniq', [qw|-Dcd":" t/data/P450.fas|], \@output, []);
-#close($test5);
+####For some reason this run_output_matches doesn't process the -d":" correctly and needs to be -d:
+open( my $test5, "<", "t/data/fasuniq_test5.fas" ) || die "Can't open"; #fasuniq_test5.fas
+@output = <$test5>;
+chomp(@output);
+run_output_matches('fasuniq', [qw|-Dcd: t/data/P450.fas|], \@output, []);
+close($test5);
 
 open( my $test6, "<", "t/data/fasuniq_test6.fas" ) || die "Can't open"; #fasuniq_test6.fas
 @output = <$test6>;
