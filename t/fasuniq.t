@@ -1,12 +1,56 @@
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 6;
+use Test::More tests => 17;
 use Test::Script::Run;
 
-run_ok('fasuniq',[qw|/data/P450.fas|]);
-run_ok('fasuniq',[qw|-D /data/P450.fas|]);
-run_ok('fasuniq',[qw|-I /data/P450.fas|]);
-run_ok('fasuniq',[qw|-cd":" /data/P450.fas|]);
+open( my $test1, "<", "t/data/fasuniq_test1.fas" ) || die "Can't open"; #fasuniq_test1.fas
+my @output = <$test1>;
+chomp(@output);
+run_output_matches('fasuniq', [qw|t/data/P450.fas|], \@output, []);
+close($test1);
+
+open( my $test2, "<", "t/data/fasuniq_test2.fas" ) || die "Can't open"; #fasuniq_test2.fas
+@output = <$test2>;
+chomp(@output);
+run_output_matches('fasuniq', [qw|-D t/data/P450.fas|], \@output, []);
+close($test2);
+
+open( my $test3, "<", "t/data/fasuniq_test3.fas" ) || die "Can't open"; #fasuniq_test3.fas
+@output = <$test3>;
+chomp(@output);
+run_output_matches('fasuniq', [qw|-I t/data/P450.fas|], \@output, []);
+close($test3);
+
+open( my $test4, "<", "t/data/fasuniq_test4.fas" ) || die "Can't open"; #fasuniq_test4.fas
+@output = <$test4>;
+chomp(@output);
+run_output_matches('fasuniq', [qw|-Icd":" t/data/P450.fas|], \@output, []);
+close($test4);
+
+####This test does not currently work. When I diff the file there is no difference T. Lawrence
+#open( my $test5, "<", "t/data/fasuniq_test5.fas" ) || die "Can't open"; #fasuniq_test5.fas
+#@output = <$test5>;
+#chomp(@output);
+#run_output_matches('fasuniq', [qw|-Dcd":" t/data/P450.fas|], \@output, []);
+#close($test5);
+
+open( my $test6, "<", "t/data/fasuniq_test6.fas" ) || die "Can't open"; #fasuniq_test6.fas
+@output = <$test6>;
+chomp(@output);
+run_output_matches('fasuniq', [qw|-cd":" t/data/P450.fas|], \@output, []);
+close($test6);
+
+run_ok('fasuniq',[qw|t/data/P450.fas|]);
+run_ok('fasuniq',[qw|-D t/data/P450.fas|]);
+run_ok('fasuniq',[qw|-I t/data/P450.fas|]);
+run_ok('fasuniq',[qw|-Icd":" t/data/P450.fas|]);
+run_ok('fasuniq',[qw|-Dcd":" t/data/P450.fas|]);
+run_ok('fasuniq',[qw|-cd":" t/data/P450.fas|]);
+
 run_not_ok('fassort', [qw|-cd"" t/data/P450.fas|],"fail if delimter is empty");
-run_not_ok('fassort', [qw|-c t/data/P450.fas|],"fail if delimter is empty");
+run_not_ok('fassort', [qw|-Dcd"" t/data/P450.fas|],"fail if delimter is empty");
+run_not_ok('fassort', [qw|-Icd"" t/data/P450.fas|],"fail if delimter is empty");
+run_not_ok('fassort', [qw|-c t/data/P450.fas|],"fail if delimter is not specified");
+run_not_ok('fassort', [qw|-Ic t/data/P450.fas|],"fail if delimter is not specified");
+run_not_ok('fassort', [qw|-Dc t/data/P450.fas|],"fail if delimter is not specified");
