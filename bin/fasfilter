@@ -51,6 +51,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+     'negate|v'                    => \$negate,
 
            'description|d'               => \$description,
 	   'field|f=i'                   => sub{  my (undef,$val) = @_; 
