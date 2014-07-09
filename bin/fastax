@@ -134,7 +134,7 @@ else {
 }
 while (@queue){
   my $first = shift @queue;
-  $match{$first} = ($negate ? 0 : 1);
+  $match{$first} = (($negate || $strict_negate)? 0 : 1);
   push @queue, @{ $children{$first} } if (exists  $children{$first});
 }
 
@@ -190,7 +190,7 @@ while ($IN or @ARGV) {
       }
       else {
 	next unless (exists $id{$data});
-        print $OUT $seq if (($strict_negate and exists $parent{$id{$data}} and not $match{$id{$data}}) or ($negate and not $match{$id{$data}}) or $match{$id{$data}});
+        print $OUT $seq if ((($strict_negate and exists $parent{$id{$data}}) and not exists($match{$id{$data}})) or ($negate and not exists($match{$id{$data}})) or $match{$id{$data}});
       }      
     }
     undef $IN;
