@@ -65,7 +65,7 @@ pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
 pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
-pod2usage("$NAME: expects path to \"nodes.dmp\" and path to \"names.dmp\" when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and [Taxon] when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 3);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
