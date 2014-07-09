@@ -69,12 +69,11 @@ if ($seqdelims) {
   @delims = ();
 }
 
-if ($descdelim =~ /\\t/) {
-  $descdelim =~ s/\\t/\t/g;
-}
-
 if ($descdelim) {
+  $descdelim =~ s/\\t/\t/g;
   @descdelims = split //, $descdelim;
+} else {
+  @descdelims = ();
 }
 
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
@@ -85,7 +84,7 @@ my $maxdescdelim = @descdelims;
 my @seqs = ();
 my $outputseq = undef;
 
-unless (@ARGV and $fromSTDIN) {
+unless (@ARGV and !$fromSTDIN) {
     @ARGV = q/-/;
 }
 
@@ -123,7 +122,7 @@ do {
     unless ($seqio) {
       next;
     }
-    
+
     $seq = $seqio->next_seq();
 
     do {
@@ -135,15 +134,15 @@ do {
          $outputseq = $seq;
       } else {
         $delim = $delims[$delimpos];
-        $delimpos += 1;	      
-      
+        $delimpos += 1;
+
         if ($delimpos >= $maxdelim) {
           $delimpos = 0;
         }
 
         $descdelim = $descdelims[$descdelimpos];
-        $descdelimpos += 1;	      
-      
+        $descdelimpos += 1;
+
         if ($descdelimpos >= $maxdescdelim) {
           $descdelimpos = 0;
         }
