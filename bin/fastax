@@ -186,11 +186,12 @@ while ($IN or @ARGV) {
       }
       next unless $data;
       if ($nonamemode) {
-	print $OUT $seq if (($strict_negate and exists $parent{$data} and not $match{$data}) or ($negate and not $match{$data}) or $match{$data});
+	print $OUT $seq if (($strict_negate and exists $parent{$data} and not exists($match{$data})) or ($negate and not exists($match{$data})) or $match{$data});
       }
       else {
+	if($negate and not exists $id{$data}){print $OUT $seq;next;}
 	next unless (exists $id{$data});
-        print $OUT $seq if ((($strict_negate and exists $parent{$id{$data}}) and not exists($match{$id{$data}})) or ($negate and not exists($match{$id{$data}})) or $match{$id{$data}});
+        print $OUT $seq if (($strict_negate and exists $parent{$id{$data}} and not exists($match{$id{$data}})) or ($negate and not exists($match{$id{$data}})) or $match{$id{$data}});
       }      
     }
     undef $IN;
