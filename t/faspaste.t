@@ -1,7 +1,7 @@
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 18;
+use Test::More tests => 7;
 use Test::Script::Run;
 
 run_not_ok('faspaste', 'expects at least one input filename or glob');
