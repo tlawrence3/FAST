@@ -59,7 +59,7 @@ GetOptions('help|h'         		 => \$help,
      'table|t=i'                   => \$table,
      'annotate|a'                    => \$append,
      'fastq|q'                     => \$fastq,
-	  ) 
+	  )
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
@@ -70,7 +70,7 @@ pod2usage("$0: Expects no arguments when reading from STDIN. Try $NAME -h for he
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 if ($fastq){
-  $def_format = 'fastq'
+  $def_format = 'fastq';
 }
 
 my $code = FAST::Bio::Tools::CodonTable->new(-id => $table);
