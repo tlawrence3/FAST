@@ -81,7 +81,7 @@ GetOptions('help|h'         		 => \$help,
   or exit(1);
 		  
 pod2usage(-verbose => 1) if $help;
-pod2usage(-verbose => 2) if $man;
+pod2usage(-verbose => 2, -input => \*DATA) if $man;
 
 my $fromSTDIN = ((-t STDIN) ? false : true);
 

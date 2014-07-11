@@ -33,8 +33,8 @@ my $comment              = undef;        # -C
 my $moltype              = undef;        # -m, force moltype
 my $nobrand              = undef;        # -n, don't add "-rc" to identifier
 
-GetOptions('help|h'         		 => \$help, 
-	   'man'            		 => \$man,
+GetOptions('help|h'         		   => \$help, 
+	   'man'            		         => \$man,
 	   'format=s'                    => \$format,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
@@ -48,9 +48,11 @@ GetOptions('help|h'         		 => \$help,
 	  )
   or pod2usage(2);
 		  
-pod2usage(1) if $help;
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-#pod2usage("$0: Requires zero arguments when reading from STDIN. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 0));
+my $fromSTDIN = ((-t STDIN) ? false : true);
+pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input from STDIN.\n") if (!($fromSTDIN) && (@ARGV == 0));
+pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
