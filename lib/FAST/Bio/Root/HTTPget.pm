@@ -15,13 +15,13 @@
 
 =head1 NAME
 
-FAST::Bio::Root::HTTPget - module for fallback HTTP get operations when 
+FAST::FAST::Bio::Root::HTTPget - module for fallback HTTP get operations when 
 LWP:: is unavailable
 
 =head1 SYNOPSIS
 
- use FAST::Bio::Root::HTTPget;
- my $web = FAST::Bio::Root::HTTPget->new();
+ use FAST::FAST::Bio::Root::HTTPget;
+ my $web = FAST::FAST::Bio::Root::HTTPget->new();
 
  my $response = $web->get('http://localhost');
  $response    = $web->get('http://localhost/images');
@@ -86,13 +86,13 @@ methods. Internal methods are usually preceded with a _
 
 # Let the code begin...
 
-package FAST::Bio::Root::HTTPget;
+package FAST::FAST::Bio::Root::HTTPget;
 
 use strict;
 use warnings;
 use IO::Socket qw(:DEFAULT :crlf);
 
-use base qw(FAST::Bio::Root::Root);
+use base qw(FAST::FAST::Bio::Root::Root);
 
 {
     # default attributes, in case used as a class/sub call
@@ -114,7 +114,7 @@ use base qw(FAST::Bio::Root::Root);
 
 sub get {
     my $self;
-    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::Bio::/)) {
+    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::FAST::Bio::/)) {
 	$self = shift;
     }
     
@@ -203,7 +203,7 @@ sub get {
 
 sub getFH {
   my $self;
-    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::Bio::/)) {
+    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::FAST::Bio::/)) {
 	$self = shift;
     }
   my ($url,$proxy,$timeout,$auth_user,$auth_pass) = 
@@ -283,7 +283,7 @@ sub getFH {
 
 sub _http_parse_url {
   my $self;
-    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::Bio::/)) {
+    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::FAST::Bio::/)) {
 	$self = shift;
     }
   my $url = shift;
@@ -330,7 +330,7 @@ sub _http_connect {
 
 sub _encode_base64 {
     my $self;
-    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::Bio::/)) {
+    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::FAST::Bio::/)) {
 	$self = shift;
     }
     my $res = "";
@@ -369,7 +369,7 @@ sub _encode_base64 {
 
 sub proxy {
     my $self;
-    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::Bio::/)) {
+    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::FAST::Bio::/)) {
 	$self = shift;
     }
     my ($protocol,$proxy,$username,$password) = @_;
@@ -405,7 +405,7 @@ sub proxy {
 
 sub clear_proxy {
     my $self;
-    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::Bio::/)) {
+    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::FAST::Bio::/)) {
         $self = shift;
     }
     my ($protocol) = @_;
@@ -427,7 +427,7 @@ sub clear_proxy {
 
 sub authentication {
     my $self;
-    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::Bio::/)) {
+    if($_[0] && (ref($_[0]) or $_[0] =~ /^FAST::FAST::Bio::/)) {
 	$self = shift;
     }
     my $atts = ref($self) ? $self : \%attributes;
