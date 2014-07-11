@@ -53,7 +53,7 @@ GetOptions('help|h'         		 => \$help,
 $format = lc ($format);
 
 if ($fastq){
-  $def_format = 'fastq'
+  $def_format = 'fastq';
 }
 
 pod2usage(-verbose => 1) if $help;
