@@ -36,6 +36,7 @@ my $description          = undef;               # -d
 my $field                = undef;               # -f
 my $split_on_regex       = $def_split_on_regex; # -S 
 my $join                 = $def_field_join;     # -j
+my $fastq                = undef;
 #my $spawn                = undef;               # -w
 
 GetOptions('help|h'         		 => \$help, 
@@ -54,6 +55,7 @@ GetOptions('help|h'         		 => \$help,
 	   'field|f'                     => \$field,
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'join|j=s'                    => \$join,
+     'fastq|q'                     => \$fastq,
 #	   'spawn|w'                     => \$spawn,
 	  ) 
   or exit(1);
@@ -65,7 +67,11 @@ my $fromSTDIN = ((-t STDIN) ? false : true);
 pod2usage("$NAME: expects one range-string argument and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 2));
 pod2usage("$NAME: expects one range-string argument when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 1);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+
+if ($fastq){
+  $def_format = 'fastq'
+}
 
 ##PARSE MULTICOORDS
 my @RANGES = ();
@@ -228,11 +234,23 @@ record: while (my $seq = $IN->next_seq()) {
 	$join = "";
       }
       $newdata = join $join,@newdata;
-      if ($moltype) {
-	$newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
+      
+
+      if ($fastq){
+         if ($moltype) {
+          $newseq = new FAST::Bio::Seq::Quality(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -qual => $seq->qual, -alphabet => $moltype);
+          }
+        else {
+          $newseq = new FAST::Bio::Seq::Quality(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -qual => $seq->qual);
+        }
       }
       else {
-	$newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc);
+        if ($moltype) {
+	       $newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
+        }
+        else {
+	       $newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc);
+        }
       }
       $newseq->$selector($newdata);
       print $OUT $newseq;
