@@ -60,7 +60,7 @@ GetOptions('help|h'         		 => \$help,
      'annotate|a'                  => \$append,
      'fastq|q'  	           => \$fastq, 
 ) 
-  or pod2usage(2);
+or pod2usage(2);
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
