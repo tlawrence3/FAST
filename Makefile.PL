@@ -3,7 +3,7 @@ use strict;
 use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
 
-my @scripts = qw/alnpi alnsite alndegap fascodon fascomp fasconvert fascut fasfilter fasgrep fashead faspaste faslen faswc fasrc fassort fassub fastax fastaxsort fastr fasuniq fasxl gbfalncut gbf2fas gbfgrep/;
+my @scripts = qw/alnpi alnsite alndegap fascodon fascomp fasconvert fascut fasfilter fasgrep fashead fastail faspaste faslen faswc fasrc fassort fassub fastax fastaxsort fastr fasuniq fasxl gbfalncut gbf2fas gbfgrep/;
 
 WriteMakefile(
     NAME             => 'FAST',
