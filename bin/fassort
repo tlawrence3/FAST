@@ -51,6 +51,7 @@ my $reverse             = undef;  # -r
 my $numeric             = undef;  # -n
 
 my $memory_limit        = 524288;  # -M; one-quarter GB
+my $fastq                = undef;
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -86,7 +87,8 @@ GetOptions('help|h'         		 => \$help,
 						},
 	   'reverse|r'                   => \$reverse,
 	   'numeric|n'                   => \$numeric,   
-	   'memory_limit|M=i'            => \$memory_limit
+	   'memory_limit|M=i'            => \$memory_limit,
+     'fastq|q'                     => \$fastq,
 
 	  ) 
  or exit(1);
@@ -97,7 +99,12 @@ my $fromSTDIN = ((-t STDIN) ? false : true);
 pod2usage("$NAME: Requires at least one argument file1 [file2…fileN] unless taking input from STDIN.\n") if ((-t STDIN) && (@ARGV < 1));
 pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN.\n") if (!(-t STDIN) && @ARGV != 0);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+
+if ($fastq){
+  $format = 'fastq';
+}
+
 
 my $split_re = ' ';
 if ($split_on_regex) {
@@ -156,14 +163,14 @@ else {
 
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
