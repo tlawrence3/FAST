@@ -34,7 +34,7 @@ my $case                 = undef;
 my $location             = undef;
 my $primary              = undef;
 my $context              = undef;
-
+my $tag                  = undef; # -t
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -57,10 +57,17 @@ GetOptions('help|h'         		 => \$help,
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires at least one argument when taking input from terminal. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 0));
-pod2usage("$0: Requires at least one argument. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV != 0);
+
+my $fromSTDIN = ((-t STDIN) ? false : true);
+
+pod2usage("$NAME: Requires at least one argument when taking input from terminal. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 0));
+pod2usage("$NAME: Requires at least one argument. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+
+my @tag = undef;
+my @op = undef;
+my @tag_regex = undef;
 
 
 if ($tag_match) { 
@@ -85,6 +92,9 @@ my $IN;
 unless (@ARGV) {
     $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'genbank');
 }
+
+my $featseq = undef;
+my $id = undef;
 
 while ($IN or @ARGV) {
   if (@ARGV) {
@@ -132,7 +142,7 @@ while ($IN or @ARGV) {
     $id ||= join "_", $feat->get_tagset_values("product");
     $id ||= $loc_string;
     $featseq->display_id($id);
-    $featseq->desc(join " ",(map {join "=",$_,(join "","\"",(join ";",grep {!/geneid/i} $feat->get_tagset_values($_)),"\"")} $feat->get_all_tags()),($opt_l ? "location=\"$loc_string\"" : '')); 
+    $featseq->desc(join " ",(map {join "=",$_,(join "","\"",(join ";",grep {!/geneid/i} $feat->get_tagset_values($_)),"\"")} $feat->get_all_tags()),($log ? "location=\"$loc_string\"" : '')); 
     
     print $OUT $featseq;
   }
