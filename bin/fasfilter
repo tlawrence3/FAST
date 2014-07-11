@@ -38,6 +38,7 @@ my $split_on_regex       = $def_split_on_regex;   # -S
 
 
 my $negate                = undef;  # -v
+my $fastq                = undef;
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -47,7 +48,8 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
-	   'format=s'                    => \$format,
+	   'fastq|q'                     => \$fastq,
+     'format=s'                    => \$format,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
@@ -151,6 +153,9 @@ else {
 
 
 
+if ($fastq){
+  $def_format = 'fastq'
+}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN; 
