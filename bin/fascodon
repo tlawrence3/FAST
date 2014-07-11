@@ -61,6 +61,7 @@ GetOptions('help|h'         		 => \$help,
      'fastq|q'                     => \$fastq,
 	  )
   or pod2usage(2);
+
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
