@@ -5,6 +5,9 @@ use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
 use File::Basename;
+use Devel::Size qw/ total_size /;
+use File::Temp qw/ tempfile /;
+use Storable qw/ store_fd /;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -22,6 +25,7 @@ my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 my $def_join_string = "";
 my $def_print_num = 10;
+my $memory_limit  = 524288; # -M 512KB
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -53,7 +57,12 @@ GetOptions('help|h'         		 => \$help,
 					       },
 	   'v|verbose'                   => \$verbose,
 	   'q|quiet|silent'              => \$silent,
-	  ) 
+	   'memory_limit|M=i'            => sub { my (undef, $val) = @_;
+						  die "$NAME: -M option expects a positive integer argument\n" 
+						    unless $val > 0;
+						  $memory_limit = $val;
+						},
+	  )
   or exit(1);
 
 pod2usage(-verbose => 1) if $help;
@@ -70,17 +79,18 @@ my $append_file_name = (!$silent and ($verbose or (!($fromSTDIN) and @ARGV > 1))
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
 my $IN;
 unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
-    }
+  if ($moltype) {
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
+  }
+  else {
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
+  }
 }
 
 my $file = undef;
 my $seq_count = 0;
 my @seq_list;
+
 while ($IN or @ARGV) {
   if (@ARGV) {
     $file = shift (@ARGV);
@@ -95,24 +105,99 @@ while ($IN or @ARGV) {
       $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
- 
-  if ($IN) { 
-    while (my $seq = $IN->next_seq()) {
-	if ($append_file_name) {
-	  $seq->desc(join " ", $seq->desc(), (fileparse($file))[0]);
-	}
 
-  if (scalar (@seq_list) < $n){
-      push @seq_list, $seq;
-  }
-  else{
-    shift @seq_list;
-    push @seq_list, $seq;
-  }
+  if ($IN) {
+    my @files = ();
+    my @file_seq_count = ();
+    my $stored_seqs = 0;
+
+    while (my $seq = $IN->next_seq()) {
+      if ($append_file_name) {
+	$seq->desc(join " ", $seq->desc(), (fileparse($file))[0]);
+      }
+
+      if (scalar (@seq_list) < $n){
+	push @seq_list, $seq;
+      }
+      else{
+	shift @seq_list;
+	push @seq_list, $seq;
+      }
+
+      if (total_size(\@seq_list) > $memory_limit) {
+	my $seq_num = @seq_list;
+	my ($fh, $filename) = tempfile();
+	push @files, $filename;
+	push @file_seq_count, $seq_num;
+	store_fd(\@seq_list, $fh)
+	  or die("$NAME: Could not write data to $filename with Storable");
+	$stored_seqs += $seq_num;
+	@seq_list = ();
+
+	if (($stored_seqs - $file_seq_count[0]) >= $n) {
+	  $filename = shift @files;
+	  $stored_seqs -= shift @file_seq_count;
+	  unlink $filename or warn "$NAME: Could not delete temporary file $filename: $!";
+	}
+      }
     }
     undef $IN;
-    foreach (@seq_list){
-      print $OUT $_;
+
+    my $diff = ($stored_seqs + @seq_list) - $n;
+    my $seqsref = undef;
+    my @seqs = ();
+
+    while ($diff > 0) {
+      my $filename = shift @files;
+      $stored_seqs -= shift @file_seq_count;
+
+      $seqsref = Storable::retrieve($filename)
+        or die ("$NAME: Could not retrieve data from $filename with Storable");
+
+      @seqs = @$seqsref;
+
+      my $temp = (scalar (@seqs) - $diff);
+      @seqs = @seqs[(-1 * $temp) .. -1];
+
+      while (@seqs) {
+        my $seq = shift @seqs;
+	print $OUT $seq;
+      }
+
+      unlink $filename or warn "$NAME: Could not delete temporary file $filename: $!";
+      $diff = ($stored_seqs + @seq_list) - $n;
+    }
+
+    if (@seq_list and @files) {
+      my ($fd, $filename) = tempfile();
+      my $seq_file = $filename;
+
+      store_fd(\@seq_list, $fd)
+	or die("$NAME: Could not write data to $seq_file with Storable");
+
+      @seq_list = ();
+      push @files, $filename;
+    }
+
+
+    while(@files) {
+      my $filename = shift @files;
+
+      $seqsref = Storable::retrieve($filename)
+	or die ("$NAME: Could not retrieve data from $filename with Storable");
+      @seqs = @$seqsref;
+
+      while (@seqs) {
+	my $seq = shift @seqs;
+	print $OUT $seq;
+      }
+
+      unlink $filename or warn "$NAME: Could not delete temporary file $filename: $!";
+    }
+
+    while (@seq_list) {
+      my $seq = shift @seq_list;
+      print $OUT $seq;
     }
   }
 }
@@ -138,6 +223,7 @@ Options specific to B<fastail>:
   -v, --verbose                     append file name to sequence descriptions
   -q, --quiet, --silent             do not append file name to sequence
                                      descriptions
+  -M, --memory_limit=<integer>      a memory limit in bytes for the sequences
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -179,6 +265,13 @@ Defaults to on if multiple files are passed.
 Never append file names to sequence descriptions.
 Defaults to on if only one file is passed or if data is on STDIN. 
 Takes priority over verbose.
+
+=item B<-M [integer]>,
+      B<--memory_limit [integer]>
+
+The maximum number in bytes used to store sequences in memory. When more bytes 
+are needed temporary file(s) will be created to store the excess data. The 
+default value is 536900000 bytes (512MB).
 
 =item B<-h>,
       B<--help>
