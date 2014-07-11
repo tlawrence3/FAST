@@ -37,6 +37,7 @@ my $amino_order          = undef; #-o
 my $orderby_amino        = undef;
 my $table                = 1; #-t 
 my $append               = undef;
+my $fastq                = undef;
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -56,9 +57,9 @@ GetOptions('help|h'         		 => \$help,
      'amino-order|o=s'             => \$amino_order,
      'order-by-amino|g'            => \$orderby_amino,
      'table|t=i'                   => \$table,
-     'annotate|a'                    => \$append,
-
-	  ) 
+     'annotate|a'                  => \$append,
+     'fastq|q'  	           => \$fastq, 
+) 
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
@@ -67,6 +68,10 @@ pod2usage("$0: Requires at least one argument (a fasta-file). Try $NAME -h for h
 pod2usage("$0: Expects no arguments when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV != 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+
+if ($fastq){
+  $def_format = 'fastq'
+}
 
 my $code = FAST::Bio::Tools::CodonTable->new(-id => $table);
 my @append_seqs;
@@ -90,7 +95,7 @@ my %startcount = (); ## start codons
 my $middlecodons = my $startcodons = my $stopcodons = my $ambiguous_middle = my $ambiguous_start = my $ambiguous_stop = my $bad_length = my $numseqs = my $stop_at_middle = my $stop_at_start = my $nonstop = 0;
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
 
 unless (@ARGV) {
