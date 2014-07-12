@@ -6,47 +6,26 @@ use Test::Script::Run;
 
 run_not_ok('fashead', [], 'No input test');
 
-run_ok('fashead', [qw|t/data/P450.fas|], 'File test');
-run_ok('fashead', [qw|-n 3 t/data/P450.fas|], 'Sequence number test');
-run_ok('fashead', [qw|-v t/data/P450.fas|], 'Verbose test');
-
-run_ok('fashead', [qw| t/data/P450.fas t/data/P450.fas|], 'Multi-file test');
-run_ok('fashead', [qw|-q t/data/P450.fas t/data/P450.fas|], 'Silent test');
-
-open( my $test1, "<", "data/fashead_test1.fas" ) || die "Can't open P450.fas"; 
+open( my $test1, "<", "t/data/fashead_tail_test1.fas" ) || die "Can't open fashead_tail_test1.fas"; 
 my @output = <$test1>;
 chomp(@output);
-run_output_matches('fashead', [qw|data/fashead_test1.fas|], \@output, [], "Checking output without 'n' specified");
 close($test1);
 
-open( my $test2, "<", "data/fashead_test1.fas" ) || die "Can't open P450.fas"; 
-@output = <$test2>;
-chomp(@output);
-@output = @output[0 .. 3];
-run_output_matches('fashead', [qw|-n 1 data/fashead_test1.fas|], \@output, [], "Checking output with 'n' specified");
-close($test2);
+my @n_test_output = @output[0 .. 3];
 
-open( my $test3, "<", "data/fashead_test1.fas" ) || die "Can't open P450.fas"; 
-@output = <$test3>;
-chomp(@output);
-@output = @output[0 .. 3];
-$output[0] .= ' fashead_test1.fas';
-run_output_matches('fashead', [qw|-v -n 1 data/fashead_test1.fas|], \@output, [], "Checking verbose option");
-close($test3);
+my @verbose_test_output = @output[0 .. 3];
+$verbose_test_output[0] .= ' fashead_tail_test1.fas';
 
-open( my $test4, "<", "data/fashead_test1.fas" ) || die "Can't open P450.fas"; 
-@output = <$test4>;
-chomp(@output);
-@output = @output[0 .. 3];
-$output[0] .= ' fashead_test1.fas';
-push @output, @output;
-run_output_matches('fashead', [qw|-n 1 data/fashead_test1.fas data/fashead_test1.fas|], \@output, [], "Checking multi-file default verbose option");
-close($test4);
+my @silent_test_output = @output[0 .. 3];
+push @silent_test_output, @silent_test_output;
 
-open( my $test5, "<", "data/fashead_test1.fas" ) || die "Can't open P450.fas"; 
-@output = <$test5>;
-chomp(@output);
-@output = @output[0 .. 3];
-push @output, @output;
-run_output_matches('fashead', [qw|-q -n 1 data/fashead_test1.fas data/fashead_test1.fas|], \@output, [], "Checking multi-file silent option");
-close($test5);
+my @def_verbose_test_output = @output[0 .. 3];
+push @def_verbose_test_output, @def_verbose_test_output;
+$def_verbose_test_output[0] .= ' fashead_tail_test1.fas';
+$def_verbose_test_output[4] .= ' fashead_tail_test1.fas';
+
+run_output_matches('fashead', [qw|t/data/fashead_tail_test1.fas|], \@output, [], "Checking output without 'n' specified");
+run_output_matches('fashead', [qw|-n 1 t/data/fashead_tail_test1.fas|], \@n_test_output, [], "Checking output with 'n' specified");
+run_output_matches('fashead', [qw|-v -n 1 t/data/fashead_tail_test1.fas|], \@verbose_test_output, [], "Checking verbose option");
+run_output_matches('fashead', [qw|-q -n 1 t/data/fashead_tail_test1.fas t/data/fashead_tail_test1.fas|], \@silent_test_output, [], "Checking silent option");
+run_output_matches('fashead', [qw|-n 1 t/data/fashead_tail_test1.fas t/data/fashead_tail_test1.fas|], \@def_verbose_test_output, [], "Checking multi-file default verbose option");
