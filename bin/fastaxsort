@@ -145,6 +145,7 @@ else { # $field < 0
   $field_index = $field;
 }
 
+<<<<<<< HEAD
 my $re;
 if ($split_on_regex){
   $re = qr/$split_on_regex/;
