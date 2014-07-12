@@ -32,6 +32,8 @@ my $sequence             = undef;        # -s
 my $description          = undef;        # -d
 my $insensitive          = undef;        # -i
 my $global               = undef;        # -g
+my $fastq                = undef;
+
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -43,10 +45,11 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-           'global|g'                    => \$global,
-           'insensitive|i'               => \$insensitive,
-           'sequence|s'                  => \$sequence,
-           'description|d'               => \$description,
+     'global|g'                    => \$global,
+     'insensitive|i'               => \$insensitive,
+     'sequence|s'                  => \$sequence,
+     'description|d'               => \$description,
+     'fastq|q'                     => \$fastq,
 	  ) 
 
   or pod2usage(2);
@@ -87,6 +90,9 @@ else {
   $type = "identifier";
 }
 
+if ($fastq){
+  $def_format = 'fastq';
+}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
