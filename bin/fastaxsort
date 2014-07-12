@@ -146,14 +146,11 @@ else { # $field < 0
   $field_index = $field;
 }
 
-<<<<<<< HEAD
 my $re;
 if ($split_on_regex){
   $re = qr/$split_on_regex/;
-=======
 if ($fastq){
   $def_format = 'fastq';
->>>>>>> Updated fastaxsort to use -q option
 }
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
