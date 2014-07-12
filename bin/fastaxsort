@@ -34,6 +34,7 @@ my $field                = undef; #-F
 my $identifer            = undef; #-I
 my $index                = undef; #-i
 my $marker               = '#'; #-m
+my $fastq                = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -51,7 +52,8 @@ GetOptions('help|h'         		 => \$help,
      'field|F=s'                   => \$field,
      'indentifer|I'                => \$identifer,
      'index|i'                     => \$index,
-     'marker|M=s'                  => \$marker,     
+     'marker|M=s'                  => \$marker,
+     'fastq|q'                     => \$fastq,     
 
 	  ) 
   or pod2usage(2);
@@ -131,6 +133,9 @@ die if $index;
 
 my $re = qr/$field/ if ($field);
 
+if ($fastq){
+  $def_format = 'fastq';
+}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
@@ -151,10 +156,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
     }
   }
   if ($IN) { 
