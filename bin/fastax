@@ -34,6 +34,7 @@ my $identifier           = undef;        # -i
 my $field                = undef;        # -f
 my $split_on_regex       = undef;        # -S
 my $noname               = undef;        # -n
+my $fastq                = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -56,7 +57,7 @@ GetOptions('help|h'         		 => \$help,
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'no-names|n'                  => \$noname,
-	   
+     'fastq|q'                     => \$fastq,  
 	  ) 
   or exit(1);
 
@@ -144,6 +145,10 @@ if (defined $field and $field > 0) {
 }
 else { # $field < 0
   $index = $field;
+}
+
+if ($fastq){
+  $def_format = 'fastq';
 }
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
