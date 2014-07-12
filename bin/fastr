@@ -43,6 +43,7 @@ my $ambig_char           = undef; # -a
 my %strict_symbols       = ();
 my %iupac_symbols        = ();
 my %ambig                = ();
+my $fastq                = undef;
 
 ## TO GO INTO DICTIONARY
 $strict_symbols{'dna'}     = 'ACTGactg\-';
@@ -81,6 +82,7 @@ GetOptions('help|h'         		 => \$help,
 						  $ambig_char = $val;
 						},
            'no-replace|n'                => \$no_replace,
+           'fastq|q'                     => \$fastq,
 	  ) 
   or pod2usage(2);
 
@@ -136,15 +138,18 @@ unless ($iupac_or_strict) {
       
 }
 
+if ($fastq){
+  $format = 'fastq';
+}
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
@@ -156,10 +161,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   if ($IN) { 
