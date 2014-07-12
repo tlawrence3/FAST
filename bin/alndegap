@@ -322,7 +322,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
-Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
 
 =cut
