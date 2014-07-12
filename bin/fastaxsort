@@ -57,7 +57,7 @@ GetOptions('help|h'         		 => \$help,
 	   'identifier|i'                => \$identifier,
 	   'index'                       => \$index,
 	   'marker|M=s'                  => \$marker,
-           'fastq|q'                     => \$fastq,     
+           'fastq|q'                     => \$fastq,
 	  ) 
   or exit(1);
 
@@ -149,6 +149,9 @@ else { # $field < 0
 my $re;
 if ($split_on_regex){
   $re = qr/$split_on_regex/;
+}
+if ($fastq){
+  $def_format = 'fastq';
 }
 
 if ($fastq){
