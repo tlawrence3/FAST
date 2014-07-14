@@ -67,7 +67,7 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val != 0; 
 						  $field = $val;
 						},
-	   'tag|t=i'             => sub{  my (undef,$val) = @_; 
+	   'tag|t=s'             => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --tag or -t option expects string argument exclusively from [a-zA-Z0-9_-]\n" 
 						    unless $val =~ /^[a-zA-Z0-9_-]+$/;  
 						  $tag = $val;
