@@ -59,7 +59,11 @@ GetOptions('help|h'         		 => \$help,
      'table|t=i'                   => \$table,
      'annotate|a'                    => \$append,
      'fastq|q'                     => \$fastq,
+<<<<<<< HEAD
 	  ) 
+=======
+     ) 
+>>>>>>> 040e76d0bc2131b01ee7d92f9fb3cde4b872f029
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
