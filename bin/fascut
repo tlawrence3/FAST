@@ -25,6 +25,7 @@ my $def_field_join     = $FAST::DEF_JOIN_STRING; # " "
 
 ## OPTION VARIABLES
 my $man                  = undef;               # --man
+my $format               = $def_format;
 my $help                 = undef;               # -h
 my $moltype              = undef;               # -m, in case bioperl can't tell
 my $log                  = undef;               # -l
@@ -36,7 +37,6 @@ my $description          = undef;               # -d
 my $field                = undef;               # -f
 my $split_on_regex       = $def_split_on_regex; # -S 
 my $join                 = $def_field_join;     # -j
-my $fastq                = undef;
 #my $spawn                = undef;               # -w
 
 GetOptions('help|h'         		 => \$help, 
@@ -55,7 +55,7 @@ GetOptions('help|h'         		 => \$help,
 	   'field|f'                     => \$field,
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'join|j=s'                    => \$join,
-     'fastq|q'                     => \$fastq,
+     'fastq|q'                     => sub{$format = 'fastq';},
 #	   'spawn|w'                     => \$spawn,
 	  ) 
   or exit(1);
@@ -69,9 +69,6 @@ pod2usage("$NAME: expects one range-string argument when input is on STDIN.\n") 
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
-if ($fastq){
-  $def_format = 'fastq'
-}
 
 ##PARSE MULTICOORDS
 my @RANGES = ();
@@ -134,14 +131,14 @@ else {
 my $split_re = qr/$split_on_regex/;
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
@@ -153,10 +150,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   if ($IN) { 
@@ -236,7 +233,7 @@ record: while (my $seq = $IN->next_seq()) {
       $newdata = join $join,@newdata;
       
 
-      if ($fastq){
+      if ($format eq 'fastq'){
          if ($moltype) {
           $newseq = new FAST::Bio::Seq::Quality(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -qual => $seq->qual, -alphabet => $moltype);
           }
