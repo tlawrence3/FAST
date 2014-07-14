@@ -185,6 +185,26 @@ reformat other formats to and from multifasta.
 
 =over 8
 
+=item B<-s>, 
+      B<--sequence>
+
+Substitute on the sequences. By default substitution occurs on identifiers.
+
+=item B<-d>,
+      B<--description>
+
+Substitute on the descriptions. By default substitution occurs on identifiers.
+
+=item B<-i>,
+      B<--insensitive>
+
+Substitute case-insensitively. 
+
+=item B<-g>,
+      B<--global>
+
+Substitute all matches in the data. By default only the first match on each line will be subsituted.
+
 =item B<-h>,
       B<--help>
 
