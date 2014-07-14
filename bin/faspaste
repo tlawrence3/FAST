@@ -46,7 +46,7 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 	   'delimiters=s'                => \$descdelim,
 	   'serial|s'                    => \$serial,
-	   'join=s'                      => \$seqdelims,
+	   'j|join=s'                    => \$seqdelims,
 	   'd'                           => sub { $descdelim = ' '; },
 	  ) 
   or exit(1);
