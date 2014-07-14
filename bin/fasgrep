@@ -93,7 +93,7 @@ pod2usage("$NAME: expects one regex argument when input is on STDIN. Try \"perld
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
 if ($fastq){
-  $format = 'fastq'
+  $def_format = 'fastq';
 }
 
 my $arg = shift @ARGV;
