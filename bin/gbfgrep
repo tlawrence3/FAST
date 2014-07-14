@@ -49,7 +49,7 @@ GetOptions('help|h'         		   => \$help,
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-#pod2usage("Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file. Try $NAME -h for help.") if (!(-t STDIN) && (@ARGV != 0));
+pod2usage("Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file. Try $NAME -h for help.") if (!(-t STDIN) && (@ARGV != 0));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -225,7 +225,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
-Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
 
 =cut

@@ -244,21 +244,27 @@ __END__
 
 =head1 NAME
 
-name - what it does
+B<fastaxsort> - sort and identify sequences based on NCBI taxonomy
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<fastaxsort> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+B<fastaxsort> takes multifasta format sequence or alignment data as input,
 
-Options specific to name:
+Options specific to B<fastaxsort>:
+  -n, --noname
+  -S, --split
+  -F, --field
+  -I, --identifier
+  -i, --index
+  -m, --marker
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
+  -h, --help                        print a brief help message
+    --man             	            print full documentation
   --version                         print version
   -l, --log                         create/append to logfile	
   -L, --logname=<string>            use logfile name <string>
@@ -277,6 +283,36 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-n>
+      B<--noname>
+
+Description
+
+=item B<-S>
+      B<--split>
+
+Description
+
+=item B<-F>
+      B<--field>
+
+Description
+
+=item B<-I>
+      B<--indentifier>
+
+Description
+
+=item B<-i>
+      B<--index>
+
+Description
+
+=item B<-m>
+      B<--marker>
+
+Description
 
 =item B<-h>,
       B<--help>
@@ -357,7 +393,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
 Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
 
 =cut

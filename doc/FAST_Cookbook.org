@@ -227,3 +227,70 @@ one, appending all of the identifiers to one large identifier.
 #+BEGIN_SRC shell
 alndegap -a P450clustalw2.clustalw.fas | faslen | fasuniq
 #+END_SRC
+
+** Example 3: partitioning files based on ncbi taxonomy
+
+The =fastax= tool is a powerful tool when one wants to partition
+data based on their taxonomic affiliations. We can partition large
+datasets for subset analyses, statistical comparisons, and other
+applications and preparation of data. =fastax= depends on the user
+supplying a file with the tree structure already defined. In this
+example, we will use NCBI taxonomy. The files necessary include
+a nodes file (in this case /nodes.dmp/) and a names file (in this
+case, /names.dmp/). The nodes file consists of a line for each
+taxonomic entry in NCBI with information about its class (superfamily,
+genus, etc) and its parent node, indexed by its numeric identifier. 
+These files were retrieved from NCBI in a zipped package via FTP 
+located at pub/taxonomy/taxdump.tar.gz. The names.dmp file will 
+link the numeric identifier to any specific name that the entry can 
+be named including its scientific name, common name, and alternative 
+spellings accepted by NCBI. We will not create our own nodes and 
+names files, but note that it can be done if the user disagrees with 
+the NCBI taxonomic structure, or requires more specific partitions 
+of their data. 
+
+The importance of structured sequence tags comes into play in this 
+example. As described above, the line above the sequence in a fasta
+file is indexed by a ">" character followed by the identifier, followed
+by a space, and then everything else is located in the description. 
+=fastax= will need more structure around the taxonomic classification. 
+The program, by default, will search by the description field, but the 
+descrption field will have it's own structure. Note, if our description
+field only contains the species, or the TaxID, then we don't need
+to worry about structuring the description. If it is not the only thing
+in our description, then we need to modify the description a bit, or
+determine if there is a delimiter that already exists between the 
+TaxID and the other components of the description. 
+
+*** Reformat the description to allow for fastax sorting
+
+If we look at our P450.fas file, we see that the description 
+consists of "P450" and then a space, and then a square bracket "[",
+the species name, and then a closing square bracket "]". There is 
+currently no identifier that is unique surrounding only the species
+name. Open bracket and closed bracket are two different characters,
+and using the open bracket as a delimiter will give you the species
+name and the closed bracket in the second field, and this will not 
+match correctly. We will first change our description field to one
+delimiter using the handy =fastr= tool. Arbitrarily, we will chose 
+the double quote character for our description delimiter.
+
+#+BEGIN_SRC shell
+fastr -d "[]" "\"" P450.fas
+#+END_SRC
+
+Now in standard out, we will see fasta file-formatted text with
+the species name in the description in the sequence tag surrounded
+by quotes. In this file, the beginning of the description is in 
+field one, and the species in field two. We can use this information
+to construct a command to pull out the sequences that are in the 
+taxonomic "Pooideae" tribe. Assuming that nodes.dmp and names.dmp are
+in the same working directory, we can run the following. 
+
+#+BEGIN_SRC shell
+fastr -d"[]" "\"" P450.fas | fastax -S \" -f 2 nodes.dmp names.dmp "Pooideae"
+#+END_SRC
+
+The output of this pipeline should be five sequences, including P450 sequences
+from the /Triticum aestivum/ and /Lolium rigidum/ species (classified as species
+belonging to the /Pooideae/ tribe). 

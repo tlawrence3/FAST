@@ -51,6 +51,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+     'negate|v'                    => \$negate,
 
            'description|d'               => \$description,
 	   'field|f=i'                   => sub{  my (undef,$val) = @_; 
@@ -427,7 +428,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
-Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
 
 =cut

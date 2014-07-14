@@ -185,6 +185,26 @@ reformat other formats to and from multifasta.
 
 =over 8
 
+=item B<-s>, 
+      B<--sequence>
+
+Substitute on the sequences. By default substitution occurs on identifiers.
+
+=item B<-d>,
+      B<--description>
+
+Substitute on the descriptions. By default substitution occurs on identifiers.
+
+=item B<-i>,
+      B<--insensitive>
+
+Substitute case-insensitively. 
+
+=item B<-g>,
+      B<--global>
+
+Substitute all matches in the data. By default only the first match on each line will be subsituted.
+
 =item B<-h>,
       B<--help>
 
@@ -264,7 +284,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
-Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
 
 =cut

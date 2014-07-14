@@ -56,7 +56,7 @@ GetOptions('help|h'         		 => \$help,
      'amino-order|o=s'             => \$amino_order,
      'order-by-amino|g'            => \$orderby_amino,
      'table|t=i'                   => \$table,
-     'append|a'                    => \$append,
+     'annotate|a'                    => \$append,
 
 	  ) 
   or pod2usage(2);
@@ -494,7 +494,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
-Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
 
 =cut

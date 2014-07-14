@@ -65,7 +65,7 @@ pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
 pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
-pod2usage("$NAME: expects path to \"nodes.dmp\" and path to \"names.dmp\" when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and [Taxon] when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 3);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
@@ -134,7 +134,7 @@ else {
 }
 while (@queue){
   my $first = shift @queue;
-  $match{$first} = ($negate ? 0 : 1);
+  $match{$first} = (($negate || $strict_negate)? 0 : 1);
   push @queue, @{ $children{$first} } if (exists  $children{$first});
 }
 
@@ -186,11 +186,12 @@ while ($IN or @ARGV) {
       }
       next unless $data;
       if ($nonamemode) {
-	print $OUT $seq if (($strict_negate and exists $parent{$data} and not $match{$data}) or ($negate and not $match{$data}) or $match{$data});
+	print $OUT $seq if (($strict_negate and exists $parent{$data} and not exists($match{$data})) or ($negate and not exists($match{$data})) or $match{$data});
       }
       else {
+	if($negate and not exists $id{$data}){print $OUT $seq;next;}
 	next unless (exists $id{$data});
-        print $OUT $seq if (($strict_negate and exists $parent{$id{$data}} and not $match{$id{$data}}) or ($negate and not $match{$id{$data}}) or $match{$id{$data}});
+        print $OUT $seq if (($strict_negate and exists $parent{$id{$data}} and not exists($match{$id{$data}})) or ($negate and not exists($match{$id{$data}})) or $match{$id{$data}});
       }      
     }
     undef $IN;
