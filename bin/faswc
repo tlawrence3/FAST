@@ -46,6 +46,7 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 	   'sequences|s'                 => \$sequences_only,
 	   'characters|c'                => \$characters_only,
+     'fastq|q'                     => sub { $format = 'fastq'; },
 	  ) 
   or exit(1);
 		  
@@ -59,7 +60,7 @@ pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $N
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
-my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
