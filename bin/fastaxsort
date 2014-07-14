@@ -47,6 +47,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+<<<<<<< HEAD
 	   'field|f=i'                   => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --field or -f option expects non-zero integer argument\n" 
 						    unless $val != 0; 
@@ -58,6 +59,15 @@ GetOptions('help|h'         		 => \$help,
 	   'index'                       => \$index,
 	   'marker|M=s'                  => \$marker,     
            'fastq|q'                     => \$fastq,     
+=======
+     'noname|n'                    => \$noname,
+     'split|S=i'                   => \$split,
+     'field|F=s'                   => \$field,
+     'indentifer|I'                => \$identifer,
+     'index|i'                     => \$index,
+     'marker|M=s'                  => \$marker,
+     'fastq|q'                     => \$fastq,     
+>>>>>>> 71aed7f7046f3f7f1018e74c5f14a48367e95b45
 
 	  ) 
   or exit(1);
@@ -146,9 +156,12 @@ else { # $field < 0
   $field_index = $field;
 }
 
+<<<<<<< HEAD
 my $re;
 if ($split_on_regex){
   $re = qr/$split_on_regex/;
+=======
+>>>>>>> 71aed7f7046f3f7f1018e74c5f14a48367e95b45
 if ($fastq){
   $def_format = 'fastq';
 }
