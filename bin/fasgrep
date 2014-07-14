@@ -44,6 +44,7 @@ my $tag            = undef;  # -t
 my $iupac_ambiguity_expand_regex_prot        = undef; # -p, implies -s
 my $iupac_ambiguity_expand_regex_nuc         = undef; # -e, implies -s
 my $revcom_iupac_ambiguity_expand_regex_nuc  = undef; # -r, implies -s
+my $fastq                = undef; #-q
 
 
 GetOptions('help|h'         		 => \$help, 
@@ -77,6 +78,7 @@ GetOptions('help|h'         		 => \$help,
            'iupac-expand-prot|p'         => \$iupac_ambiguity_expand_regex_prot,
 	   'iupac-expand-nuc|e'          => \$iupac_ambiguity_expand_regex_nuc,
 	   'revcom-iupac-expand-nuc|r'   => \$revcom_iupac_ambiguity_expand_regex_nuc,
+     'fastq|q'                     => \$fastq,
 	  ) 
   or exit(1);
 		  
@@ -89,6 +91,10 @@ pod2usage("$NAME: expects one regex argument and at least one input filename or 
 pod2usage("$NAME: expects one regex argument when input is on STDIN. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 1);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+
+if ($fastq){
+  $def_format = 'fastq'
+}
 
 my $arg = shift @ARGV;
 my $re_string;
@@ -136,14 +142,14 @@ else { # $field < 0
 }
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta', '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'fasta');
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
@@ -155,10 +161,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta', '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => 'fasta');
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   if ($IN) { 
