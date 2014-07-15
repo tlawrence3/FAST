@@ -46,7 +46,7 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 	   'table|t'                     => \$table,
 	   'join|j=s'                    => \$join,
-           'fastq|q'                     => sub {$def_format = 'fastq'},
+           'fastq|q'                     => sub {$def_format = 'fastq';},
 	  ) 
   or exit(1);
 		  
