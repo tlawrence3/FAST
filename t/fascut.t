@@ -1,7 +1,7 @@
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 17;
+use Test::More tests => 18;
 use Test::Script::Run;
 
 my $test_file = 't/data/fashead_tail_test1.fas';
@@ -39,9 +39,9 @@ $neg_test2[3] = 'IGQ';
 $neg_test2[5] = 'IGQ';
 
 my @neg_by_test = @range_test1;
-$neg_by_test[1] = 'GKA';
-$neg_by_test[3] = 'GKA';
-$neg_by_test[5] = 'GKA';
+$neg_by_test[1] = 'AKG';
+$neg_by_test[3] = 'AKG';
+$neg_by_test[5] = 'AKG';
 
 my @id_test = @output;
 $id_test[0] = '>gi|294338405| P450 [Ummeliata insecticeps]';
@@ -103,6 +103,9 @@ run_output_matches('fascut', ['--', '-6:', $test_file],
 run_output_matches('fascut', ['--', '-6:-4', $test_file],
 		   \@neg_test2, [], 'Checking by negative range option');
 
+run_output_matches('fascut', ['--', '-1:-6:-2', $test_file],
+		   \@neg_by_test, [], 'Checking by negative range option');
+
 run_output_matches('fascut', ['-i', '1:13', $test_file],
 		   \@id_test, [], 'Checking identifier option');
 
@@ -123,7 +126,3 @@ run_output_matches('fascut', ['--strict', '1:1000', $test_file], [],
 		    'fascut: Skipped sequence gi|294338401|emb|CBL51704.1| with sequence length 151: indices 1 and/or 1000 out-of-bounds.',
 		    'fascut: Skipped sequence gi|294338403|emb|CBL51705.1| with sequence length 151: indices 1 and/or 1000 out-of-bounds.'], 
 		   'Checking by strict option');
-
-## potentially broken
-#run_output_matches('fascut', ['--', '-6::-2', $test_file],
-#		   \@neg_by_test, [], 'Checking by negative range option');
