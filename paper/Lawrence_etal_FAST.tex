@@ -9,23 +9,20 @@
 \pubyear{}
 
 \def\journal{Genetics}%%% write here for which journal %%%
-\def\DOI{}
-\def\articleType{Methods}
+\def\DOI{} \def\articleType{Methods}
 \def\keyFont{\fontsize{8}{11}\helveticabold }
 \def\firstAuthorLast{Lawrence {et~al.}} %use et al only if is more than 1 author
-\def\Authors{Travis J. Lawrence\,$^{1}$, Dana L. Carper\,$^{1}$,
-  Katherine C.H. Amrine\,$^{1,2}$, Kyle T. Kauffman\,$^{3}$, Claudia
-  J. Canales\,$^{3}$ and David H. Ardell\,$^{1,*}$}
-\def\Address{$^{1}$Quantitative and Systems Biology, University of California, Merced, CA, USA \\
-$^{2}$Present address: Department of Viticulture and Enology, University of California, Davis, CA, USA \\ 
-$^{3}$School of Natural Sciences, University of California, Merced, CA, USA}
-% The Corresponding Author should be marked with an asterisk
-% Provide the exact contact address (this time including street name and city zip code) and email of the corresponding author
+\def\Authors{Travis J. Lawrence\,$^{1}$, Dana L. Carper\,$^{1}$, Kyle
+  T. Kauffman\,$^{2}$, Katherine C.H. Amrine\,$^{1,3}$, Raymond S. Lee\,$^{4}$, Claudia
+  J. Canales\,$^{4}$ and David H. Ardell\,$^{1,2*}$}
+\def\Address{
+$^{1}$Quantitative and Systems Biology, University of California, Merced, CA, USA \\
+$^{2}$Molecular and Cell Biology Unit, University of California, Merced, CA, USA \\
+$^{3}$Dept. of Viticulture and Enology, University of California, Davis, CA, USA \\
+$^{4}$School of Engineering, University of California, Merced, CA, USA}
 \def\corrAuthor{David H. Ardell}
-\def\corrAddress{School of Natural Sciences, University of California, Merced, 5200 North Lake Road, Merced, CA , 95343, USA}
+\def\corrAddress{Molecular and Cell Biology, School of Natural Sciences, University of California, Merced, 5200 North Lake Road, Merced, CA , 95343, USA}
 \def\corrEmail{dardell@ucmerced.edu}
-
-% \color{FrontiersColor} Is the color used in the Journal name, in the title, and the names of the sections.
 
 \begin{document}
 \onecolumn
@@ -35,105 +32,160 @@ $^{3}$School of Natural Sciences, University of California, Merced, CA, USA}
 \author[\firstAuthorLast ]{\Authors}
 \address{}
 \correspondance{}
-\topic{}% If your article is part of a Research Topic, please indicate here which.
+\topic{}
 
 \maketitle
 
 \begin{abstract}
-
-\section{}
-The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX utilities
-(for example fasgrep, fascut, fashead and fastr) for sequence bioinformatics
-modeled after the UNIX textutils (such as grep, cut, head, tr, etc). FAST
-workflows are designed for "inline" (serial) processing of flatfile
-biological sequence record databases per-sequence, rather than per-line,
-through UNIX pipelines. The default data exchange format is multifasta
-(specifically, a restriction of BioPerl FastA format). FAST is designed for
-learnability, interoperability, interface consistency, rapid prototyping,
-fine-tuned control, and reproducibility. FAST tools expose the power of Perl
-and BioPerl to users in an easy-to-learn command-line paradigm.
-
-\tiny
- \keyFont{ \section{Keywords:}  } %All article types: you may provide up to 8 keywords; at least 5 are mandatory.
+FAST (Fast Analysis of Sequences Toolbox) provides simple
+command-line tools for rapid prototyping of powerful and reproducible
+bioinformatic workflows on flat-file biological sequence databases.
+Modeled after the GNU (GNU's Not UNIX) Textutils such as {\tt grep},
+{\tt cut}, and {\tt tr}, FAST tools such as {\tt
+  fasgrep}, {\tt fascut}, and {\tt fastr} are designed to be serially
+composed (linked together) in UNIX-style pipelines but process data
+per-record rather than per-line. This design enables efficient inline
+processing of biological sequence data in a familiar and time-tested
+idiom. Functionality highlights of FAST include feature-based slicing
+of sites from alignments, sequence filtering and transformation with
+Perl regular expressions, numerical and taxonomic selection and
+sorting of sequence records, annotation of sequences with molecular
+biological statistics including composition and codon usage,
+translation of gapped data, and statistics for molecular population
+genetic analysis. FAST's default data exchange format is MultiFastA
+(specifically, a restriction of BioPerl FastA format). Compared to
+software already available, FAST is distinguished by consistency in
+interface design across utilities, conformance with Unix philosophy,
+and the portability, ease of installation, and security inherent in
+its BioPerl and Perl foundations. FAST workflows reduce manual
+interventions in data processing and facilitate the interactive
+investigation and control of data by its users. Bringing all the
+advantages of open-source software consistent with scientific ideals,
+FAST has a shallow learning curve with a high return on investment of
+mastery because its interface design is consistent with the
+conventions of GNU utilities, Perl, BioPerl, and R. FAST brings the
+power of Perl and BioPerl to bioinformatic users at the command-line
+without requiring previous programming skills and experience. \tiny
+\keyFont{
+  \section{Keywords:} Unix philosophy, MultiFASTA, pipeline,
+  bioinformatic workflow, open source, BioPerl, regular expression,
+  NCBI Taxonomy}
 \end{abstract}
 
 \section{Introduction}
 
-% For Original Research Articles, Clinical Trial Articles, and Technology Reports the introduction should be succinct, with no subheadings.
-%
 The field of molecular biology has changed significantly with the
-advent of next generation sequencing technology. It is now commonplace
-to analyze gigabases worth of data per experiment. Traditionally
-programs were developed for visualization and for basic sequence
-manipulation by a GUI interface \citep{Smith1994, Rampp2006}. Most
-available bioinformatic toolkits are designed for specific types of
-data or analysis requiring several toolkits to be installed. Moreover,
-each toolkit often requires a different file format making data
-analysis difficult.
+advent of Next Generation Sequencing (NGS) technology. It is now
+commonplace to analyze gigabases of data per experiment. Commonly,
+bioinformatics programs are developed for visualization and basic
+sequence manipulation through a monolithic application with a
+Graphical User Interface (GUI) \citep{Smith1994, Rampp2006,
+  Librado01062009}. Command-line utilities for bioinformatics such as
+the EMBOSS package~\citep{Rice2000} or the scripts that come with
+BioPerl~\citep{Stajich2002} typically offer suites of tools with
+simple, well-defined functions, but are not necessarily designed to
+interoperate with each other. Some monolithic applications are not
+open-source, which invites the accumulation and persistence of
+incorrect code.
 
-The FAST utilities are modeled after the
-standard Unix toolkit\citep{Peek2001}, follow the Unix philosophy of
-``do one thing and do it well'' \citep{Stutz2000}, and are written in
-PERL using bioperl packages \citep{Stajich2002}. This makes FAST
-utilities easy to adopt if you are familiar with the Unix toolkit and
-allows fast sequence analysis even on large datasets. FAST utilities
-have a uniform interface requiring FASTA formatted files and are
-capable of reading data from STDIN. This allows quick prototyping of
-sequence analysis problems by piping data between several
-utilities. Additionally, fasconvert can convert to/from fasta from/to
-several formats increasing the flexibility and usability of
-FAST. Extensive documentation has been developed for each utility
-along with useful error messages following the recommendations of
-\cite{Seemann2013} to increase usability. Lastly, FAST is open source,
-which makes it available to anyone free of cost. This is in line with
-the call to make science more assessable, open, and reproducible by
-other scientists and the public \citep{Groves2012}.  
+To reduce human error and increase reproducibility in managing
+biological data, it is desirable to create and document automated
+bioinformatic workflows governed by machine processing of biological
+data. Web-based workflow suites such as Galaxy~\citep{galaxy},
+Taverna~\citep{CPE:CPE993} and BioExtract~\citep{Lushbough01072011}
+are not quite as agile for rapid prototyping of workflows as are UNIX
+pipelines.
 
-FAST is split
-into three categories selection, transformation, and annotation and
-analysis. The selection category contains utilities designed to select
-sequences and sites from alignments based on several different
-criteria. For example fasgrep selects sequences by matching a regular
-expression to the ID, description, or sequence. The transformation
-utilities are used to modify the ID, description, sequence, or order
-of sequences using several criteria. For example, fastaxsort sorts
-sequences within a multifasta file based on NCBI taxonomy
-\citep{Benson2009, Sayers2009}. The annotation and analysis category
-contains utilities to calculate sequence composition, codon usage,
-sequence length, and basic population genetic statistics. Additionally
-these utilities can also append the results of the analysis to the
-sequence description, which then can be used as selection criteria by
-the utilities in the selection category.
+The FAST utilities are modeled after the standard Unix
+toolkit\citep{Peek2001} and follow the Unix philosophy to ``do one
+thing and do it well'' \citep{Stutz2000}. They are written in Perl
+using BioPerl packages \citep{Stajich2002}. This makes FAST utilities
+easy to adopt if you are familiar with the Unix toolbox and allows
+fast sequence analysis even on large datasets. Extensive
+documentation has been developed for each utility along with useful
+error messages following the recommendations of \cite{Seemann2013} to
+increase usability. Lastly, FAST is open source, which makes it
+available to anyone free of cost. This is in line with the call to
+make science more assessable, open, and reproducible by other
+scientists and the public~\cite{Groves2012}.
 
-Some utilities within FAST
-have overlapping function with those found within other toolkits. For
-example sequence composition, sequence translation, and codon usage
-are available in the EMBOSS package \citep{Rice2000}. Another example
-is the Bioinformatics Toolbox \citep{White2014} that has utilities to
-select only unique sequences and extract sequences from Genbank files
-based on gene name, which have overlapping function with fasuniq and
-gbfeat2fas respectively. However, the utilities in EMBOSS
-\citep{Rice2000} and Bioinformatics Toolbox \citep{White2014} lack a
-uniform interface, are not modeled after the Unix toolkit, and do not
-have the ability to use regular expressions to select and manipulate
-sequences. However, FAST also contains several utilities that have
-unique functionality. For example gbalncut takes a multiple sequence
-alignment annotated with a genomic feature and a genbank file and
-allows you to select certain regions of the alignment such as all the
-exons or the coding sequence. Another example is fastaxsort that
-allows sorting of a multifasta file based on NCBI taxonomy
-\citep{Benson2009, Sayers2009}.
+\section{Design}
 
-%\begin{methods}
-\section{Description}
+An overview of Version 1.0 of the FAST project is shown in
+Figure~\ref{fig:01}. Descriptions of the function of utilities along
+with GNU Textutil analogs are given in Table~\ref{tab:01}.
+
+\begin{table}[!t]
+\textbf{\refstepcounter{table}\label{tab:01} Table \arabic{table}.}{
+  FAST 1.0 utilities }
+
+\processtable{ }
+{\begin{tabular}{llll}\toprule
+    Tool  & Function  & Textutil analog & Default field processed  \\\midrule
+    {\tt fasgrep} & regex selection of records & {\tt grep} & identifiers\\
+    {\tt fasfilter} & numerical selection of records &  & identifiers \\
+    {\tt fastax} & taxonomic selection of records &  & descriptions \\
+    {\tt fashead} & order-based selection of records & {\tt head} & \\
+    {\tt fastail} & order-based selection of records &  {\tt tail}  &  \\
+    {\tt fascut} & index-based selection and reordering of data  &  {\tt cut}  & sequences \\
+    {\tt fasuniq} &  record reduction by content and order & {\tt uniq} & sequences \\
+    {\tt alncut} & selection of sites by content &  & sequences \\
+    {\tt gbfalncut} & selection of sites by features &  & sequences \\
+    {\tt fassort} & numerical or text sorting of records  & {\tt sort} & identifiers\\
+    {\tt fastaxsort} & taxonomic sorting of records &  & identifiers \\
+    {\tt faspaste} & merging of records &  {\tt paste} & sequences \\
+    {\tt fastr} & character transformations on records & {\tt tr} & identifiers\\
+    {\tt fassub} & regex substitutions on records &  & identifiers \\
+    {\tt faslen} & annotate sequence lengths &  & descriptions \\
+    {\tt fascomp} & annotate monomeric compositions &  & descriptions \\
+    {\tt fascodon} & annotate codon usage &  & descriptions \\
+    {\tt fasxl} & annotate biological translations &  & descriptions \\
+    {\tt fasrc} & annotate reverse complements &  & descriptions \\
+    {\tt fasconvert} & convert format of records &  &  \\
+    {\tt gbfgrep} & select feature neighborhoods by context & {\tt grep}  & features \\
+    {\tt gbf2fas} & emit sequences by regex matching on features  & {\tt grep}  & features\\
+    {\tt alnpi} & molecular population genetic statistics &  &  \\
+    {\tt faswc} & tally sequences and characters & {\tt wc} & sequences \\
+\end{tabular}}{}
+\end{table}
+
+FAST is split into three categories selection, transformation, and
+annotation and analysis. The selection category contains utilities
+designed to select sequences and sites from alignments based on
+several different criteria. For example fasgrep selects sequences by
+matching a regular expression to the ID, description, or sequence. The
+transformation utilities are used to modify the ID, description,
+sequence, or order of sequences using several criteria. For example,
+fastaxsort sorts sequences within a multifasta file based on NCBI
+taxonomy \citep{Benson2009, Sayers2009}. The annotation and analysis
+category contains utilities to calculate sequence composition, codon
+usage, sequence length, and basic population genetic
+statistics. Additionally these utilities can also append the results
+of the analysis to the sequence description, which then can be used as
+selection and sorting criteria by the utilities in the selection
+category.
 
 Learnability of the FAST tools is helped by making interface
 components such as specific options, consistent with the standard UNIX
-tools amd across the FAST suite. Learning one FAST tool generally
+tools and across the FAST suite. Learning one FAST tool generally
 helps the user anticipate how to use others. In addition,
 specification of numerical ranges, regular expressions and other
 useful parameters follows standard Perl and UNIX conventions, all with
 the intent of making the tools fast and easy to learn.
+
+\section{Implementation Details and Benchmarking}
+
+All FAST utilities can process files or input on what is called the
+``standard input'' stream. They all by default out to the ``standard
+output'' stream which may be connected to the ``standard input'' of
+another utility by a UNIX ``pipe.'' It is this latter facility that
+eases serial processing of data. Since most FAST utilities process
+sequences inline, they should mostly linear runtime complexity in
+number of sequences. Two exceptions to inline processing in FAST
+utilities concern {\tt fassort } and {\tt fastail} which both require
+some paging of data into temporrary files. However, some preliminary
+benchmarking suggests that {\tt fassort} runtimes also scale linearly in
+sequence number (fig~\ref{fig:02}).
 
 FAST is compatible with the zero-based indexing if the sequence
 identifier is thought as the zero$^{th}$ field of the identifier
@@ -141,83 +193,130 @@ line. This field must exist in Data selection in FAST is
 one-based as is conventional BioPerl coordinates and bioinformatics
 generally.
 
-\subsection{Selection Utilities}
+FAST supports automated logging to ease the reproducibility of
+workflows. The BioPerl backend of FAST was version 1.6.901 downloaded in January,
+2012. BioPerl dependencies of FAST scripts were analyzed with the Cava
+packager (\url{http://www.cavapackager.com}). To fix some problems with
+I/O, the SeqIO components of FAST were updated to version 1.6.923 on
+June 4, 2014. Some customizations of the BioPerl code-base were
+introduced, primarily to enable the translation of sequences
+containing gaps. 
 
-\subsection{Transformation Utilities}
+\section{Installation and Usage Examples}
 
+\subsection{Installation and Dependencies}
+FAST requires a working Perl installation and is distributed through
+the Comprehensive Perl Archive Network (CPAN). In a manual install,
+after download, installation follows standard Perl install procedure:
+{\tt perl Makefile.PL; make; make test; (sudo) make install}. A small
+footprint of BioPerl dependencies has been packaged together in the
+FAST namespace. Other CPAN dependencies can be detected and installed
+by the {\tt cpan} package manager. A fully automated install may on
+many systems be initiated by executing {\tt perl -MCPAN -e 'install
+  FAST'}.
 
-\subsection{Annotation and Analysis Utilities}
-\subsection{Usability and Scalability}
+\subsection{Selecting sequences by encoded motifs }
 
-%\end{methods}
+An advantage of the annotation approach in FAST is the ability to
+select and sort sequences by attributes computed and annotated into
+data by utilities upstream in the pipeline. For example, to select
+protein-coding genes from a file {\tt cds.fas} whose translations
+contain the {\it N}-glycosylation amino acid
+motif~\cite{KornfieldKornfield85}, one could execute:
 
-\section{Discussion}
+\begin{verbatim}
+fasxl -a cds.fas | fasgrep -t xl0 "N[^P][ST][^P]" | fascut -f 1..-2
+\end{verbatim}
+ 
+The first command in the pipeline translates each sequence and appends
+the translation to the description with the tag ``xl0'' (indicating
+translation in the zeroth reading frame). The second command in the
+pipeline does a regex match using the specified motif pattern on the
+value of a ``name:value'' pair in the description with tag ``xl0'',
+hence processing the annotations produced by {\tt fasxl}. The regex
+argument to {\tt fasgrep} is quoted to protect the argument from
+interpretation by the shell. The last command in the pipeline removes
+the last field in the description, restoring records as they were
+before they were annotated by {\tt fasxl}.
 
-Text Text Text Text Text Text  Text Text Text Text Text Text Text Text Text  Text Text Text Text Text Text Text Text Text Text.
-Additional Requirements:
-\subsection{Data Sharing}
+\subsection{Sorting sequences by third codon position composition}
 
-Frontiers supports the policy of data sharing, and authors are advised to make freely available any materials and information described in their article, and any data relevant to the article (while not compromising confidentiality in the context of human-subject research) that may be reasonably requested by others for the purpose of academic and non-commercial research. In regards to deposition of data and data sharing through databases, Frontiers urges authors to comply with the current best practices within their discipline.
+Another example illustrates the powerful expression of ranges in {\tt
+  fascut}. An optional ``by'' parameter in ranges allows increments or
+decrements in steps larger than one. To extract the third codon
+position bases from a gene, annotate their compositions, and sort
+sequences by their third-position adenosine contents, do:
+
+\begin{verbatim}
+fascut -s 1:-1:3 cds.fas | fascomp -a | fassort -nt comp_A
+\end{verbatim}
+
+\section{Concluding Remarks}
+
+Planned additions in future versions of FAST include {\tt fasrand} and
+{\tt alnrand} for sampling, permutations and bootstrapping of
+sequences and sites, respectively.
+
+\section*{Availability}
+
+FAST is available through the Comprehensive Perl Archive Network
+(CPAN) at \url{http://search.cpan.org/~dhard/FAST}
 
 \section*{Disclosure/Conflict-of-Interest Statement}
-%Frontiers follows the recommendations by the International Committee of Medical Journal Editors (http://www.icmje.org/ethical_4conflicts.html) which require that all financial, commercial or other relationships that might be perceived by the academic community as representing a potential conflict of interest must be disclosed. If no such relationship exists, authors will be asked to declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest. When disclosing the potential conflict of interest, the authors need to address the following points:
-%•	Did you or your institution at any time receive payment or services from a third party for any aspect of the submitted work?
-%•	Please declare financial relationships with entities that could be perceived to influence, or that give the appearance of potentially influencing, what you wrote in the submitted work.
-%•	Please declare patents and copyrights, whether pending, issued, licensed and/or receiving royalties relevant to the work.
-%•	Please state other relationships or activities that readers could perceive to have influenced, or that give the appearance of potentially influencing, what you wrote in the submitted work.
 
-The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
+The authors declare that the research was conducted in the absence of
+any commercial or financial relationships that could be construed as a
+potential conflict of interest.
 
 \section*{Author Contributions}
-%When determining authorship the following criteria should be observed:
-%•	Substantial contributions to the conception or design of the work; or the acquisition, analysis, or interpretation of data for the work; AND
-%•	Drafting the work or revising it critically for important intellectual content; AND
-%•	Final approval of the version to be published ; AND
-%•	Agreement to be accountable for all aspects of the work in ensuring that questions related to the accuracy or integrity of any part of the work are appropriately investigated and resolved.
-%Contributors who meet fewer than all 4 of the above criteria for authorship should not be listed as authors, but they should be acknowledged. (http://www.icmje.org/roles_a.html)
 
-The statement about the authors and contributors can be up to several sentences long, describing the tasks of individual authors referred to by their initials and should be included at the end of the manuscript before the References section.
-
+D.H.A. conceived, designed, and wrote much of FAST. T.J.L. contributed
+major code factorizations and reorganization and {\tt
+  fastail}. K.T.K. contributed code including {\tt faspaste}, and {\tt
+  fashead}. R.S.L. contributed an analysis of code dependencies for
+the FAST installer. All authors, especially D.L.C. and C.J.C.,
+contributed documentation, testing, and code fixes. K.C.H.A. and
+D.H.A. wrote the FAST Cookbook. D.H.A. wrote the paper with major
+contributions from D.L.C. and T.J.L. All authors made minor
+contributions to the manuscript, reviewed the final version of the
+manuscript and agree to be accountable for its contents.
 
 \section*{Acknowledgement}
-We acknowledge NSF, Professsors Laura Landweber, Siv Andersson and
-Leif Kirsebom, the Linnaeus Centre for Bioinformatics and Biomedical
-Computing group, the Graduate Research Council and Chancellor's award
- to DHA. of UC Merced
+We acknowledge Christopher Clark for help in establishing a git
+repository for FAST. D.H.A. gratefully acknowledges Professors Laura
+Landweber, Siv Andersson and Leif Kirsebom in whose laboratories the
+FAST tools were first developed as well as the Linnaeus Centre for
+Bioinformatics at Uppsala University.
 
-\paragraph{Funding\textcolon} Text Text Text Text Text Text  Text Text.
-
-\section*{Supplemental Data}
-Text Text Text Text Text Text  Text Text Text Text Text Text Text Text Text  Text Text Text Text Text Text Text Text Text  Text Text Text.
+\paragraph{Funding\textcolon} D.H.A. gratefully acknowledges an NSF-DBI
+Postdoctoral Fellowship in Biological Informatics and awards to
+D.H.A. from UC Merced's Graduate Research Council and a Chancellor's
+Award from UC Merced's second Chancellor Sung-Mo Kang.
 
 \bibliographystyle{frontiersinSCNS&ENG} % for Science and Engineering articles
-%\bibliographystyle{frontiersinHLTH&FPHY} % for Health and Physics articles
 \bibliography{FAST}
 
 \section*{Figures}
 
-%%% Use this if adding the figures directly in the mansucript, if so, please remember to also upload the files when submitting your article
-%%% There is no need for adding the file termination, as long as you indicate where the file is saved. In the examples below the files (logo1.jpg and logo2.eps) are in the Frontiers LaTeX folder
-%%% If using *.tif files convert them to .jpg or .png
+\begin{figure}
+\begin{center}
+\includegraphics[width=4.5in]{FAST_v7}% This is a *.jpg file
+\end{center}
+ \textbf{\refstepcounter{figure}\label{fig:01} Figure
+   \arabic{figure}.}{ FAST version 1.0 with data and workflow
+   dependencies indicated.}
+\end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=3.5cm]{FAST_v2}% This is a *.jpg file
+\includegraphics[width=6.5in]{FasSort}% This is a *.jpg file
 \end{center}
- \textbf{\refstepcounter{figure}\label{fig:01} Figure \arabic{figure}.}{ Enter the caption for your figure here.  Repeat as  necessary for each of your figures }
+\textbf{\refstepcounter{figure}\label{fig:02} Figure
+  \arabic{figure}.}{Runtime benchmarks for {\tt fassort}. Each point
+  is the average of CPU runtime until completion over 10 runs with the
+  Benchmark package. Left panel represents runs with a sequence length
+  of 1000 bp. Right panel are runs with a sequence length of 250 nt.}
 \end{figure}
 
-%\begin{figure}
-%\begin{center}
-%\includegraphics[width=3.5cm]{logo2}% This is an *.eps file
-%\end{center}
-% \textbf{\refstepcounter{figure}\label{fig:02} Figure \arabic{figure}.}{ Enter the caption for your figure here.  Repeat as  necessary for each of your figures }
-%\end{figure}
-
-% If you don't add the figures in the LaTeX files, please upload them when submitting the article.
-
-%%% Frontiers will add the figures at the end of the provisional pdf automatically %%%
-
-%%% The use of LaTeX coding to draw Diagrams/Figures/Structures should be avoided. They should be external callouts including graphics.
 
 \end{document}
