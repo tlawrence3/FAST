@@ -75,7 +75,7 @@ GetOptions('help|h'         		 => \$help,
 	   'degap'                       => \$degap,
 	   'sequence|s'                  => \$sequence,
 	   'description|d'               => \$description,
-	   'ambig|a'                     => sub{  my (undef,$val) = @_; 
+	   'ambig|a=s'                   => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --ambig or -a option arg must be length 1\n" 
 						    unless (length $val == 1); 
 						  $ambig_char = $val;
