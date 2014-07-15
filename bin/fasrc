@@ -154,13 +154,6 @@ Print the manual page and exit.
 
 Print version information and exit.
 
-=item B<-b>,
-      B<--brand>
-
-"Brands" output sequences with "-rc" suffix on the sequence
-identifiers on output to signal that they have been reverse
-complemented.
-
 =item B<-l>,
       B<--log>
 
