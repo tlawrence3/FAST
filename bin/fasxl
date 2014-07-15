@@ -291,6 +291,69 @@ reformat other formats to and from multifasta.
 
 =over 8
 
+=item B<-a>,
+      B<--annotate>
+
+This option outputs translations as tagged values in descriptions.
+By default translations are outputted in the sequence.
+
+=item B<-j>,
+      B<--join>=<string>
+
+Use a <string> to join data in the description. By default a space is used. 
+
+=item B<-g>,
+      B<--gapped>
+
+This option enables translation of gapped sequences.
+
+=item B<-k>,
+      B<--keep>
+
+Keep inputted sequences in the output. This option also enables the
+translation of gapped sequences.
+
+=item B<-o>,
+      B<--codon2aa>
+
+turn codon alignment into a protein alignment 
+(best used for codon-based alignments, where gaps are mod 3 
+length and seqs are to be translated in frame 0)
+
+=item B<-c<,
+      B<--cds>
+
+This option is deprecated.
+Treat as CDS (for bacterial code, for example, treat init codons as M).
+
+=item B<-f>,
+      B<--frame>=<int>
+
+Specify the frame for translation [0,1,2]. By default frame 0 is used.
+
+=item B<-t>,
+      B<--table>=<int>
+
+Specify an NCBI genetic code tableID for translating sequences.
+
+=item B<-3>
+
+Translate each sequence in all three forward frames.
+
+=item B<-6>
+
+Translate each sequence in all six frames.
+
+=item B<-s>,
+      B<--stop>=<char>
+
+Specify a string to representing stop codons. By default "*" is used.
+
+=item B<-u>,
+      B<--unknown>=<char>
+
+Specify a string representing unknown amino acids. By default "X" is used.
+
 =item B<-h>,
       B<--help>
 
@@ -304,57 +367,30 @@ Print the manual page and exit.
 
 Print version information and exit.
 
-=item B<-s>,
-      B<--match-sequence> 		
+=item B<-l>,
+      B<--log>
 
-Match on sequence data.
-Default: [match on identifier]
+Creates, or appends to, a generic FAST logfile in the current working
+directory. The logfile records date/time of execution, full command
+with options and arguments, and an optional comment.
 
-=item B<-d>,
-      B<--match-description> 		
+=item B<-L [string]>,
+      B<--logname=[string]>
 
-Match on description. If both -s and -d options are used, -s takes priority.
-Default: [match on identifier]
+Use [string] as the name of the logfile. Default is "FAST.log.txt".
 
-=item B<-v>,
-      B<--negate> 	   
+=item B<-C [string]>,
+      B<--comment=[string]>
 
-Output sequences that B<do not> match the regular expression argument.
+Include comment [string] in logfile. No comment is saved by default.
 
-=item B<-i>,
-      B<--insensitive> 	   
+=item B<--format=[format]> 		  
 
-Match data case-insensitively.
+Use alternative format for input. See man page for "fasconvert" for
+allowed formats. This is for convenience; the FAST tools are designed
+to exchange data in Fasta format, and "fasta" is the default format
+for this tool.
 
-=item B<-e>,
-      B<--iupac-expand-nuc> 	  
-
-Expand IUPAC ambiguity symbols in the regex argument for DNA/RNA
-sequence matching (implies -s, matching on sequence data). For
-example, the symbol "B" in the regex is equivalent to "[CGTU]". This
-option, -e, has priority over -p.
-
-=item B<-r>,
-      B<--revcom-iupac-expand-nuc> 	  
-
-Reverse complement the regular-expression and expand IUPAC ambiguity
-symbols for DNA/RNA sequence matching (implies -s, matching on
-sequence data). For example, the symbol "B" in the regex is equivalent
-to "[ACG]". This option, -r, takes priority over -e or -p.
-priority.
-
-=item B<-p>,
-      B<--iupac-expand-prot> 	  
-
-Expand IUPAC ambiguity symbols in the regex argyment for protein
-sequence matching (implies -s, matching on sequence data).
-
-=item B<-m>,
-      B<--moltype=[dna|rna|protein]> 		  
-
-Specify the type of sequence on input (should not be needed in most
-cases, but sometimes Bioperl cannot guess and complains when
-processing data).
 
 =back
 

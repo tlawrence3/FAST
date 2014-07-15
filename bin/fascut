@@ -48,7 +48,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'strict'                      => \$strict,
+	   's|strict'                    => \$strict,
 	   'identifier|i'                => \$identifier,
 	   'description|d'               => \$description,
 	   'field|f'                     => \$field,
@@ -303,7 +303,7 @@ defaults to "-1".  However, if strict-mode (-s) is enabled, then both
 types of bad range specifications will abort processing of a sequence
 record with no output for that sequence except a warning.
 
-If "spawn-mode" (-w) is enabled, each range-input combination produces
+(spawn-mode has been disabled) If "spawn-mode" (-w) is enabled, each range-input combination produces
 a distinct sequence to output.
 
 Options specific to B<fascut>:
