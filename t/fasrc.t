@@ -4,7 +4,7 @@ use warnings FATAL => 'all';
 use Test::More tests => 4;
 use Test::Script::Run;
 
-my $test_file = 'data/fasrc_test.fas';
+my $test_file = 't/data/fasrc_test.fas';
 
 open( my $test1, "<", $test_file ) || die "Can't open $test_file"; 
 my @output = <$test1>;
