@@ -162,16 +162,30 @@ record: while (my $seq = $IN->next_seq()) {
       my $seqid = $seq->id(); # for error messages if necessary
       my $length; 
       my @olddata = ();
+      my @oldqual = (); #used to store quality data if cutting sequence
       if ($field) {
 	@olddata = split $split_re,$olddata;
+  #if ($selector eq 'seq' and $format eq 'fastq'){
+   #my $length_seq;
+   #my @oldqual_split = split ' ', $seq->qual_text(); #store qual data for cutting
+   #foreach my $seq_length (@olddata) {
+    # $length_seq = length($seq_length);
+     # push @oldqual, splice (@oldqual_split,,$length_seq);
+    #} 
+  #} 
 	$length = scalar @olddata;
       }
       else {
 	@olddata = split //,$olddata;
-	$length = length $olddata;      
+  $length = length $olddata;
+  if ($selector eq 'seq' and $format eq 'fastq'){
+    @oldqual = split ' ', $seq->qual_text(); #store qual data for cutting
+  }      
       }
       my @newdata = ();
+      my @newqual = ();
       my $newdata;
+      my $newqual;
       my $newseq;
       foreach my $range (@ranges){
 	# if ($spawn) {
@@ -214,12 +228,21 @@ record: while (my $seq = $IN->next_seq()) {
 	my @slice = ();
 	if ($b == $e) {
 	  push @newdata,$olddata[$b];
+    if ($selector eq 'seq' && $format eq 'fastq'){
+      push @newqual,$oldqual[$b];
+    }
 	}
 	elsif ($by) {
 	  push @newdata,@olddata[@{ List::Gen::range ($b,$e,$by) }];
+    if ($selector eq 'seq' && $format eq 'fastq'){
+      push @newqual,@oldqual[@{ List::Gen::range ($b,$e,$by) }];
+    }
 	}
 	else {
 	  push @newdata,@olddata[@{ List::Gen::range ($b,$e) }];
+    if ($selector eq 'seq' && $format eq 'fastq'){
+      push @newqual,@oldqual[@{ List::Gen::range ($b,$e) }];
+    }
 	}
       }
       ## if -sequence and no @newdata, don't print
@@ -231,6 +254,7 @@ record: while (my $seq = $IN->next_seq()) {
 	$join = "";
       }
       $newdata = join $join,@newdata;
+      
       
 
       if ($format eq 'fastq'){
@@ -250,6 +274,7 @@ record: while (my $seq = $IN->next_seq()) {
         }
       }
       $newseq->$selector($newdata);
+      if ($selector eq 'seq' && $format eq 'fastq') {$newseq->qual(\@newqual);} 
       print $OUT $newseq;
     }
     undef $IN;
