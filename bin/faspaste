@@ -76,7 +76,7 @@ if ($descdelim) {
   @descdelims = ();
 }
 
-my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 
 my $maxdelim = @delims;
 my $maxdescdelim = @descdelims;
