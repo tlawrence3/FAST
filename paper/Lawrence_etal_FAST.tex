@@ -53,13 +53,14 @@ sorting of sequence records, annotation of sequences with molecular
 biological statistics including composition and codon usage,
 translation of gapped data, and statistics for molecular population
 genetic analysis. FAST's default data exchange format is MultiFastA
-(specifically, a restriction of BioPerl FastA format). Compared to
-software already available, FAST is distinguished by consistency in
-interface design across utilities, conformance with Unix philosophy,
-and the portability, ease of installation, and security inherent in
-its BioPerl and Perl foundations. FAST workflows reduce manual
-interventions in data processing and facilitate the interactive
-investigation and control of data by its users. Bringing all the
+(specifically, a restriction of BioPerl FastA format). Additionally, FAST
+has an option that allows the use of Sanger and Illumina 1.8+ FASTQ
+formatted files. Compared to software already available, FAST is 
+distinguished by consistency in interface design across utilities, 
+conformance with Unix philosophy,and the portability, ease of installation, 
+and security inherent in its BioPerl and Perl foundations. 
+FAST workflows reduce manual interventions in data processing and facilitate 
+the interactive investigation and control of data by its users. Bringing all the
 advantages of open-source software consistent with scientific ideals,
 FAST has a shallow learning curve with a high return on investment of
 mastery because its interface design is consistent with the
@@ -197,10 +198,10 @@ FAST supports automated logging to ease the reproducibility of
 workflows. The BioPerl backend of FAST was version 1.6.901 downloaded in January,
 2012. BioPerl dependencies of FAST scripts were analyzed with the Cava
 packager (\url{http://www.cavapackager.com}). To fix some problems with
-I/O, the SeqIO components of FAST were updated to version 1.6.923 on
-June 4, 2014. Some customizations of the BioPerl code-base were
-introduced, primarily to enable the translation of sequences
-containing gaps. 
+I/O, the SeqIO components were updated to version 1.6.923 on
+June 4, 2014 and the Root components were updated on July 10, 2014 (github commit 50f87e9a4d). 
+Some customizations of the BioPerl code-base were introduced, primarily 
+to enable the translation of sequences containing gaps. 
 
 \section{Installation and Usage Examples}
 
@@ -248,7 +249,7 @@ position bases from a gene, annotate their compositions, and sort
 sequences by their third-position adenosine contents, do:
 
 \begin{verbatim}
-fascut -s 1:-1:3 cds.fas | fascomp -a | fassort -nt comp_A
+fascut 1:-1:3 cds.fas | fascomp | fassort -nt comp_A
 \end{verbatim}
 
 \section{Concluding Remarks}
@@ -309,13 +310,13 @@ Award from UC Merced's second Chancellor Sung-Mo Kang.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=6.5in]{FasSort}% This is a *.jpg file
+\includegraphics[width=6.5in]{fassort}% This is a *.jpg file
 \end{center}
 \textbf{\refstepcounter{figure}\label{fig:02} Figure
   \arabic{figure}.}{Runtime benchmarks for {\tt fassort}. Each point
   is the average of CPU runtime until completion over 10 runs with the
   Benchmark package. Left panel represents runs with a sequence length
-  of 1000 bp. Right panel are runs with a sequence length of 250 nt.}
+  of 1000 bp. Right panel are runs with a sequence length of 100 bp.}
 \end{figure}
 
 
