@@ -339,29 +339,30 @@ fascodon [options] [MULTIFASTA-FILE...]
 =head1 DESCRIPTION
 
 fascodon takes multifasta format sequence or alignment data as input, and
-analyzes codon usage. Ouput can be for multifasta file or for individual
+analyzes codon usage. Output can be for multifasta file or for individual
 fasta files within a multifasta.
 
 Options specific to fascodon:
   B<-b>, B<--base-order>
-  B<-v>, B<--individual>              option will print codon usage for 
-                               	      individual fasta files
-  B<-s>, B<--suppress>                option will supress error messages
+  B<-v>, B<--individual>            option will print codon usage for 
+                               	     individual fasta files
+  B<-s>, B<--suppress>              option will supress error messages
   B<-o>, B<--amino-order>
-  B<-g>, B<--order-by-amino>          option will order amino acid ouput in 
-                                      alaphabetical order 
-  B<-t>, B<--table>                   specifies which codon table to use
-  B<-a>, B<--append>                  option will append description with
-                                      information of codon usage
+  B<-g>, B<--order-by-amino>        option will order amino acid ouput in 
+                                     alaphabetical order 
+  B<-t>, B<--table>                 specifies which codon table to use
+  B<-a>, B<--append>                option will append description with
+                                     information of codon usage
+
 Options general to FAST:
-  B<-h>, B<--help>                  	 print a brief help message
-  B<--man>             	           	 print full documentation
-  B<--version>                           print version
-  B<-l>, B<--log>                        create/append to logfile	
-  B<-L>, B<--logname>=<string>           use logfile name <string>
-  B<-C>, B<--comment>=<string>           save comment <string> to log
-  B<--format>=<format>                 	 use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
+  -h, --help                  	 print a brief help message
+  --man             	           print full documentation
+  --version                         print version
+  -l, --log                         create/append to logfile	
+  -L, --logname=<string>            use logfile name <string>
+  -C, --comment=<string>            save comment <string> to log
+  --format=<format>                 use alternative format for input  
+  --moltype=<[dna|rna|protein]>     specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
@@ -399,7 +400,7 @@ sequences that are not divisible by 3.
       B<--order-by-amino>
 
 This option will create an output of codon usages alphabetized by the 
-one letter amino acid associated with the codon
+amino acid associated with the codon
 
 =item B<-t>
       B<--table>
