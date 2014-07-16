@@ -210,17 +210,25 @@ __END__
 
 =head1 NAME
 
-name - what it does
+B<bgfalncut> - extract subalignments based on reg-ex matching on features in an annotated genbank file
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<bgfalncut> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+B<bgfalncut> takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
+  -i, --case-insensitive
+  -n, --negate
+  -t, --tag=<string>
+  -s, --slice=<string>
+  -x, --intersect=<string>
+  -P, --primary=<string>
+  -g, --gap-delete
+  -v, --verbose
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -234,7 +242,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<bgfalncut> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -243,6 +251,46 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-i>,
+      B<--case-insensitive>
+
+
+
+=item B<-n>,
+      B<--negate>
+
+
+
+=item B<-t [string]>,
+      B<--tag [string]>
+
+
+
+=item B<-s [string]>,
+      B<--slice [string]>
+
+
+
+=item B<-x [string]>,
+      B<--intersect [string]>
+
+
+
+=item B<-P [string]>,
+      B<--primary [string]>
+
+
+
+=item B<-g>,
+      B<--gap-delete>
+
+
+
+=item B<-v>,
+      B<--verbose>
+
+
 
 =item B<-h>,
       B<--help>

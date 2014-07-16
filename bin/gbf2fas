@@ -157,17 +157,21 @@ __END__
 
 =head1 NAME
 
-name - what it does
+B<gbf2fas> - what it does
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<gbf2fas> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+B<gbf2fas> takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
+  -t, --tag
+  -i, --case-insensitive
+  -l, --location
+  -p, --primary
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -181,7 +185,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<gbf2fas> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -190,6 +194,26 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-t>,
+      B<--tag>
+
+
+
+=item B<-i>,
+      B<--case-insensitive>
+
+
+
+=item B<-l>,
+      B<--location>
+
+
+
+=item B<-p>,
+      B<--primary>
+
+
 
 =item B<-h>,
       B<--help>

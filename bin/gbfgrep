@@ -112,17 +112,22 @@ __END__
 
 =head1 NAME
 
-name - what it does
+B<gbfgrep> - extract neighboring features from Genbank files corresponding to reg-ex match on tags
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<gbfgrep> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+B<gbfgrep> takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
+  -r, --radius=<integer>
+  -i, --case-insensitive
+  -b, --begin=<integer>
+  -e, --end=<integer>
+  -t, --tag=<string>
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -136,7 +141,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<gbfgrep> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -145,6 +150,31 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-r [integer]>,
+      B<--radius [integer]>
+
+
+
+=item B<-i>,
+      B<--case-insensitive>
+
+
+
+=item B<-b [integer]>,
+      B<--begin [integer]>
+
+
+
+=item B<-e [integer]>,
+      B<--end [integer]>
+
+
+
+=item B<-t [string]>,
+      B<--tag [string]>
+
+
 
 =item B<-h>,
       B<--help>
