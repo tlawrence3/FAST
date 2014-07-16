@@ -2,18 +2,26 @@
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 10;
+use Test::More tests => 4;
 use Test::Script::Run;
 
+my $test_file = 't/data/fasfilter_test.fas';
 
-run_ok('fassort',[qw|-t species t/data/Dros.fas|]);
-run_not_ok('fassort',[qw|-t species: t/data/Dros.fas|],"fail if -t argument uses a colon");
+open( my $test, "<", $test_file ) || die "Can't open $test_file";
+my @output = <$test>;
+chomp(@output);
+close($test);
 
-run_ok('fassort', [qw|-sx "^\w(\w)" t/data/P450.fas|]);
-run_not_ok('fassort', [qw|-sx "^\w\w" t/data/P450.fas|],"fail if -x argument contains neither left nor right paren");
-run_not_ok('fassort', [qw|-sx "^\w(\w" t/data/P450.fas|],"fail if -x argument contains a left but not a right paren");
-run_not_ok('fassort', [qw|-sx "^\w\w)" t/data/P450.fas|],"fail if -x argument contains a right but not a left paren");
-run_not_ok('fassort', [qw|-sx "^\w)\w(" t/data/P450.fas|],"fail if -x argument contains a right paren before a left paren");
-run_not_ok('fassort', [qw|-sx "^(\w)(\w)" t/data/P450.fas|],"fail if -x argument contains more than one capture buffer");
-run_not_ok('fassort', [qw|-sx "^)\w(\w)\w(" t/data/P450.fas|],"fail if -x argument contains unmatched parens");
-run_not_ok('fassort', [qw|-sx "^()" t/data/P450.fas|],"fail if -x argument contains an empty capture buffer");
+my @tag_test = @output[-12..-1];
+my @negate_test = @output[0..8];
+
+run_not_ok('fasfilter', [], 'No input test');
+
+run_output_matches('fasfilter', ['-t', 'length', '1..200', $test_file],
+		   \@tag_test, [], 'Checking tag option');
+
+run_output_matches('fasfilter', ['-vt', 'length', '1..200', $test_file],
+		   \@negate_test, [], 'Checking negate option');
+
+run_output_matches('fasfilter', ['-f2', '-S', '|', '294338401..294338406', $test_file],
+		   \@negate_test, [], 'Checking split/field option');
