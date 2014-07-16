@@ -57,11 +57,18 @@ GetOptions('help|h'         		 => \$help,
      'amino-order|o=s'             => \$amino_order,
      'order-by-amino|g'            => \$orderby_amino,
      'table|t=i'                   => \$table,
+<<<<<<< HEAD
      'annotate|a'                    => \$append,
      'fastq|q'                     => \$fastq,
 	  )
   or pod2usage(2);
 
+=======
+     'annotate|a'                  => \$append,
+     'fastq|q'  	           => \$fastq, 
+) 
+or pod2usage(2);
+>>>>>>> 51aece44ca8c90324de6561b7c8a184ffd6419ef
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
@@ -71,7 +78,11 @@ pod2usage("$0: Expects no arguments when reading from STDIN. Try $NAME -h for he
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 if ($fastq){
+<<<<<<< HEAD
   $def_format = 'fastq';
+=======
+  $def_format = 'fastq'
+>>>>>>> 51aece44ca8c90324de6561b7c8a184ffd6419ef
 }
 
 my $code = FAST::Bio::Tools::CodonTable->new(-id => $table);

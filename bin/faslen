@@ -46,11 +46,14 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 	   'table|t'                     => \$table,
 	   'join|j=s'                    => \$join,
-           'fastq|q'                     => sub {$def_format = 'fastq';},
-	  ) 
+           'fastq|q'                     => sub {$def_format = 'fastq';}, 
   or exit(1);
 		  
 $format = lc ($format);
+
+if ($fastq){
+  $def_format = 'fastq';
+}
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
