@@ -1,17 +1,10 @@
-#-----------------------------------------------------------------
-#
-# BioPerl module FAST::Bio::Root::Exception
-#
-# Please direct questions and support issues to <bioperl-l@bioperl.org> 
-#
-# Cared for by Steve Chervitz <sac@bioperl.org>
-#
-# You may distribute this module under the same terms as perl itself
-#-----------------------------------------------------------------
+package FAST::Bio::Root::Exception;
+use strict;
 
-=head1 NAME
-
-FAST::Bio::Root::Exception - Generic exception objects for Bioperl
+# ABSTRACT: generic exception objects for Bioperl
+# AUTHOR:   Steve Chervitz <sac@bioperl.org>
+# OWNER:    2001 Steve Chervitz
+# LICENSE:  Perl_5
 
 =head1 SYNOPSIS
 
@@ -24,17 +17,17 @@ FAST::Bio::Root::Exception - Generic exception objects for Bioperl
     $Error::Debug = 1;
 
     $file = shift;
-    open (IN, $file) ||
-	    throw FAST::Bio::Root::FileOpenException ( "Can't open file $file for reading", $!);
+    open my $IN, '<', $file
+        or FAST::Bio::Root::FileOpenException->throw("Could not read file '$file': $!");
 
 =head2 Throwing exceptions using L<Bioperl throw|FAST::Bio::Root::Root/throw>:
 
-     # Here we have an object that ISA FAST::Bio::Root::Root, so it inherits throw().
+    # Here we have an object that ISA FAST::Bio::Root::Root, so it inherits throw().
 
-     open (IN, $file) || 
-                $object->throw(-class => 'FAST::Bio::Root::FileOpenException',
-                               -text => "Can't open file $file for reading",
-                               -value => $!);
+    open my $IN, '<', $file
+        or $object->throw(-class => 'FAST::Bio::Root::FileOpenException',
+                          -text  => "Could not read file '$file'",
+                          -value => $!);
 
 =head2 Catching and handling exceptions using L<Error.pm try|Error/try>:
 
@@ -46,27 +39,28 @@ FAST::Bio::Root::Exception - Generic exception objects for Bioperl
     # Set Error::Debug to include stack trace data in the error messages
     $Error::Debug = 1;
 
-    $file = shift;
+    my $file = shift;
+    my $IN;
     try {
-        open (IN, $file) ||
-	    throw FAST::Bio::Root::FileOpenException ( "Can't open file $file for reading", $!);
+        open $IN, '<', $file
+            or FAST::Bio::Root::FileOpenException->throw("Could not read file '$file': $!");
     }
     catch FAST::Bio::Root::FileOpenException with {
         my $err = shift;
         print STDERR "Using default input file: $default_file\n";
-        open (IN, $default_file) || die "Can't open $default_file";
+        open $IN, '<', $default_file or die "Could not read file '$default_file': $!";
     }
     otherwise {
         my $err = shift;
-    	print STDERR "An unexpected exception occurred: \n$err";
+        print STDERR "An unexpected exception occurred: \n$err";
 
-	# By placing an the error object reference within double quotes,
-	# you're invoking its stringify() method.
+        # By placing an the error object reference within double quotes,
+        # you're invoking its stringify() method.
     }
    finally {
        # Any code that you want to execute regardless of whether or not
        # an exception occurred.
-   };  
+   };
    # the ending semicolon is essential!
 
 
@@ -79,27 +73,17 @@ FAST::Bio::Root::Exception - Generic exception objects for Bioperl
 =head2 Exceptions defined in L<FAST::Bio::Root::Exception>
 
 These are generic exceptions for typical problem situations that could arise
-in any module or script. 
+in any module or script.
 
-=over 8
-
-=item FAST::Bio::Root::Exception()
-
-=item FAST::Bio::Root::NotImplemented()
-
-=item FAST::Bio::Root::IOException()
-
-=item FAST::Bio::Root::FileOpenException()
-
-=item FAST::Bio::Root::SystemException()
-
-=item FAST::Bio::Root::BadParameter()
-
-=item FAST::Bio::Root::OutOfRange()
-
-=item FAST::Bio::Root::NoSuchThing()
-
-=back
+=for :list
+* C<FAST::Bio::Root::Exception()>
+* C<FAST::Bio::Root::NotImplemented()>
+* C<FAST::Bio::Root::IOException()>
+* C<FAST::Bio::Root::FileOpenException()>
+* C<FAST::Bio::Root::SystemException()>
+* C<FAST::Bio::Root::BadParameter()>
+* C<FAST::Bio::Root::OutOfRange()>
+* C<FAST::Bio::Root::NoSuchThing()>
 
 Using defined exception classes like these is a good idea because it
 indicates the basic nature of what went wrong in a convenient,
@@ -141,54 +125,31 @@ Error.pm is not available.
 =head2 Throwing exceptions within Bioperl modules
 
 Error.pm is not part of the Bioperl distibution, and may not be
-present within  any given perl installation. So, when you want to 
+present within  any given perl installation. So, when you want to
 throw an exception in a Bioperl module, the safe way to throw it
-is to use L<FAST::Bio::Root::Root/throw> which can use Error.pm 
+is to use L<FAST::Bio::Root::Root/throw> which can use Error.pm
 when it's available. See documentation in FAST::Bio::Root::Root for details.
 
 =head1 SEE ALSO
 
-See the C<examples/exceptions> directory of the Bioperl distribution for 
+See the C<examples/exceptions> directory of the Bioperl distribution for
 working demo code.
 
-L<FAST::Bio::Root::Root/throw> for information about throwing 
+L<FAST::Bio::Root::Root/throw> for information about throwing
 L<FAST::Bio::Root::Exception>-based exceptions.
 
 L<Error> (available from CPAN, author: GBARR)
 
-Error.pm is helping to guide the design of exception handling in Perl 6. 
-See these RFC's: 
+Error.pm is helping to guide the design of exception handling in Perl 6.
+See these RFC's:
 
-     http://dev.perl.org/rfc/63.pod 
+     http://dev.perl.org/rfc/63.pod
 
      http://dev.perl.org/rfc/88.pod
-
-
-=head1 AUTHOR 
-
-Steve Chervitz E<lt>sac@bioperl.orgE<gt>
-
-=head1 COPYRIGHT
-
-Copyright (c) 2001 Steve Chervitz. All Rights Reserved.
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=head1 DISCLAIMER
-
-This software is provided "as is" without warranty of any kind.
 
 =head1 EXCEPTIONS
 
 =cut
-
-# Define some generic exceptions.'
-
-package FAST::Bio::Root::Exception;
-use FAST::Bio::Root::Version;
-
-use strict;
 
 my $debug = $Error::Debug;  # Prevents the "used only once" warning.
 my $DEFAULT_VALUE = "__DUMMY__";  # Permits eval{} based handlers to work
@@ -218,10 +179,10 @@ my $DEFAULT_VALUE = "__DUMMY__";  # Permits eval{} based handlers to work
      You can also specify plain arguments as ($message, $value)
      where $value is optional.
 
-     -value, if defined, must be non-zero and not an empty string 
-     in order for eval{}-based exception handlers to work. 
-     These require that if($@) evaluates to true, which will not 
-     be the case if the Error has no value (Error overloads 
+     -value, if defined, must be non-zero and not an empty string
+     in order for eval{}-based exception handlers to work.
+     These require that if($@) evaluates to true, which will not
+     be the case if the Error has no value (Error overloads
      numeric operations to the Error::value() method).
 
      It is OK to create FAST::Bio::Root::Exception objects without
@@ -236,7 +197,7 @@ my $DEFAULT_VALUE = "__DUMMY__";  # Permits eval{} based handlers to work
 =cut
 
 sub new {
-    my ($class, @args) = @_; 
+    my ($class, @args) = @_;
     my ($value, %params);
     if( @args % 2 == 0 && $args[0] =~ /^-/) {
         %params = @args;
@@ -252,7 +213,7 @@ sub new {
         $value = "An empty string (\"\")" if $value eq "";
     }
     else {
-	$value ||= $DEFAULT_VALUE;
+        $value ||= $DEFAULT_VALUE;
     }
     $params{-value} = $value;
 
@@ -262,8 +223,8 @@ sub new {
 
 =head2 pretty_format()
 
- Purpose : Get a nicely formatted string containing information about the 
-           exception. Format is similar to that produced by 
+ Purpose : Get a nicely formatted string containing information about the
+           exception. Format is similar to that produced by
            FAST::Bio::Root::Root::throw(), with the addition of the name of
            the exception class in the EXCEPTION line and some other
            data available via the Error object.
@@ -283,19 +244,25 @@ sub pretty_format {
 
     my $title = "------------- EXCEPTION: $class -------------";
     my $footer = "\n" . '-' x CORE::length($title);
-    my $out = "\n$title\n" .
-       "MSG: $msg\n". $value_string. $stack. $footer . "\n";
+    my $out = "\n$title\n"
+            . "MSG: $msg\n". $value_string. $stack. $footer . "\n";
     return $out;
 }
 
 
-# Reformatting of the stack performed by  _reformat_stacktrace:
-#   1. Shift the file:line data in line i to line i+1.
-#   2. change xxx::__ANON__() to "try{} block"
-#   3. skip the "require" and "Error::subs::try" stack entries (boring)
-# This means that the first line in the stack won't have any file:line data
-# But this isn't a big issue since it's for a FAST::Bio::Root::-based method 
-# that doesn't vary from exception to exception.
+=head2 _reformat_stacktrace
+
+Reformatting of the stack performed by  _reformat_stacktrace:
+for :list
+1. Shift the file:line data in line i to line i+1.
+2. change xxx::__ANON__() to "try{} block"
+3. skip the "require" and "Error::subs::try" stack entries (boring)
+
+This means that the first line in the stack won't have any file:line data
+But this isn't a big issue since it's for a FAST::Bio::Root::-based method
+that doesn't vary from exception to exception.
+
+=cut
 
 sub _reformat_stacktrace {
     my $self = shift;
@@ -339,8 +306,8 @@ sub _reformat_stacktrace {
 
 =head2 stringify()
 
- Purpose : Overrides Error::stringify() to call pretty_format(). 
-           This is called automatically when an exception object 
+ Purpose : Overrides Error::stringify() to call pretty_format().
+           This is called automatically when an exception object
            is placed between double quotes.
  Example : catch FAST::Bio::Root::Exception with {
               my $error = shift;
@@ -356,12 +323,12 @@ sub stringify {
     return $self->pretty_format( @args );
 }
 
-=head1 Subclasses of FAST::Bio::Root::Exception 
+=head1 Subclasses of FAST::Bio::Root::Exception
 
 =head2 L<FAST::Bio::Root::NotImplemented>
 
  Purpose : Indicates that a method has not been implemented.
- Example : throw FAST::Bio::Root::NotImplemented( 
+ Example : throw FAST::Bio::Root::NotImplemented(
                -text   => "Method \"foo\" not implemented in module FooBar.",
                -value  => "foo" );
 
@@ -374,9 +341,9 @@ sub stringify {
 =head2 L<FAST::Bio::Root::IOException>
 
  Purpose : Indicates that some input/output-related trouble has occurred.
- Example : throw FAST::Bio::Root::IOException( 
+ Example : throw FAST::Bio::Root::IOException(
                -text   => "Can't save data to file $file.",
-	       -value  => $! );
+               -value  => $! );
 
 =cut
 
@@ -388,9 +355,9 @@ sub stringify {
 =head2 L<FAST::Bio::Root::FileOpenException>
 
  Purpose : Indicates that a file could not be opened.
- Example : throw FAST::Bio::Root::FileOpenException( 
+ Example : throw FAST::Bio::Root::FileOpenException(
                -text   => "Can't open file $file for reading.",
-	       -value  => $! );
+               -value  => $! );
 
 =cut
 
@@ -402,9 +369,9 @@ sub stringify {
 =head2 L<FAST::Bio::Root::SystemException>
 
  Purpose : Indicates that a system call failed.
- Example : unlink($file) or throw FAST::Bio::Root::SystemException( 
+ Example : unlink($file) or throw FAST::Bio::Root::SystemException(
                -text   => "Can't unlink file $file.",
-	       -value  => $! );
+               -value  => $! );
 
 =cut
 
@@ -415,9 +382,9 @@ sub stringify {
 
 =head2 L<FAST::Bio::Root::BadParameter>
 
- Purpose : Indicates that one or more parameters supplied to a method 
+ Purpose : Indicates that one or more parameters supplied to a method
            are invalid, unspecified, or conflicting.
- Example : throw FAST::Bio::Root::BadParameter( 
+ Example : throw FAST::Bio::Root::BadParameter(
                -text   => "Required parameter \"-foo\" was not specified",
                -value  => "-foo" );
 
@@ -430,9 +397,9 @@ sub stringify {
 
 =head2 L<FAST::Bio::Root::OutOfRange>
 
- Purpose : Indicates that a specified (start,end) range or 
+ Purpose : Indicates that a specified (start,end) range or
            an index to an array is outside the permitted range.
- Example : throw FAST::Bio::Root::OutOfRange( 
+ Example : throw FAST::Bio::Root::OutOfRange(
                -text   => "Start coordinate ($start) cannot be less than zero.",
                -value  => $start  );
 
@@ -445,9 +412,9 @@ sub stringify {
 
 =head2 L<FAST::Bio::Root::NoSuchThing>
 
- Purpose : Indicates that a requested thing cannot be located 
+ Purpose : Indicates that a requested thing cannot be located
            and therefore could possibly be bogus.
- Example : throw FAST::Bio::Root::NoSuchThing( 
+ Example : throw FAST::Bio::Root::NoSuchThing(
                -text   => "Accession M000001 could not be found.",
                -value  => "M000001"  );
 
@@ -457,6 +424,4 @@ sub stringify {
 @FAST::Bio::Root::NoSuchThing::ISA = qw( FAST::Bio::Root::Exception );
 #---------------------------------------------------------
 
-
 1;
-

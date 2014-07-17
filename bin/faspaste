@@ -48,6 +48,7 @@ GetOptions('help|h'         		 => \$help,
 	   'serial|s'                    => \$serial,
 	   'j|join=s'                    => \$seqdelims,
 	   'd'                           => sub { $descdelim = ' '; },
+     'fastq|q'                     => sub {$format = 'fastq';},
 	  ) 
   or exit(1);
 
@@ -57,7 +58,7 @@ pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
 pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!$fromSTDIN and !(@ARGV));
-
+pod2usage("$NAME: -q and -j are incompatible options. Try \"perldoc $NAME\"") if ($format eq 'fastq' and $seqdelims);
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
 my @delims = undef;
@@ -76,13 +77,14 @@ if ($descdelim) {
   @descdelims = ();
 }
 
-my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 
 my $maxdelim = @delims;
 my $maxdescdelim = @descdelims;
 
 my @seqs = ();
 my $outputseq = undef;
+my @outputqual = undef;
 
 unless (@ARGV and !$fromSTDIN) {
     @ARGV = q/-/;
@@ -112,6 +114,7 @@ while (@ARGV) {
 
 do {
   undef $outputseq;
+  undef @outputqual;
   my $delimpos = 0;
   my $delim = undef;
   my $descdelimpos = 0;
@@ -152,6 +155,11 @@ do {
 	}
 
         $outputseq->seq(join $delim ? $delim : '', $outputseq->seq(), $seq->seq());
+        if ($format eq 'fastq'){
+          @outputqual = split ' ', $outputseq->qual_text();
+          push @outputqual, split ' ', $seq->qual_text();
+          $outputseq->qual(\@outputqual);
+        }
       }
     } while ($serial and $seq = $seqio->next_seq());
 
