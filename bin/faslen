@@ -31,7 +31,6 @@ my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $table                = undef;        # -t
 my $join                 = $def_join_string; # -j
-my $fastq                = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -46,14 +45,11 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 	   'table|t'                     => \$table,
 	   'join|j=s'                    => \$join,
-           'fastq|q'                     => sub {$def_format = 'fastq';}, 
+     'fastq|q'                     => sub {$format = 'fastq';},
+     ) 
   or exit(1);
 		  
 $format = lc ($format);
-
-if ($fastq){
-  $def_format = 'fastq';
-}
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
@@ -64,14 +60,14 @@ pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $N
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
 
-my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $def_format);
+my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
@@ -93,10 +89,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   else {
