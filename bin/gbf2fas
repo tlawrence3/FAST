@@ -9,7 +9,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "";
+$DESC    = "Extract subsequences for potentially split features from GenBank file(s) with tag-based filtering.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -157,21 +157,25 @@ __END__
 
 =head1 NAME
 
-B<gbf2fas> - what it does
+B<gbf2fas> - extract subsequences for potentially split features from GenBank file(s) with tag-based filtering
 
 =head1 SYNOPSIS
 
-B<gbf2fas> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<gbf2fas> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...] < genbank-file"
 
 =head1 DESCRIPTION
 
 B<gbf2fas> takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
-  -t, --tag
-  -i, --case-insensitive
-  -l, --location
-  -p, --primary
+  -t, --tag=<string>                filter only features that have all
+                                     specified tags
+  -i, --case-insensitive            case-insensitive pattern matching for
+                                     tag-value regexes with -t option
+  -l, --location                    print genomic location strings in the
+                                     sequence descriptions
+  -p, --primary=<string>           filter only features with primary tags
+                                     matching given perl-regex
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -195,25 +199,30 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-t>,
-      B<--tag>
+=item B<-t [tag1][=^][perl-regex1]+[tag2][=^][perl-regex2]>,
+      B<--tag [tag1][=^][perl-regex1]+[tag2][=^][perl-regex2]>
 
-
+Filter only features that have all specified tags: tag1, tag2, etc
+and, for each tag, at least one value that either matches (=) or no value that matches (^)
+their specific perl-regexes: perl-regex1, perl-regex2, etc.
+Examples of tags: 'product', 'note', 'gene', 'db_xref'
 
 =item B<-i>,
       B<--case-insensitive>
 
-
+Enable case-insensitive matching of tags.
 
 =item B<-l>,
       B<--location>
 
-
+Append genomic location strings in the outputted sequence descriptions.
 
 =item B<-p>,
       B<--primary>
 
-
+Filter only features with primary tags matching given perl-regex. 
+Ex: 'CDS', 'RNA', 'CDS|RNA'
+This regex is always matched case-insensitively.
 
 =item B<-h>,
       B<--help>
