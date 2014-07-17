@@ -146,6 +146,7 @@ Options general to FAST:
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
   --moltype=<[dna|rna|protein]>      specify input sequence type
+  -q                                use a fastq file as input
 
 =head1 INPUT AND OUTPUT
 
@@ -215,6 +216,9 @@ allowed formats. This is for convenience; the FAST tools are designed
 to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
 
+=item B<-q>
+
+Use a fastq file for input.
 
 =back
 

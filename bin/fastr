@@ -251,6 +251,7 @@ Options general to FAST:
   B<-C, B<--comment>=<string>          save comment <string> to log
   B<--format>=<format>                 use alternative format for input  
   B<--moltype>=<[dna|rna|protein]>     specify input sequence type
+  B<-q>                                use a fastq file as input
 
 =head1 SEARCHLIST AND REPLACELIST
 
@@ -378,6 +379,10 @@ for this tool.
 Specify the type of sequence on input (should not be needed in most
 cases, but sometimes Bioperl cannot guess and complains when
 processing data).
+
+=item B<-q>
+
+Use a fastq file for input.
 
 =back
 

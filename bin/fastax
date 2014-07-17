@@ -57,7 +57,7 @@ GetOptions('help|h'         		 => \$help,
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'no-names|n'                  => \$noname,
-     'fastq|q'                     => \$fastq,  
+           'fastq|q'                     => \$fastq,  
 	  ) 
   or exit(1);
 
@@ -252,7 +252,8 @@ Options general to FAST:
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
   --moltype=<[dna|rna|protein]>      specify input sequence type
-  
+  -q                                use a fastq file as input  
+
 =head1 INPUT AND OUTPUT
 
 fastax is part of FAST, the FAST Analysis of Sequences Toolbox, based
@@ -340,6 +341,10 @@ for this tool.
 Specify the type of sequence on input (should not be needed in most
 cases, but sometimes Bioperl cannot guess and complains when
 processing data).
+
+=item B<-q>
+
+Use a fastq file for input.
 
 =back
 

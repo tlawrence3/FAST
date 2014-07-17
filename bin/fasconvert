@@ -220,7 +220,7 @@ Options general to FAST:
   B<-l>, B<--log>                        create/append to logfile	
   B<-L>, B<--logname>=<string>           use logfile name <string>
   B<-C>, B<--comment>=<string>           save comment <string> to log
-
+  B<-q>                                  use a fastq file as input
 
 =head1 INPUT AND OUTPUT
 
