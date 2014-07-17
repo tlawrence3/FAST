@@ -229,19 +229,19 @@ Options specific to B<fasgrep>:
   -B<v>, B<--negate>                      output sequences that do not match
   -B<i>, B<--insensitive>                 match case-insensitively
   -B<e>, B<--iupac-expand-nuc>            expand ambiguities for DNA/RNA
-  -B<r>, B<--revcom-iupac-expand-nuc>     reverse complement and expand 
+  -B<r>, B<--revcom-iupac-expand-nuc>     reverse complement and expand
   -B<p>, B<--iupac-expand-prot>           expand ambiguities for protein
 
 Options general to FAST:
-  -B<h>, B<--help>                  	 print a brief help message
-  B<--man>             	                 print full documentation
-  B<--version>                           print version
-  -B<l>, B<--log>                        create/append to logfile	
-  -B<L>, B<--logname>=<string>           use logfile name <string>
-  -B<C>, B<--comment>=<string>           save comment <string> to log
-  B<--format>=<format>                   use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
-  B<-q>                                  use a fastq file as input
+  -B<h>, B<--help>                        print a brief help message
+  B<--man>                             print full documentation
+  B<--version>                         print version
+  -B<l>, B<--log>                         create/append to logfile
+  -B<L>, B<--logname>=<string>            use logfile name <string>
+  -B<C>, B<--comment>=<string>            save comment <string> to log
+  B<--format>=<format>                 use alternative format for input
+  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
+  B<-q>, B<--fastq>                       use a fastq file as input
 
 =head1 INPUT AND OUTPUT
 
