@@ -54,7 +54,7 @@ GetOptions('help|h'         		 => \$help,
 					       },
 	   'v|verbose'                   => \$verbose,
 	   'Q|quiet|silent'              => \$silent,
-     'fastq|q'                     => \$fastq,
+           'fastq|q'                     => \$fastq,
 	  ) 
   or exit(1);
 
@@ -170,7 +170,7 @@ if the parameter is not specified.
 Always append file names to sequence descriptions.
 Defaults to on if multiple files are passed.
 
-=item B<-q>,
+=item B<-Q>,
       B<--quiet>,
       B<--silent>
 
