@@ -1,4 +1,7 @@
-* faspaste
-* fastail
-* fasrand
-* fasnl
+* Pre-release tasks:
+** fasgrep: test that --iupac-expand options trigger -s as documented
+** fasgrep: test that option priorities work as documented
+
+* Utilities to Write:
+** fasrand
+** fasnl
