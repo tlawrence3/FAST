@@ -349,8 +349,8 @@ fasta files within a multifasta.
 
 Options specific to fascodon:
   B<-b>, B<--base-order>
-  B<-v>, B<--individual>            option will print codon usage for 
-                               	     individual fasta files
+  B<-v>, B<--individual>                  option will print codon usage for 
+                               	 individual fasta files
   B<-s>, B<--suppress>              option will supress error messages
   B<-o>, B<--amino-order>
   B<-g>, B<--order-by-amino>        option will order amino acid ouput in 
