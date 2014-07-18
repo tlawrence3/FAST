@@ -1,11 +1,11 @@
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 4;
+use Test::More tests => 6;
 use Test::Script::Run;
 
-my $test_file = 'data/fascodon_test.fas';
-my $test_file2 = 'data/fascodon_test.output.txt';
+my $test_file = 't/data/fascodon_test.fas';
+my $test_file2 = 't/data/fascodon_test.output.txt';
 
 open( my $test, "<", $test_file2 ) || die "Can't open $test_file2";
 my @output = <$test>;

@@ -27,7 +27,7 @@ $def_verbose_test_output[4] .= ' fashead_tail_test1.fas';
 run_output_matches('fastail', [qw|t/data/fashead_tail_test1.fas|], \@output, [], "Checking output without 'n' specified");
 run_output_matches('fastail', [qw|-n 1 t/data/fashead_tail_test1.fas|], \@n_test_output, [], "Checking output with 'n' specified");
 run_output_matches('fastail', [qw|-v -n 1 t/data/fashead_tail_test1.fas|], \@verbose_test_output, [], "Checking verbose option");
-run_output_matches('fastail', [qw|-q -n 1 t/data/fashead_tail_test1.fas t/data/fashead_tail_test1.fas|], \@silent_test_output, [], "Checking silent option");
+run_output_matches('fastail', [qw|-Q -n 1 t/data/fashead_tail_test1.fas t/data/fashead_tail_test1.fas|], \@silent_test_output, [], "Checking silent option");
 run_output_matches('fastail', [qw|-n 1 t/data/fashead_tail_test1.fas t/data/fashead_tail_test1.fas|], \@def_verbose_test_output, [], "Checking multi-file default verbose option");
 
 
