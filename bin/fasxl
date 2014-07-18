@@ -320,7 +320,7 @@ turn codon alignment into a protein alignment
 (best used for codon-based alignments, where gaps are mod 3 
 length and seqs are to be translated in frame 0)
 
-=item B<-c<,
+=item B<-c>,
       B<--cds>
 
 This option is deprecated.
