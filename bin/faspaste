@@ -207,8 +207,8 @@ Options general to FAST:
   -L, --logname=<string>            use logfile name <string>
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
-  -q                                use a fastq file as input
+  --moltype=<[dna|rna|protein]>     specify input sequence type
+  -q, --fastq                       use a fastq file as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -285,8 +285,9 @@ to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
 
 =item B<-q>
+      B<--fastq>
 
-Use a fastq file for input.
+Use a fastq file for input and output.
 
 =back
 
