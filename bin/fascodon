@@ -351,13 +351,13 @@ Options specific to fascodon:
   B<-b>, B<--base-order>
   B<-v>, B<--individual>                  option will print codon usage for 
                                	 individual fasta files
-  B<-s>, B<--suppress>              option will supress error messages
+  B<-s>, B<--suppress>                    option will supress error messages
   B<-o>, B<--amino-order>
-  B<-g>, B<--order-by-amino>        option will order amino acid ouput in 
-                                     alaphabetical order 
-  B<-t>, B<--table>                 specifies which codon table to use
-  B<-a>, B<--append>                option will append description with
-                                     information of codon usage
+  B<-g>, B<--order-by-amino>              option will order amino acid ouput in 
+                                    alaphabetical order 
+  B<-t>, B<--table>                       specifies which codon table to use
+  B<-a>, B<--append>                      option will append description with
+                                    information of codon usage
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -368,7 +368,7 @@ Options general to FAST:
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
   --moltype=<[dna|rna|protein]>     specify input sequence type
-  -q                                use a fastq file as input
+  -q, --fastq                       use a fastq file as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -465,7 +465,8 @@ Specify the type of sequence on input (should not be needed in most
 cases, but sometimes Bioperl cannot guess and complains when
 processing data).
 
-=item B<-q>
+=item B<-q>,
+      B<--fastq>
 
 Use a fastq file for input.
 
@@ -473,11 +474,11 @@ Use a fastq file for input.
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Print codon usage of sequences:
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+cat data.fas | fascodon
 
 =back
 

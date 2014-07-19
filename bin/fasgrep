@@ -241,7 +241,7 @@ Options general to FAST:
   -B<C>, B<--comment>=<string>            save comment <string> to log
   B<--format>=<format>                 use alternative format for input
   B<--moltype>=<[dna|rna|protein]>     specify input sequence type
-  B<-q>, B<--fastq>                       use a fastq file as input
+  B<-q>, B<--fastq>                       use a fastq file as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -394,8 +394,8 @@ to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
 
 =item B<-q>
-
-Use a fastq file for input.
+      B,--fastq>
+Use a fastq file for input and output.
 
 =back
 

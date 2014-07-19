@@ -135,19 +135,19 @@ including gap characters. Identifiers and lengths may optionally be
 printed in a table to STDOUT.
 
 Options specific to B<faslen>:
-  B<-t>, B<--table>                   Print lengths with ids in a table
-  B<-j>, B<--join>=<string>           Use <string> to join data 
+  B<-t>, B<--table>                   print lengths with ids in a table
+  B<-j>, B<--join>=<string>           use <string> to join data 
 
 Options general to FAST:
-  B<-h>, B<--help>                  	 print a brief help message
-  B<--man>             	                 print full documentation
-  B<--version>                           print version
-  B<-l>, B<--log>                        create/append to logfile	
-  B<-L>, B<--logname>=<string>           use logfile name <string>
-  B<-C>, B<--comment>=<string>           save comment <string> to log
-  B<--format>=<format>                   use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
-  B<-q>                                  use a fastq file as input
+  B<-h>, B<--help>                    print a brief help message
+  B<--man>             	       print full documentation
+  B<--version>                     print version
+  B<-l>, B<--log>                     create/append to logfile	
+  B<-L>, B<--logname>=<string>        use logfile name <string>
+  B<-C>, B<--comment>=<string>        save comment <string> to log
+  B<--format>=<format>             use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]> specify input sequence type
+  B<-q>, B<--fastq>                   use a fastq file as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -205,8 +205,9 @@ cases, but sometimes Bioperl cannot guess and complains when
 processing data).
 
 =item B<-q>
+      B<--fastq>
 
-Use a fastq file for input.
+Use a fastq file for input and output.
 
 =back
 

@@ -135,7 +135,7 @@ Options specific to B<fashead>:
   -n=<integer>                      the number of sequences to print
   -v, --verbose                     append file name to sequence descriptions
   -Q, --quiet, --silent             do not append file name to sequence
-                                     descriptions
+                                    descriptions
 
 Options general to FAST:
   -h, --help                  	 print a brief help message
@@ -145,8 +145,8 @@ Options general to FAST:
   -L, --logname=<string>            use logfile name <string>
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
-  -q                                use a fastq file as input
+  --moltype=<[dna|rna|protein]>     specify input sequence type
+  -q, --fastq                       use a fastq file as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -218,7 +218,7 @@ for this tool.
 
 =item B<-q>
 
-Use a fastq file for input.
+Use a fastq file for input and output.
 
 =back
 

@@ -244,8 +244,8 @@ If the first range begins with a negative number, you should terminate
 option processing with "--".
 
 Options specific to B<fasfilter>:
-  B<-d>, B<--description>	             filter on description
-  B<-f>, B<--field>=<int>	              filter on field in description
+  B<-d>, B<--description>	                filter on description
+  B<-f>, B<--field>=<int>	                filter on field in description
   B<-t>, B<--tag>=<string>                filter on value of a (tag,value) pair in the description
   B<-x>, B<--regex>=<regex>               filter on value of a regex capture
   B<-S>, B<--split-on-regex>=<regex>      split description for field-based filtering using regex 
@@ -259,8 +259,8 @@ Options general to FAST:
   B<-L>, B<--logname>=<string>            use logfile name <string>
   B<-C>, B<--comment>=<string>            save comment <string> to log
   B<--format>=<format>                 use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>      specify input sequence type
-  B<-q>                                use a fastq file as input
+  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
+  B<-q>, B<--fastq>                       use a fastq file as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -393,8 +393,8 @@ cases, but sometimes Bioperl cannot guess and complains when
 processing data).
 
 =item B<-q>
-
-Use a fastq file for input.
+      B<--fastq>
+Use a fastq file for input and output.
 
 =back
 

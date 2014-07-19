@@ -301,15 +301,15 @@ Options specific to B<fascomp>:
   B<-p>, B<--precision>=<int>         print relative frequencies with <int> digits after the decimal point 
 
 Options general to FAST:
-  B<-h>, B<--help>                     print a brief help message
-  B<--man>             	               print full documentation
-  B<--version>                         print version
-  B<-l>, B<--log>                      create/append to logfile	
-  B<-L, B<--logname>=<string>          use logfile name <string>
-  B<-C, B<--comment>=<string>          save comment <string> to log
-  B<--format>=<format>                 use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
-  B<-q>                                use a fastq file as input
+  B<-h>, B<--help>                    print a brief help message
+  B<--man>             	       print full documentation
+  B<--version>                     print version
+  B<-l>, B<--log>                     create/append to logfile	
+  B<-L, B<--logname>=<string>         use logfile name <string>
+  B<-C, B<--comment>=<string>         save comment <string> to log
+  B<--format>=<format>             use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]> specify input sequence type
+  B<-q>, B<--fastq>                   use a fastq file as input and output
 
 
 =head1 INPUT AND OUTPUT
@@ -324,63 +324,42 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-s>
-      B<--sequence>
-
-Transliterate sequences (identifiers by default).
-
-=item B<-d>
-      B<--description>
-
-Transliterate descriptions.
-
-=item B<-D>
-      B<--delete>
-
-Delete found but unreplaced characters. 
-
-=item B<-S>
-      B<--squash>
-
-Squash duplicate replaced characters.
-
-=item B<-c>
-      B<--complement>
-
-Character complement SEARCHLIST.
-
 =item B<-n>
-      B<--no-replace>
+      B<--normalize>
 
-Delete or squash characters in SEARCHLIST. 
+Compute relative frequencies.
 
-=item B<--strict>
+=item B<-t>
+      B<--table>
 
-Transliterate illegal sequence characters to "N" (DNA or RNA) or
-"X" (protein). For DNA, equivalent to:
+Output a table to STDOUT. 
 
-C<fastr -sc ACTGactg\- N>
+=item B<-j>
+      B<--join>
 
-=item B<--iupac>
+Use <string> to join tagged values in descriptions.
 
-Transliterate illegal sequence characters (including IUPAC
-ambiguities) to "N" (DNA or RNA) or "X" (protein). For DNA, equivalent
-to:
+=item B<-s>
+      B<--strict>
 
-C<fastr -sc ACTGactgMRWSYKVHDBXNmrwsykvhdbxn\- N>
+Output moltype-dependent character header for table-mode.
 
-=item B<--degap>
+=item B<-i>
+      B<--iupac>
 
-Delete gap characters "-" from each sequence. Equivalent to
-to:
-
-C<fastr -snD -- ->
+Output character header including ambiguities for table-mode.
 
 =item B<-a>
-      B<--ambig char>
+      B<--alphabet>=<string>
 
-Use <char> to replace illegal characters instead of "N" or "X" with
-B<--strict> or B<--iupac>
+Tally only characters if they are in the set <string>, as in "ACGT-".
+
+=item B<-p> 
+B<--precision>=<int>
+
+Print relative frequencies with <int> digits after the decimal point.
+
+=item B<--iupac>
 
 =item B<-h>,
       B<--help>
@@ -427,18 +406,19 @@ cases, but sometimes Bioperl cannot guess and complains when
 processing data).
 
 =item B<-q>
+      B<--fastq>
 
-Use a fastq file for input.
+Use a fastq file for input and output.
 
 =back
 
 =head1 EXAMPLES
 
-Change all bars "|" to hashes ("#") in IDs: 
+Compute and annotate description with normalized base frequencies: 
 
 =over 8
 
-fastr '|' '#' t/data/P450.fas
+fascomp -n t/data/P450.fas
 
 =back
 

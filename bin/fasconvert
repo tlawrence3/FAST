@@ -207,20 +207,19 @@ STDOUT. With the --files/-f option, input files are converted
 one-by-one to corresponding output files using extensions.
 
 Options specific to fasconvert:
-  -i <format>, --input <format>   convert from <format> to fasta
-  -o <format>, --output <format>  convert from fasta to <format>
-  -f, --files                      input file (not from stdin) 
+  -i <format>, --input <format>       convert from <format> to fasta
+  -o <format>, --output <format>      convert from fasta to <format>
+  -f, --files                         input file (not from stdin) 
   -s, --sequential                    for phylip output, don't interleave sequences
-  -M <integer>, --maxlength=<integer>   for phylip output, truncate identifiers to specified length                                      
+  -M <integer>, --maxlength=<integer> for phylip output, truncate identifiers to specified length                                      
 
 Options general to FAST:
-  B<-h>, B<--help>                  	 print a brief help message
-  B<--man>             	           	 print full documentation
+  B<-h>, B<--help>                          print a brief help message
+  B<--man>                               print full documentation
   B<--version>                           print version
-  B<-l>, B<--log>                        create/append to logfile	
-  B<-L>, B<--logname>=<string>           use logfile name <string>
-  B<-C>, B<--comment>=<string>           save comment <string> to log
-  B<-q>                                  use a fastq file as input
+  B<-l>, B<--log>                           create/append to logfile  
+  B<-L, B<--logname>=<string>               use logfile name <string>
+  B<-C, B<--comment>=<string>               save comment <string> to log
 
 =head1 INPUT AND OUTPUT
 
@@ -249,8 +248,7 @@ Convert file from FASTA format to output format
 =item B<-f>
       B<--files>
 
-This option is to be used when the input is not the direct output from
-a previous program
+Convert file in place. File name appended with format
 
 =item B<-s>
       B<--sequential>
@@ -294,29 +292,15 @@ Use [string] as the name of the logfile. Default is "FAST.log.txt".
 
 Include comment [string] in logfile. No comment is saved by default.
 
-=item B<--format=[format]> 		  
-
-Use alternative format for input. See man page for "fasconvert" for
-allowed formats. This is for convenience; the FAST tools are designed
-to exchange data in Fasta format, and "fasta" is the default format
-for this tool.
-
-=item B<-m [dna|rna|protein]>,
-      B<--moltype=[dna|rna|protein]> 		  
-
-Specify the type of sequence on input (should not be needed in most
-cases, but sometimes Bioperl cannot guess and complains when
-processing data).
-
 =back
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Convert ClustalW to FASTA
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+cat data.aln | fasconvert -i clustalw > data.fas
 
 =back
 
@@ -343,7 +327,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Ardell (2013). FAST: FAST Analysis of
-Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+Sequences Toolbox.> and Bioperl I<Stajich et al.>.
 
 =cut
