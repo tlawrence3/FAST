@@ -169,7 +169,7 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      my $_ = $seq->$selector();
+      my $data = $seq->$selector();
       $moltype ||= $seq->alphabet;
       if ($iupac) {
 	$search = $iupac_symbols{$moltype};
@@ -190,9 +190,9 @@ while ($IN or @ARGV) {
       push @options, 'd' if ($delete);
       push @options, 's' if ($squash);
       my $options = join '',@options;
-      eval sprintf "tr/%s/%s/%s", $search, $replace, $options; 
+      eval sprintf "\$data =~ tr/%s/%s/%s", $search, $replace, $options; 
       die "$NAME: $@\n" if $@;
-      $seq->$selector($_);
+      $seq->$selector($data);
       # if ($append_info) {
       # 	$seq->desc(join ' ',$seq->desc(),"$NAME: $search|$replace|$options:$count");
       # }
