@@ -368,7 +368,7 @@ Options general to FAST:
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
   --moltype=<[dna|rna|protein]>     specify input sequence type
-  -q, --fastq                       use a fastq file as input and output
+  -q, --fastq                       use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -468,7 +468,7 @@ processing data).
 =item B<-q>,
       B<--fastq>
 
-Use a fastq file for input.
+use fastq format as input and output.
 
 =back
 

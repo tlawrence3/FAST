@@ -56,7 +56,7 @@ pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
