@@ -252,7 +252,7 @@ Options general to FAST:
   -C, --comment=<string>            save comment <string> to log
   --format=<format>                 use alternative format for input  
   --moltype=<[dna|rna|protein]>      specify input sequence type
-  -q                                use a fastq file as input  
+  -q, --fastq                        Use fastq format as input and output  
 
 =head1 INPUT AND OUTPUT
 
@@ -343,8 +343,9 @@ cases, but sometimes Bioperl cannot guess and complains when
 processing data).
 
 =item B<-q>
+      B<--fastq>
 
-Use a fastq file for input.
+Use fastq format as input and output.
 
 =back
 

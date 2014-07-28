@@ -178,7 +178,7 @@ Options general to FAST:
   B<-L>, B<--logname>=<string>      use logfile name <string>
   B<-C>, B<--comment>=<string>      save comment <string> to log
   B<--format>=<format>              use alternative format for input 
-  B<-q>                             use a fastq file as input
+  B<-q>, B<--fastq>                 use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -257,8 +257,9 @@ cases, but sometimes Bioperl cannot guess and complains when
 processing data).
 
 =item B<-q>
+      B<--fastq>
 
-Use a fastq file for input.
+Use fastq format as input and output.
 
 =back
 

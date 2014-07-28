@@ -96,6 +96,7 @@ GetOptions('help|h'         		 => \$help,
 	   'keep|k'                      => \$keep,
 	   'cds|c'                       => \$xl_as_cds,
 	   'codon2aa|o'                  => \$codon2aa,
+     'fastq|q'                     => sub { $format = 'fastq'; },
 	  )
   or pod2usage(2);
 		  
@@ -278,6 +279,7 @@ Options general to FAST:
   B<-C>, B<--comment>=<string>               save comment <string> to log
   B<--format>=<format>                       use alternative format for input  
   B<-m>, -B<-moltype>=<[dna|rna|protein]>    specify input sequence type
+  B<-q>, B<--fastq>                      use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -390,6 +392,11 @@ Use alternative format for input. See man page for "fasconvert" for
 allowed formats. This is for convenience; the FAST tools are designed
 to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
+
+=item B<-q>
+      B<--fastq>
+
+Use fastq format as input and output.
 
 
 =back

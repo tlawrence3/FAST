@@ -153,7 +153,7 @@ Options general to FAST:
   -B<C>, B<--comment>=<string>           save comment <string> to log
   B<--format>=<format>                   use alternative format for input  
   B<--moltype>=<[dna|rna|protein]>       specify input sequence type
-  B<-q>                                  use a fastq file as input
+  B<-q>, B<--fastq>                      use fastq format as input and output
 =head1 INPUT AND OUTPUT
 
 B<faswc> is part of FAST, the FAST Analysis of Sequences Toolbox, based
@@ -221,8 +221,9 @@ cases, but sometimes Bioperl cannot guess and complains when
 processing data).
 
 =item B<-q>
+      B<--fastq>
 
-Use a fastq file for input.
+Use fastq format as input and output.
 
 =back
 
