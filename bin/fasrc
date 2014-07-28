@@ -45,6 +45,7 @@ GetOptions('help|h'         		   => \$help,
 						  $moltype = $val;
 						},
 	   'nobrand|n'                   => \$nobrand,
+     'fastq|q'                     => sub {$format = 'fastq';},
 	  )
   or pod2usage(2);
 		  
@@ -83,6 +84,9 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
+      if ($format eq 'fastq') {
+        $seq->force_flush('1');
+      }
       my $revcom = FAST::Bio::SeqUtils->revcom_with_features($seq);
       unless ($nobrand) {
 	my $id = join '-',$seq->display_id,'rc';
