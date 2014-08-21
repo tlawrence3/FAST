@@ -294,3 +294,22 @@ fastr -d"[]" "\"" P450.fas | fastax -S \" -f 2 nodes.dmp names.dmp "Pooideae"
 The output of this pipeline should be five sequences, including P450 sequences
 from the /Triticum aestivum/ and /Lolium rigidum/ species (classified as species
 belonging to the /Pooideae/ tribe). 
+
+** Example 5: Retrieve a subset of sequences based on a list of identifiers
+
+=fasgrep= is a useful tool for retrieving subsets of sequences from large
+fasta files. Often fasta files will contain an identifier line, and then 
+one line following with a sequence corresponding to the previous identifier. 
+If this is always the case, parsing fasta files is fairly simple. When 
+the sequence that follows the identifier exists on multiple lines, the task
+of subsetting sequences becomes more challenging. If we have a list of 
+sequence identifiers in the file /ids.txt/, we can write a bash wrapper, 
+incorporating the unix =cat= command, for the fasgrep command to search 
+for this subset of sequences as follows:
+
+#+BEGIN_SRC shell
+for i in $(cat ids.txt); do fasgrep $i sequences.fas; done > subset.fas
+#+END_SRC
+
+Now we have a subest of sequences located in /subset.fas/ that correspond
+to the identifiers listed in /ids.txt/.

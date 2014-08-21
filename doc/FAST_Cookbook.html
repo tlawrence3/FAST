@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
 <meta name="title" content="FAST:Fast Analysis of Sequences Toolbox Cookbook"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-07-02T10:23-0700"/>
+<meta name="generated" content="2014-08-21T12:13-0700"/>
 <meta name="author" content="Katherine C.H. Amrine \&amp; David H. Ardell"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -156,6 +156,7 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-4-1">2.4.1 Reformat the description to allow for fastax sorting</a></li>
 </ul>
 </li>
+<li><a href="#sec-2-5">2.5 Example 5: Retrieve a subset of sequences based on a list of identifiers</a></li>
 </ul>
 </li>
 </ul>
@@ -664,14 +665,45 @@ in the same working directory, we can run the following.
 The output of this pipeline should be five sequences, including P450 sequences
 from the <i>Triticum aestivum</i> and <i>Lolium rigidum</i> species (classified as species
 belonging to the <i>Pooideae</i> tribe). 
-</p></div>
+</p>
 </div>
+</div>
+
+</div>
+
+<div id="outline-container-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Example 5: Retrieve a subset of sequences based on a list of identifiers</h3>
+<div class="outline-text-3" id="text-2-5">
+
+
+<p>
+<code>fasgrep</code> is a useful tool for retrieving subsets of sequences from large
+fasta files. Often fasta files will contain an identifier line, and then 
+one line following with a sequence corresponding to the previous identifier. 
+If this is always the case, parsing fasta files is fairly simple. When 
+the sequence that follows the identifier exists on multiple lines, the task
+of subsetting sequences becomes more challenging. If we have a list of 
+sequence identifiers in the file <i>ids.txt</i>, we can write a bash wrapper, 
+incorporating the unix <code>cat</code> command, for the fasgrep command to search 
+for this subset of sequences as follows:
+</p>
+
+
+
+<pre class="example">for i in $(cat ids.txt); do fasgrep $i sequences.fas; done &gt; subset.fas
+</pre>
+
+
+<p>
+Now we have a subest of sequences located in <i>subset.fas</i> that correspond
+to the identifiers listed in <i>ids.txt</i>.
+</p></div>
 </div>
 </div>
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-07-02T10:23-0700</p>
+<p class="date">Date: 2014-08-21T12:13-0700</p>
 <p class="author">Author: Katherine C.H. Amrine \&amp; David H. Ardell</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
