@@ -30,7 +30,8 @@ my $def_table     = 1;   # -t // TABLE_ID (CODE)
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
-my $help                 = undef;  # -h2
+my $help                 = undef;  # -h
+my $tables               = undef;  # 
 
 my $format               = $def_format;  # -f
 my $log                  = undef;        # -l
@@ -59,6 +60,7 @@ my $all_six              = undef;        # -6
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
+	   'tables|codes'                => \$tables,
 	   'format=s'                    => \$format,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
@@ -96,12 +98,23 @@ GetOptions('help|h'         		 => \$help,
 	   'keep|k'                      => \$keep,
 	   'cds|c'                       => \$xl_as_cds,
 	   'codon2aa|o'                  => \$codon2aa,
-     'fastq|q'                     => sub { $format = 'fastq'; },
+           'fastq|q'                     => sub { $format = 'fastq'; },
 	  )
   or pod2usage(2);
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
+
+if ($tables) {
+  my $tables = FAST::Bio::Tools::CodonTable->tables;
+  my ($id, $name);
+  foreach $id (sort {$a <=> $b} sort keys %$tables) {
+    $name = $$tables{$id};
+    print "$id = $name\n";
+  }
+  die;
+}
+
 my $fromSTDIN = ((-t STDIN) ? false : true);
 pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input from STDIN.\n") if (!($fromSTDIN) && (@ARGV == 0));
 pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
@@ -269,6 +282,8 @@ Options specific to B<fasxl>:
   B<-6>                      	translate each sequence in all six frames
   B<-s>, B<--stop>=<char>       string representing stop codons ["*"]
   B<-u>, B<--unknown>=<char>    string representing unknown amino acids ["X"]
+
+  B<--tables>, B<--codes>       print NCBI table ids of genetic codes for -t option
 
 Options general to FAST:
   B<-h>, B<--help>                  	     print a brief help message

@@ -40,7 +40,7 @@ my $intersect_match      = undef; #-x
 my $primary_match        = undef; #-P
 my $delete_gap           = undef; #-g
 my $gap_intron           = undef; #-r Currently not implemented
-my $vebose               = undef; #-v
+my $verbose               = undef; #-v
 my $opt_C                = 0; #Currently not implemented
 
 
@@ -55,14 +55,14 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'case-insensitive|i'          => \$case,
-     'negate|n'                    => \$negate,
-     'tag|t=s'                     => \$tag_match,
-     'slice|s=s'                   => \$slice_match,
-     'intersect|x=s'               => \$intersect_match,
-     'primary|P=s'                 => \$primary_match,
-     'gap-delete|g'                => \$delete_gap,
-     'vebose|v'                    => \$vebose,
+	   'case-insensitive|i'          => \$case,
+	   'negate|n'                    => \$negate,
+	   'tag|t=s'                     => \$tag_match,
+	   'slice|s=s'                   => \$slice_match,
+	   'intersect|x=s'               => \$intersect_match,
+	   'primary|P=s'                 => \$primary_match,
+	   'gap-delete|g'                => \$delete_gap,
+	   'verbose|v'                    => \$verbose,
 
 	  ) 
   or pod2usage(2);
@@ -109,7 +109,7 @@ foreach my $feat ( $gb->top_SeqFeatures() ) {
   if ($feat->has_tag($tag)) {
     foreach $value ( $feat->each_tag_value($tag) ) {
       if ((!$negate and $value =~ $re) or ($negate and $value !~ $re)) {
-  if ($vebose) {
+  if ($verbose) {
     print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring()," with $tag $value.\n";
   }
   if (ref($feat->location) eq 'FAST::Bio::Location::Simple') {
@@ -151,7 +151,7 @@ if ($gap_intron) { ## match introns and gap them into alignment
     if ($feat->has_tag($tag)) {
       foreach $value ( $feat->each_tag_value($tag) ) {
   if ($value =~ /intron/) {
-    if ($vebose) {
+    if ($verbose) {
       print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring()," with $tag $value.\n";
     }
     my $start = $saln->column_from_residue_number($gb->id(),$feat->start);
@@ -210,15 +210,15 @@ __END__
 
 =head1 NAME
 
-B<bgfalncut> - extract subalignments based on reg-ex matching on features in an annotated genbank file
+B<gbfalncut> - extract subalignments based on reg-ex matching on features in an annotated genbank file
 
 =head1 SYNOPSIS
 
-B<bgfalncut> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<gbfalncut> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-B<bgfalncut> takes multifasta format sequence or alignment data as input,
+B<gbfalncut> takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
   -i, --case-insensitive
@@ -242,7 +242,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-B<bgfalncut> is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<gbfalncut> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
