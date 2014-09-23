@@ -62,7 +62,7 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val > 0;
 						  $memory_limit = $val;
 						},
-      'q|fastq'                     => sub {$format = 'fastq'}
+      'q|fastq'                     => sub {$format = 'fastq'},
 	  )
   or exit(1);
 

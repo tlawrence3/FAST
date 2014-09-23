@@ -54,7 +54,7 @@ GetOptions('help|h'         		 => \$help,
 					       },
 	   'v|verbose'                   => \$verbose,
 	   'Q|quiet|silent'              => \$silent,
-           'fastq|q'                     => \$fastq,
+           'fastq|q'                     => sub{$format = 'fastq';},
 	  ) 
   or exit(1);
 
@@ -68,10 +68,6 @@ pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NA
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
 my $append_file_name = (!$silent and ($verbose or (!($fromSTDIN) and @ARGV > 1)));
-
-if ($fastq){
-  $format = 'fastq'
-}
 
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 my $IN;

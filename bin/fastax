@@ -57,7 +57,7 @@ GetOptions('help|h'         		 => \$help,
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'no-names|n'                  => \$noname,
-           'fastq|q'                     => \$fastq,  
+           'q|fastq'                     => sub {$format = 'fastq'},
 	  ) 
   or exit(1);
 
@@ -147,18 +147,15 @@ else { # $field < 0
   $index = $field;
 }
 
-if ($fastq){
-  $def_format = 'fastq';
-}
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
@@ -170,10 +167,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   if ($IN) { 

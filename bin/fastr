@@ -82,7 +82,7 @@ GetOptions('help|h'         		 => \$help,
 						  $ambig_char = $val;
 						},
            'no-replace|n'                => \$no_replace,
-           'fastq|q'                     => \$fastq,
+           'q|fastq'                     => sub {$format = 'fastq'},
 	  ) 
   or pod2usage(2);
 
@@ -136,10 +136,6 @@ unless ($iupac_or_strict) {
     $replace              = "";
   }
       
-}
-
-if ($fastq){
-  $format = 'fastq';
 }
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);

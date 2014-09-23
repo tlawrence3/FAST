@@ -22,6 +22,7 @@ my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 
 ## OPTION VARIABLES
+my $format               = $def_format;  
 my $man                  = undef;  # --man
 my $help                 = undef;  # -h
 my $moltype              = undef;  # -m, in case bioperl can't tell
@@ -45,11 +46,12 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
+     'format=s'                    => \$format,
      'global|g'                    => \$global,
      'insensitive|i'               => \$insensitive,
      'sequence|s'                  => \$sequence,
      'description|d'               => \$description,
-     'fastq|q'                     => \$fastq,
+     'fastq|q'                     => sub{$format = 'fastq';},
 	  ) 
 
   or pod2usage(2);
@@ -90,18 +92,15 @@ else {
   $type = "identifier";
 }
 
-if ($fastq){
-  $def_format = 'fastq';
-}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
 my $IN;
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
@@ -113,10 +112,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   if ($IN) { 

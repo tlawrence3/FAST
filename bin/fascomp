@@ -27,6 +27,7 @@ my $def_join_string = $FAST::DEF_JOIN_STRING;
 my $normalize            = undef; # -n
 my $table                = undef; # -t
 my $join                 = $def_join_string; #-j
+my $format               = $def_format;
 
 my $man                  = undef;  # --man
 my $help                 = undef;  # -h
@@ -60,6 +61,7 @@ GetOptions('help|h'              => \$help,
 						},
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
+     'format=s'                    => \$format,
 	   'comment|C=s'                 => \$comment,
 	   'normalize|n'                 => \$normalize,
 	   'table|t'                     => \$table,
@@ -69,7 +71,7 @@ GetOptions('help|h'              => \$help,
 	   'alphabet|a=s'                => \$alphabet,
 	   'width|w=i'                   => \$width,
 	   'precision|p=i'               => \$precision,
-     'fastq|q'                     => \$fastq,
+     'fastq|q'                     => sub{$format = 'fastq';},
 	  )
   or pod2usage(2);
 		  
@@ -80,10 +82,6 @@ pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless inp
 pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
-
-if ($fastq){
-  $def_format = 'fastq'
-}
 
 my $alpha_keys;
 if ($alphabet) {
@@ -98,14 +96,14 @@ elsif (!$width) {
 }
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 unless (@ARGV) {
   if ($moltype) {
-    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
   }
   else {
-    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
   }
 }
 
@@ -121,10 +119,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   if ($IN) {   

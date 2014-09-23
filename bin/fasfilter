@@ -48,8 +48,8 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
-	   'fastq|q'                     => \$fastq,
      'format=s'                    => \$format,
+     'fastq|q'                     => sub{$format = 'fastq';},
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
@@ -153,18 +153,14 @@ else {
 
 
 
-if ($fastq){
-  $def_format = 'fastq'
-}
-
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $def_format);
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN; 
 unless (@ARGV) {
     if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
 
@@ -176,10 +172,10 @@ while ($IN or @ARGV) {
       next;
     }
     elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
     }
     else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $def_format);
+      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
     }
   }
   if ($IN) { 
