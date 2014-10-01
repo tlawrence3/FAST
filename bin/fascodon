@@ -335,11 +335,11 @@ fascodon - counts codon usage
 
 =head1 SYNOPSIS
 
-fascodon [options] [MULTIFASTA-FILE...]
+B<fascodon> [options] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-fascodon takes multifasta format sequence or alignment data as input, and
+B<fascodon> takes multifasta format sequence or alignment data as input, and
 analyzes codon usage. Output can be for multifasta file or for individual
 fasta files within a multifasta.
 
@@ -356,19 +356,19 @@ Options specific to fascodon:
                                     information of codon usage
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>     specify input sequence type
-  -q, --fastq                       use fastq format as input and output
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=<string>>            use logfile name <string>
+  B<-C>, B<--comment=<string>>            save comment <string> to log
+  B<--format=<format>>                 use alternative format for input  
+  B<--moltype=<[dna|rna|protein]>>     specify input sequence type
+  B<-q>, B<--fastq>                       use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
-fascodon is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fascodon> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
