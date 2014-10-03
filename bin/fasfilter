@@ -210,7 +210,7 @@ B<fasfilter> [OPTION]... [RANGES] [MULTIFASTA-FILE]...
 
 =head1 RANGE SPECIFICATION
 
-        RANGES  : { RANGE | RANGE,RANGES }
+         RANGES : { RANGE | RANGE,RANGES }
          RANGE  : { POINT | BOUND>SEP<UBOUND }
          >SEP<  : {    ..     |       :       |       -      }
          POINT  : a number, as defined in perlnumber 

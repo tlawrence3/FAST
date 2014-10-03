@@ -190,40 +190,43 @@ fasconvert - Convert sequences or alignments to or from fasta format.
 
 =head1 SYNOPSIS
 
-fasconvert -o <format> < fasta-file > other-format file;  
-fasconvert -i <format> < other-format-file > fasta-file;
-fasconvert -fo <format> fasta-file1 fasta-file2 ... ;
-fasconvert -fi <format> other-format-file1 other-format-file2 ... ;
+B<fasconvert> -o <format> < fasta-file > other-format file
+
+B<fasconvert> -i <format> < other-format-file > fasta-file
+
+B<fasconvert> -fo <format> fasta-file1 fasta-file2 ...
+
+B<fasconvert> -fi <format> other-format-file1 other-format-file2 ...
 
 =head1 DESCRIPTION
 
-fasconvert converts multisequence or alignment data to or from fasta
+B<fasconvert> converts multisequence or alignment data to or from fasta
 format. The alternative format must be explicitly specified using an
-option argument to either the --input/-i option or the --output/-o
+option argument to either the B<--input>/B<-i> option or the B<--output>/B<-o>
 option. The format specifier is a single all-lower-case word
 corresponding to formats supported by the Bioperl Seq::IO and
 Align::IO modules. By default, input is from STDIN and output is to
-STDOUT. With the --files/-f option, input files are converted
+STDOUT. With the B<--files>/B<-f> option, input files are converted
 one-by-one to corresponding output files using extensions.
 
 Options specific to fasconvert:
-  -i <format>, --input <format>       convert from <format> to fasta
-  -o <format>, --output <format>      convert from fasta to <format>
-  -f, --files                         input file (not from stdin) 
-  -s, --sequential                    for phylip output, don't interleave sequences
-  -M <integer>, --maxlength=<integer> for phylip output, truncate identifiers to specified length                                      
+  B<-i>, B<--input> <format>       convert from <format> to fasta
+  B<-o>, B<--output> <format>      convert from fasta to <format>
+  B<-f>, B<--files>                input file (not from stdin) 
+  B<-s>, B<--sequential>           for phylip output, don't interleave sequences
+  B<-M>, B<--maxlength>=<integer>  for phylip output, truncate identifiers to specified length                                      
 
 Options general to FAST:
-  B<-h>, B<--help>                          print a brief help message
-  B<--man>                               print full documentation
-  B<--version>                           print version
-  B<-l>, B<--log>                           create/append to logfile  
-  B<-L, B<--logname>=<string>               use logfile name <string>
-  B<-C, B<--comment>=<string>               save comment <string> to log
+  B<-h>, B<--help>                 print a brief help message
+  B<--man>                      print full documentation
+  B<--version>                  print version
+  B<-l>, B<--log>                  create/append to logfile  
+  B<-L>, B<--logname>=<string>     use logfile name <string>
+  B<-C>, B<--comment>=<string>     save comment <string> to log
 
 =head1 INPUT AND OUTPUT
 
-fasconvert is part of FAST, the FAST Analysis of Sequences Toolbox,
+B<fasconvert> is part of FAST, the FAST Analysis of Sequences Toolbox,
 based on Bioperl. Most core FAST utilities expect input and return
 output in multifasta format. Input can occur in one or more files or
 on STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can

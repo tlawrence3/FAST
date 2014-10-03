@@ -303,8 +303,8 @@ Options general to FAST:
   B<--man>             	       print full documentation
   B<--version>                     print version
   B<-l>, B<--log>                     create/append to logfile	
-  B<-L, B<--logname>=<string>         use logfile name <string>
-  B<-C, B<--comment>=<string>         save comment <string> to log
+  B<-L>, B<--logname>=<string>        use logfile name <string>
+  B<-C>, B<--comment>=<string>        save comment <string> to log
   B<--format>=<format>             use alternative format for input  
   B<--moltype>=<[dna|rna|protein]> specify input sequence type
   B<-q>, B<--fastq>                   use fastq format as input and output
