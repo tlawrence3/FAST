@@ -37,37 +37,37 @@ $^{4}$School of Engineering, University of California, Merced, CA, USA}
 \maketitle
 
 \begin{abstract}
-FAST (Fast Analysis of Sequences Toolbox) provides simple
-command-line tools for rapid prototyping of powerful and reproducible
-bioinformatic workflows on flat-file biological sequence databases.
-Modeled after the GNU (GNU's Not UNIX) Textutils such as {\tt grep},
-{\tt cut}, and {\tt tr}, FAST tools such as {\tt
-  fasgrep}, {\tt fascut}, and {\tt fastr} are designed to be serially
-composed (linked together) in UNIX-style pipelines but process data
-per-record rather than per-line. This design enables efficient inline
-processing of biological sequence data in a familiar and time-tested
-idiom. Functionality highlights of FAST include feature-based slicing
-of sites from alignments, sequence filtering and transformation with
-Perl regular expressions, numerical and taxonomic selection and
-sorting of sequence records, annotation of sequences with molecular
-biological statistics including composition and codon usage,
-translation of gapped data, and statistics for molecular population
-genetic analysis. FAST's default data exchange format is MultiFastA
-(specifically, a restriction of BioPerl FastA format). Additionally, FAST
-has an option that allows the use of Sanger and Illumina 1.8+ FASTQ
-formatted files. Compared to software already available, FAST is 
-distinguished by consistency in interface design across utilities, 
-conformance with Unix philosophy,and the portability, ease of installation, 
-and security inherent in its BioPerl and Perl foundations. 
-FAST workflows reduce manual interventions in data processing and facilitate 
-the interactive investigation and control of data by its users. Bringing all the
-advantages of open-source software consistent with scientific ideals,
-FAST has a shallow learning curve with a high return on investment of
-mastery because its interface design is consistent with the
-conventions of GNU utilities, Perl, BioPerl, and R. FAST brings the
-power of Perl and BioPerl to bioinformatic users at the command-line
-without requiring previous programming skills and experience. \tiny
-\keyFont{
+  FAST (Fast Analysis of Sequences Toolbox) provides simple
+  command-line tools for rapid prototyping of powerful and
+  reproducible bioinformatic workflows on flat-file biological
+  sequence databases.  Modeled after the GNU (GNU's Not UNIX)
+  Textutils such as {\tt grep}, {\tt cut}, and {\tt tr}, FAST tools
+  such as {\tt fasgrep}, {\tt fascut}, and {\tt fastr} are designed to
+  be serially composed in UNIX-style pipelines. Unlike UNIX tools,
+  FAST processes data per-sequence-record rather than per-line. This
+  enables efficient inline processing of biological sequence data in a
+  concise, expressive and time-tested idiom with no programming
+  experience required.  Bringing all the advantages of open-source
+  software consistent with scientific ideals, FAST has a shallow
+  learning curve through consistency of interfaces across utilities
+  and a high return on investment of mastery through conformity with
+  conventions of GNU utilities, Matlab, Perl, BioPerl and R.
+  Portability, ease of installation, and security of FAST are
+  inherently derived from its BioPerl and Perl foundations. The
+  default data exchange format in FAST is MultiFastA (specifically, a
+  restriction of BioPerl FastA format), while Sanger and Illumina 1.8+
+  FASTQ formatted files are also compatible.  Functionality highlights
+  include fully automated numerical and taxonomic selection and
+  sorting of sequence records, annotation-based selection of sites
+  from alignments, selection and transformation with regular
+  expressions, molecular biological statistics including composition
+  and codon usage, and molecular population genetic statistics. FAST
+  promotes reproducibility in bioinformatic workflows by reducing
+  manual interventions and increasing documentability of data
+  processing and facilitates the interactive investigation and control
+  of data by its users. FAST brings the power of Perl and BioPerl to
+  bioinformatic users at the command-line without requiring previous
+  programming skills and experience. \tiny \keyFont{
   \section{Keywords:} Unix philosophy, MultiFASTA, pipeline,
   bioinformatic workflow, open source, BioPerl, regular expression,
   NCBI Taxonomy}
@@ -78,33 +78,64 @@ without requiring previous programming skills and experience. \tiny
 The field of molecular biology has changed significantly with the
 advent of Next Generation Sequencing (NGS) technology. It is now
 commonplace to analyze gigabases of data per experiment. Commonly,
-bioinformatics programs are developed for visualization and basic
-sequence manipulation through a monolithic application with a
-Graphical User Interface (GUI) \citep{Smith1994, Rampp2006,
-  Librado01062009}. Command-line utilities for bioinformatics such as
-the EMBOSS package~\citep{Rice2000} or the scripts that come with
-BioPerl~\citep{Stajich2002} typically offer suites of tools with
-simple, well-defined functions, but are not necessarily designed to
-interoperate with each other. Some monolithic applications are not
-open-source, which invites the accumulation and persistence of
-incorrect code.
+bioinformatics programs developed for visualization and basic sequence
+manipulation use a monolithic application with a Graphical User
+Interface (GUI)~\citep{Smith1994, Rampp2006, Librado01062009}, usually
+without any facility to record and document user actions for later
+reproduction of a bioinformatic workflow.
 
-To reduce human error and increase reproducibility in managing
-biological data, it is desirable to create and document automated
-bioinformatic workflows governed by machine processing of biological
-data. Web-based workflow suites such as Galaxy~\citep{galaxy},
-Taverna~\citep{CPE:CPE993} and BioExtract~\citep{Lushbough01072011}
-are not quite as agile for rapid prototyping of workflows as are UNIX
-pipelines.
+Early calls for reproducible research and code publication in
+bioinformatics and biostatistics were motivated in part to combat
+fraudulent research in biomedicine~\citep{Peng01072009}. Open-source
+software in science facilitates crowd-sourced verification, correction
+and extension of code-based analysis~\citep{barnes2010publish}, and
+reuse of software and data to make discoveries using public
+data~\citep{Peng02122011}. The absence of adequate documentation for
+analysis of high-dimensional data can obscure errors in processing
+with profound potential ethical and financial
+consequences~\citep{BaggerlyCoombes2009,hutson2010data,Baggerly01052011,Huang01072013}. In
+one analysis, only 2 of eighteen published microarray gene-expression
+analyses were completely reproducible in part because of proprietary
+closed-source software~\citep{Ioannidis:2008cr}. Analytical errors are
+a major source of retractions in the scientific
+literature~\citep{Casadevall01092014}. Peer-review of scientific
+software is generally not yet required for publication but seen as
+necessary for integrity of the scientific enterprise across fields and
+requiring more computational training for all
+scientists~\citep{Morin13042012,Joppa17052013}. Publication and
+documentation of bioinformatics workflows simplifies post-publication
+validation of research findings and may help reduce the temptation to
+fish for significance and encourage more objectivity in data analysis
+and interpretation~\citep{Boulesteix01022010}
+
+To reduce human error and increase reproducibility in the management
+and documentable processing of biological data, it is desirable to
+create self-documenting automated bioinformatic workflows --- scripts
+and other literate programming that encode scientific workflows for
+machine processing of biological data. Web-based open-source workflow
+suites such as Galaxy~\citep{galaxy14}, Taverna~\citep{CPE:CPE993} and
+BioExtract~\citep{Lushbough01072011} facilitate this, but an even more
+rapid and time-tested development platform for rapid prototyping of reproducible
+workflows is the UNIX command-line, specifically UNIX pipelines.
 
 The FAST utilities are modeled after the standard Unix
 toolkit\citep{Peek2001} and follow the Unix philosophy to ``do one
-thing and do it well'' \citep{Stutz2000}. They are written in Perl
+thing and do it well'' \citep{Stutz2000}.
+
+
+Command-line utilities for bioinformatics such as the EMBOSS
+package~\citep{Rice2000} or the scripts that come with
+BioPerl~\citep{Stajich2002} typically offer suites of tools with
+simple, well-defined functions that lend themselves to scripting, but
+are not necessarily designed according to the UNIX toolbox philosophy specifically to interoperate through
+composition.
+
+ They are written in Perl
 using BioPerl packages \citep{Stajich2002}. This makes FAST utilities
 easy to adopt if you are familiar with the Unix toolbox and allows
 fast sequence analysis even on large datasets. Extensive
 documentation has been developed for each utility along with useful
-error messages following the recommendations of \cite{Seemann2013} to
+error messages following the recommendations of \citep{Seemann2013} to
 increase usability. Lastly, FAST is open source, which makes it
 available to anyone free of cost. This is in line with the call to
 make science more assessable, open, and reproducible by other
@@ -223,7 +254,7 @@ select and sort sequences by attributes computed and annotated into
 data by utilities upstream in the pipeline. For example, to select
 protein-coding genes from a file {\tt cds.fas} whose translations
 contain the {\it N}-glycosylation amino acid
-motif~\cite{KornfieldKornfield85}, one could execute:
+motif~\citep{KornfieldKornfield85}, one could execute:
 
 \begin{verbatim}
 fasxl -a cds.fas | fasgrep -t xl0 "N[^P][ST][^P]" | fascut -f 1..-2
