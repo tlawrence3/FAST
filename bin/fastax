@@ -253,7 +253,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-fastax is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fastax> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can

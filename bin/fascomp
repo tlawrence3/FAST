@@ -416,7 +416,7 @@ Compute and annotate description with normalized base frequencies:
 
 =over 8
 
-fascomp -n t/data/P450.fas
+B<fascomp> -n t/data/P450.fas
 
 =back
 

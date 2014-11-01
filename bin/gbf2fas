@@ -276,7 +276,7 @@ Print all sequences with "-DNA" in the ID:
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
 
 =back
 

@@ -233,7 +233,7 @@ Filtering sequences to have length >= 300:
 
 =over 8
 
-B<faslen> sequences.fas | fasfilter -t length 300.. 
+B<faslen> sequences.fas | B<fasfilter> -t length 300.. 
 
 =back
 
@@ -241,7 +241,7 @@ Sorting sequences by length:
 
 =over 8
 
-faswc sequences.fas | fassort -t length
+B<faswc> sequences.fas | B<fassort> -t length
 
 =back
 

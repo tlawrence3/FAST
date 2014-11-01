@@ -163,18 +163,18 @@ __END__
 
 =head1 NAME
 
-fasuniq - Remove duplicate sequence records in a
+B<fasuniq> - Remove duplicate sequence records in a
 multifasta file or datastream.
 
 =head1 SYNOPSIS
 
-fasuniq [options] [MULTIFASTA-FILE]
+B<fasuniq> [options] [MULTIFASTA-FILE]
 
-[MULTIFASTA-DATA-ON-STDIN] | fasuniq [options]
+[MULTIFASTA-DATA-ON-STDIN] | B<fasuniq> [options]
 
 =head1 DESCRIPTION
 
-fasuniq concatenates IDs of adjacent duplicate sequence records in a 
+B<fasuniq> concatenates IDs of adjacent duplicate sequence records in a 
 multifasta datastream. The sequences should be sorted such as output
 from B<fassort -s>. Only the sequence data itself must be
 identical, not identifiers or descriptions. By default, the first
@@ -199,7 +199,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-fasuniq is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fasuniq> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one file or on STDIN. Output
 occurs to STDOUT. The FAST utility B<fasconvert> can reformat other
@@ -286,7 +286,7 @@ Print all sequences with "-DNA" in the ID:
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
 
 =back
 

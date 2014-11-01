@@ -389,7 +389,7 @@ Change all bars "|" to hashes ("#") in IDs:
 
 =over 8
 
-fastr '|' '#' t/data/P450.fas
+B<fastr> '|' '#' t/data/P450.fas
 
 =back
 
@@ -397,7 +397,7 @@ Change all square brackets to parens in description:
 
 =over 8
 
-fastr -d '[]' '()' t/data/P450.fas
+B<fastr> -d '[]' '()' t/data/P450.fas
 
 =back
 
@@ -405,7 +405,7 @@ Lower-case all sequence data:
 
 =over 8
 
-fastr -s 'A-Z' 'a-z' t/data/P450.fas
+B<fastr> -s 'A-Z' 'a-z' t/data/P450.fas
 
 =back
 

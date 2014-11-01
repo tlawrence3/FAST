@@ -103,15 +103,15 @@ __END__
 
 =head1 NAME
 
-fasrc - reverse complement nucleotide sequences and alignments.
+B<fasrc> - reverse complement nucleotide sequences and alignments.
 
 =head1 SYNOPSIS
 
-fasrc [options] [MULTIFASTA-FILE...]
+B<fasrc> [options] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-fasrc takes multifasta format DNA or RNA codon sequences or alignments
+B<fasrc> takes multifasta format DNA or RNA codon sequences or alignments
 as input, and generates reverse complements of those sequences as
 output.
 
@@ -131,7 +131,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-fasrc is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fasrc> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can

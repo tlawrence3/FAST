@@ -186,7 +186,7 @@ __END__
 
 =head1 NAME
 
-fasconvert - Convert sequences or alignments to or from fasta format.
+B<fasconvert> - Convert sequences or alignments to or from fasta format.
 
 =head1 SYNOPSIS
 
@@ -303,7 +303,7 @@ Convert ClustalW to FASTA
 
 =over 8
 
-cat data.aln | fasconvert -i clustalw > data.fas
+cat data.aln | B<fasconvert> -i clustalw > data.fas
 
 =back
 

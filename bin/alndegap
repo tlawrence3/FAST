@@ -180,15 +180,15 @@ __END__
 
 =head1 NAME
 
-alndegap - removes gap containing sites from a seqeunce alignment
+B<alndegap> - removes gap containing sites from a seqeunce alignment
 
 =head1 SYNOPSIS
 
-alndegap [options] [MULTIFASTA-FILE...]
+B<alndegap> [options] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-alndegap takes multifasta format sequence or alignment data as input, and
+B<alndegap> takes multifasta format sequence or alignment data as input, and
 will remove gap characters from sequence. Gaps can be all removed or removed
 based on a frequency of gaps per column.
 
@@ -210,7 +210,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-alndegap is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<alndegap> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -296,7 +296,7 @@ Print all sequences with "-DNA" in the ID:
 
 =over 8
 
-cat data.fas | fasgrep "-DNA" > data.dna.fas
+cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
 
 =back
 
