@@ -89,7 +89,7 @@ GetOptions('help|h'         		 => \$help,
 						   $output = $val; 
 						 },
 	   'files|f'                     => \$files,
-           'sequential|s'                => \$sequential,
+           'sequential'                => \$sequential,
            'maxlength|M=i'                 => \$maxlength
 	  ) 
   or pod2usage(2);
