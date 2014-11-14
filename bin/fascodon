@@ -53,7 +53,7 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
      'base-order|b=s'              => \$base_order,
      'individual|v'                => \$individual,
-     'suppress|s'                  => \$suppress,
+     'Q|quiet|silent'                  => \$suppress,
      'amino-order|o=s'             => \$amino_order,
      'order-by-amino|g'            => \$orderby_amino,
      'table|t=i'                   => \$table,
@@ -347,7 +347,7 @@ Options specific to fascodon:
   B<-b>, B<--base-order>
   B<-v>, B<--individual>                  option will print codon usage for 
                                	 individual fasta files
-  B<-s>, B<--suppress>                    option will supress error messages
+  B<-Q>, B<--quiet>, B<--silent>             option will supress error messages
   B<-o>, B<--amino-order>
   B<-g>, B<--order-by-amino>              option will order amino acid ouput in 
                                     alaphabetical order 
@@ -387,8 +387,9 @@ reformat other formats to and from multifasta.
 This option will take each fasta within a multifasta and print codon usage
 seperated by the sequence identifiers
 
-=item B<-s>
-      B<--supress>
+=item B<-Q>,
+      B<--quiet>,
+      B<--silent>
 
 This option will supress any error messages or warnings, such as messages warning
 about premature stop codons, sequences that do not end in stop codons or
