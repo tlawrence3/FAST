@@ -209,7 +209,7 @@ Align::IO modules. By default, input is from STDIN and output is to
 STDOUT. With the B<--files>/B<-f> option, input files are converted
 one-by-one to corresponding output files using extensions.
 
-Options specific to fasconvert:
+Options specific to B<fasconvert>:
   B<-i>, B<--input> <format>       convert from <format> to fasta
   B<-o>, B<--output> <format>      convert from fasta to <format>
   B<-f>, B<--files>                input file (not from stdin) 
