@@ -50,7 +50,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'n=i'                         => sub{  my (undef,$val) = @_; 
+	   'lines|n=i'                   => sub{  my (undef,$val) = @_; 
 						  die "$NAME: -n option expects a positive integer argument\n" 
 						    unless $val > 0;
 						  $n = $val;
@@ -220,7 +220,7 @@ the first n sequence records for each inputed file. B<fashead> by
 default prints the first 10 sequence records.
 
 Options specific to B<fastail>:
-  B<-n>=<integer>                      the number of sequences to print
+  B<-n>, B<--lines>=<integer>             the number of sequences to print
   B<-v>, B<--verbose>                     append file name to sequence descriptions
   B<-Q>, B<--quiet>, B<--silent>             do not append file name to sequence
                                      descriptions
@@ -249,7 +249,8 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-n [integer]>
+=item B<-n [integer]>,
+      B<--lines [integer]>
 
 The number of sequences to print. Must be a positive integer. Defaults to 10
 if the parameter is not specified.
