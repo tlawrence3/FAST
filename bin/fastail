@@ -222,7 +222,7 @@ default prints the first 10 sequence records.
 Options specific to B<fastail>:
   B<-n>=<integer>                      the number of sequences to print
   B<-v>, B<--verbose>                     append file name to sequence descriptions
-  B<-q>, B<--quiet>, B<--silent>             do not append file name to sequence
+  B<-Q>, B<--quiet>, B<--silent>             do not append file name to sequence
                                      descriptions
   B<-M>, B<--memory_limit>=<integer>      a memory limit in bytes for the sequences
 
@@ -260,7 +260,7 @@ if the parameter is not specified.
 Always append file names to sequence descriptions.
 Defaults to on if multiple files are passed.
 
-=item B<-q>,
+=item B<-Q>,
       B<--quiet>,
       B<--silent>
 

@@ -217,7 +217,11 @@ number of sequences. Two exceptions to inline processing in FAST
 utilities concern {\tt fassort } and {\tt fastail} which both require
 some paging of data into temporrary files. However, some preliminary
 benchmarking suggests that {\tt fassort} runtimes also scale linearly in
-sequence number (fig~\ref{fig:02}).
+sequence number (fig~\ref{fig:02}). Benchmarking was performed using
+the Benchmark v1.15 perl module on a MacBook Pro ??Ghz Intel
+i7, 8 Gb of RAM. The average CPU time of 100 iterations to complete
+the analysis of six datasets consisting of 25,000, 250,000, or
+1,000,000 100bp sequences (fig 2A) and 10,000, 100,000, or 1,000,000 1,000bp sequences (fig 2B) were used to estimate performance.  
 
 FAST is compatible with the zero-based indexing if the sequence
 identifier is thought as the zero$^{th}$ field of the identifier
