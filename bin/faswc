@@ -146,14 +146,14 @@ Options specific to B<faswc>:
 
 Options general to FAST:
   -B<h>, B<--help>                  	 print a brief help message
-  B<--man>             	                 print full documentation
-  B<--version>                           print version
-  B<-l>, B<--log>                        create/append to logfile	
-  -B<L>, B<--logname>=<string>           use logfile name <string>
-  -B<C>, B<--comment>=<string>           save comment <string> to log
-  B<--format>=<format>                   use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>       specify input sequence type
-  B<-q>, B<--fastq>                      use fastq format as input and output
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  -B<L>, B<--logname>=<string>            use logfile name <string>
+  -B<C>, B<--comment>=<string>            save comment <string> to log
+  B<--format>=<format>                 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
+  B<-q>, B<--fastq>                       use fastq format as input and output
 =head1 INPUT AND OUTPUT
 
 B<faswc> is part of FAST, the FAST Analysis of Sequences Toolbox, based
@@ -229,6 +229,13 @@ Use fastq format as input and output.
 
 =head1 EXAMPLES
 
+Count the number of sequences in data1.fas and data2.fas and the total:
+
+=over 8  
+
+B<faswc> -s data1.fas data2.fas
+
+=back
 
 =head1 SEE ALSO
 
