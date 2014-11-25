@@ -174,12 +174,13 @@ B<fasuniq> [options] [MULTIFASTA-FILE]
 
 =head1 DESCRIPTION
 
-B<fasuniq> concatenates IDs of adjacent duplicate sequence records in a 
-multifasta datastream. The sequences should be sorted such as output
-from B<fassort -s>. Only the sequence data itself must be
+B<fasuniq> removes duplicate sequence records in a
+multifasta file or datastream. The sequences should be sorted 
+such as output from B<fassort -s>. Only the sequence data itself must be
 identical, not identifiers or descriptions. By default, the first
 matching sequence record in a series of matches (including identifier
-and description) is the one printed.
+and description) is the one printed. IDs of adjacent duplicate sequence records 
+can be concatenated to the printed sequence using the -c, --concat option.
 
 Options specific to fasuniq:
   B<-c>, B<--concat>               concatenate identifiers 
@@ -283,11 +284,11 @@ Use fastq format as input and output.
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Remove duplicate sequences and append concatnated IDs of duplicate sequences to printed sequence:
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+B<fassort -s> data1.fas | B<fasuniq -c>
 
 =back
 
