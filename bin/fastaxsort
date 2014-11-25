@@ -254,7 +254,12 @@ B<fastaxsort>  [OPTION]... [NODES-FILE] [NAMES-FILE] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<fastaxsort> takes multifasta format sequence or alignment data as input,
+B<fastaxsort> takes multifasta format sequence or alignment data as input, and outputs sequences records sorted by taxonomic affiliation.
+
+NCBI Taxonomy data must be downloaded separately from 
+<NCBI Taxonomy|http://www.ncbi.nlm.nih.gov/taxonomy>, particularly one of the 
+files marked "taxdump" from for example <ftp://ftp.ncbi.nih.gov/pub/taxonomy>. Only the 
+files"nodes.dmp" and "names.dmp" are used. 
 
 Options specific to B<fastaxsort>:
   B<-n>, B<--noname>
@@ -266,7 +271,7 @@ Options specific to B<fastaxsort>:
 
 Options general to FAST:
   B<-h>, B<--help>                        print a brief help message
-    B<--man>             	            print full documentation
+  B<--man>             	              print full documentation
   B<--version>                         print version
   B<-l>, B<--log>                         create/append to logfile	
   B<-L>, B<--logname=<string>>            use logfile name <string>
@@ -300,8 +305,6 @@ of the perl default (which splits on one or more whitespace
 characters). Special characters must be quoted to protect them from
 the shell.
 
-Description
-
 =item B<-f>
       B<--field>
 
@@ -318,7 +321,6 @@ field in the description; field "-1" is the last field, "-2" is the
 second-to-last etc. Sequence records for which the specified field
 does not exist will sort on a null key.
 
-Description
 
 =item B<-i>
       B<--indentifier>
