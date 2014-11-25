@@ -250,34 +250,34 @@ B<fastaxsort> - sort and identify sequences based on NCBI taxonomy
 
 =head1 SYNOPSIS
 
-B<fastaxsort> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<fastaxsort>  [OPTION]... [NODES-FILE] [NAMES-FILE] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
 B<fastaxsort> takes multifasta format sequence or alignment data as input,
 
 Options specific to B<fastaxsort>:
-  -n, --noname
-  -S, --split
-  -F, --field
-  -I, --identifier
-  -i, --index
-  -m, --marker
+  B<-n>, B<--noname>
+  B<-S>, B<--split-on-regex>=<regex>    split description for field matching using regex 
+  B<-f>, B<--field>=<int>               sort on field in description
+  B<-i>, B<--identifier>                taxa are sorted over sequence identifiers (default is over descriptions)
+  B<--index>
+  B<-M>, B<--marker>
 
 Options general to FAST:
-  -h, --help                        print a brief help message
-    --man             	            print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
-  -q, --fastq                        use fastq format as input and output
+  B<-h>, B<--help>                        print a brief help message
+    B<--man>             	            print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=<string>>            use logfile name <string>
+  B<-C>, B<--comment=<string>>            save comment <string> to log
+  B<--format=<format>>                 use alternative format for input  
+  B<--moltype=<[dna|rna|protein]>>      specify input sequence type
+  B<-q>, B<--fastq>                        use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fastaxsort> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -293,26 +293,45 @@ reformat other formats to and from multifasta.
 Description
 
 =item B<-S>
-      B<--split>
+      B<--split-on-regex>
+
+Use regex <regex> to split descriptions for the -f option instead
+of the perl default (which splits on one or more whitespace
+characters). Special characters must be quoted to protect them from
+the shell.
 
 Description
 
-=item B<-F>
+=item B<-f>
       B<--field>
 
-Description
+Sort sequence records by values at a specific field in sequence descriptions.
+With this option, the description is split into fields using strings of white
+space as field delimiters (the default Perl behavior for splitting
+lines of data into fields).
 
-=item B<-I>
-      B<--indentifier>
+This option takes a mandatory positive integer option argument giving
+the index for which field the regex should query. One-based indexing
+is used, so the first field after the sequence identifier has index
+1. As standard in Perl, negative indices count backwards from the last
+field in the description; field "-1" is the last field, "-2" is the
+second-to-last etc. Sequence records for which the specified field
+does not exist will sort on a null key.
 
 Description
 
 =item B<-i>
-      B<--index>
+      B<--indentifier>
+
+taxa are sorted over sequence identifiers (default is over descriptions)
 
 Description
 
-=item B<-m>
+=item B<--index>
+
+Description
+
+=item B<-M>
       B<--marker>
 
 Description
