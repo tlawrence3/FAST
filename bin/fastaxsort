@@ -261,7 +261,7 @@ B<fastaxsort>  [OPTION]... [NODES-FILE] [NAMES-FILE] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<fastaxsort> takes takes NCBI Taxonomy data and multifasta format sequence 
+B<fastaxsort> takes NCBI Taxonomy data and multifasta format sequence 
 or alignment dataas input and, if directed to valid NCBI Taxonomic ID labels
  in the sequence records, outputs sequences records sorted by taxonomic affiliation.
 
