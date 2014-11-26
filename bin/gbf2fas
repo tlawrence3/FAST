@@ -29,12 +29,12 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $tag_match            = undef;
+my $tag_match            = undef; #-t
 my $case                 = undef;
 my $location             = undef;
 my $primary              = undef;
 my $context              = undef;
-my $tag                  = undef; # -t
+#my $tag                  = undef; # -t
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -47,7 +47,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log'                         => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'tag|t=s'                     => \$tag,
+     'tag|t=s'                     => \$tag_match,
      'case-insensitive|i'          => \$case,
      'location|l'                  => \$location,
      'primary|p=s'                 => \$primary,
@@ -95,7 +95,6 @@ unless (@ARGV) {
 
 my $featseq = undef;
 my $id = undef;
-
 while ($IN or @ARGV) {
   if (@ARGV) {
     my $file = shift (@ARGV);
@@ -122,7 +121,6 @@ while ($IN or @ARGV) {
     }
     my $loc_string  = $feat->location->to_FTstring;
     $loc_string =~ s/omplement//;
- 
     ## HANDLE CONTEXT
     if ($context != 0  and $feat->start > $feat->end) {
       $feat->start($feat->start + $context);
@@ -134,7 +132,6 @@ while ($IN or @ARGV) {
     }
 
     $featseq = $feat->spliced_seq;
-
     ## SET DISPLAY ID TO RETURN ALL TAG INFORMATION; THIS CAN BE OPTIONALLY RESTRICTED
     $id = join "_", grep {/geneid/i} $feat->get_tagset_values($feat->get_all_tags());
     $id ||= join "_", grep {/gi/i} $feat->get_tagset_values($feat->get_all_tags());
@@ -165,27 +162,23 @@ B<gbf2fas> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...]
 
 =head1 DESCRIPTION
 
-B<gbf2fas> takes multifasta format sequence or alignment data as input,
+B<gbf2fas> extract subsequences for potentially split features from GenBank file(s) with tag-based filtering
 
 Options specific to name:
-  -t, --tag=<string>                filter only features that have all
-                                     specified tags
-  -i, --case-insensitive            case-insensitive pattern matching for
-                                     tag-value regexes with -t option
-  -l, --location                    print genomic location strings in the
-                                     sequence descriptions
-  -p, --primary=<string>           filter only features with primary tags
-                                     matching given perl-regex
+  B<-t>, B<--tag=<string>>                filter only features that have all specified tags
+  B<-i>, B<--case-insensitive>            case-insensitive pattern matching for tag-value regexes with -t option
+  B<-l>, B<--location>                    print genomic location strings in the sequence descriptions
+  B<-p>, B<--primary=<string>>           filter only features with primary tags matching given perl-regex
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=<string>>            use logfile name <string>
+  B<-C>, B<--comment=<string>>            save comment <string> to log
+  B<--format=<format>>                 use alternative format for input  
+  B<--moltype=<[dna|rna|protein]>>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
