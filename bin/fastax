@@ -127,7 +127,6 @@ close NODES;
 my @queue;
 ## here is where we compute the match criterion
 if ($nonamemode){
-#if($numquerymode){ deleted by Katie. Wrong variable name
   push @queue,$query;
 }
 else {

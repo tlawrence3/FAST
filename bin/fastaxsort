@@ -34,6 +34,7 @@ my $field                = undef; #-f
 my $identifier            = undef; #-i
 my $index                = undef; #--index
 my $marker               = '#'; #-m
+my $nobrand              = undef;        #-N, --nobrand
 my $fastq                = undef;
 
 GetOptions('help|h'         		 => \$help, 
@@ -53,10 +54,11 @@ GetOptions('help|h'         		 => \$help,
 						  $field = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
-	   'no-names|n'                  => \$noname,
+	   'no-name-mode|n'                  => \$noname,
 	   'identifier|i'                => \$identifier,
 	   'index'                       => \$index,
 	   'marker|M=s'                  => \$marker,
+	   'nobrand|N'                   => \$nobrand,
            'q|fastq'                     => sub {$format = 'fastq'},
 	  ) 
   or exit(1);
@@ -218,8 +220,13 @@ sub DFS_seq {
   my $node = shift;
   if (exists $seq{$node} ) {
     foreach my $seq (@{ $seq{$node} }){
-      $seq->desc(join " ",$seq->desc,(join "",$marker,$address{$node}));
-      print $OUT $seq;      
+      if ($nobrand){
+        print $OUT $seq;
+      }
+      else{
+	$seq->desc(join " ",$seq->desc,(join "",$marker,$address{$node}));
+        print $OUT $seq;
+      }
     }
   }
   if (exists $childrenseen{$node} ) {
@@ -254,20 +261,28 @@ B<fastaxsort>  [OPTION]... [NODES-FILE] [NAMES-FILE] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<fastaxsort> takes multifasta format sequence or alignment data as input, and outputs sequences records sorted by taxonomic affiliation.
+B<fastaxsort> takes takes NCBI Taxonomy data and multifasta format sequence 
+or alignment dataas input and, if directed to valid NCBI Taxonomic ID labels
+ in the sequence records, outputs sequences records sorted by taxonomic affiliation.
 
 NCBI Taxonomy data must be downloaded separately from 
 <NCBI Taxonomy|http://www.ncbi.nlm.nih.gov/taxonomy>, particularly one of the 
 files marked "taxdump" from for example <ftp://ftp.ncbi.nih.gov/pub/taxonomy>. Only the 
-files"nodes.dmp" and "names.dmp" are used. 
+files"nodes.dmp" and "names.dmp" are used.
+
+By default, the entire description must exactly match a valid NCBI
+taxonomic identifier for a record to match. B<fastaxsort> can optionally
+match identifiers or indexed fields in descriptions split by default
+on strings of white-space or a user-defined regex. 
 
 Options specific to B<fastaxsort>:
-  B<-n>, B<--noname>
+  B<-n>, B<--no-name-mode>              no-name mode (only use NCBI taxonomic IDS, which are integer strings)
   B<-S>, B<--split-on-regex>=<regex>    split description for field matching using regex 
-  B<-f>, B<--field>=<int>               sort on field in description
+  B<-f>, B<--field>=<int>                split descriptions or identifers into fields and field <int> (1-based)
   B<-i>, B<--identifier>                taxa are sorted over sequence identifiers (default is over descriptions)
   B<--index>
   B<-M>, B<--marker>
+  B<-N>, B<--nobrand>                   don't "brand" sequence descriptions with numeric taxonomic address used for sorting
 
 Options general to FAST:
   B<-h>, B<--help>                        print a brief help message
@@ -293,9 +308,9 @@ reformat other formats to and from multifasta.
 =over 8
 
 =item B<-n>
-      B<--noname>
+      B<--no-name-mode>
 
-Description
+no-name mode (only use NCBI taxonomic IDS, which are integer strings)
 
 =item B<-S>
       B<--split-on-regex>
@@ -325,9 +340,7 @@ does not exist will sort on a null key.
 =item B<-i>
       B<--indentifier>
 
-taxa are sorted over sequence identifiers (default is over descriptions)
-
-Description
+Taxa are sorted over sequence identifiers (default is over descriptions)
 
 =item B<--index>
 
@@ -337,6 +350,11 @@ Description
       B<--marker>
 
 Description
+
+=item B<-N>
+      B<--nobrand>
+
+Don't "brand" sequence descriptions with numeric taxonomic address used for sorting
 
 =item B<-h>,
       B<--help>
@@ -395,7 +413,9 @@ Print all sequences with "-DNA" in the ID:
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+Sort sequences where the taxonomic identifier is found in the third field of the description:
+
+B<fastaxsort> -f 3 -S " \| " nodes.dmp names.dmp tRNAdb-CE.sample2000.fas
 
 =back
 
