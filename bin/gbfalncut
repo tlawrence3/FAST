@@ -221,24 +221,24 @@ B<gbfalncut> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
 B<gbfalncut> takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
-  -i, --case-insensitive
-  -n, --negate
-  -t, --tag=<string>
-  -s, --slice=<string>
-  -x, --intersect=<string>
-  -P, --primary=<string>
-  -g, --gap-delete
-  -v, --verbose
+  B<-i>, B<--case-insensitive>
+  B<-n>, B<--negate>
+  B<-t>, B<--tag>=<string>
+  B<-s>, B<--slice>=<string>
+  B<-x>, B<--intersect>=<string>
+  B<-P>, B<--primary>=<string>
+  B<-g>, B<--gap-delete>
+  B<-v>, B<--verbose>
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname>=<string>            use logfile name <string>
+  B<-C>, B<--comment>=<string>            save comment <string> to log
+  B<--format>=<format>                 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
