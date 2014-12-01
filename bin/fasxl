@@ -413,11 +413,25 @@ for this tool.
 
 Use fastq format as input and output.
 
-
 =back
 
 =head1 EXAMPLES
 
+Translate each nucleotide seqeunces contained in file data.fas in all three forward reading frames.
+ 
+=over 8
+
+B<fasxl> -3 data.fas
+
+=back
+
+Translate each nucleotide seqeunces contained in file data.fas in all six reading frames and only select sequences that start with Met and end with a stop codon.
+
+=over 8
+
+B<fasxl> -6 data.fas | B<fasgrep> -s "^M.*\*$" 
+
+=back
 
 =head1 SEE ALSO
 
