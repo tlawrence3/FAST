@@ -110,15 +110,15 @@ __END__
 
 =head1 NAME
 
-alnseg - Extracts only variable sites from an alignment
+alnsite - Extracts only variable sites from an alignment
 
 =head1 SYNOPSIS
 
-alnseg [options] [MULTIFASTA-FILE...]
+alnsite [options] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-alnseg takes multifasta format sequence or alignment data as input,
+alnsite takes multifasta format sequence or alignment data as input,
 
 Options specific to name:
 
@@ -134,7 +134,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-alnseg is part of FAST, the FAST Analysis of Sequences Toolbox, based
+alnsite is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
