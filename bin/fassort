@@ -272,9 +272,9 @@ sequences may be sorted by their sequences, descriptions or components
 of descripions.
 
 Options specific to B<fassort>:
-  B<-d>, B<--description>	          sort on description
+  B<-d>, B<--description>	                sort on description
   B<-s>, B<--sequence>                    sort on sequence
-  B<-f>, B<--field>=<int>	          sort on field in description
+  B<-f>, B<--field>=<int>	                sort on field in description
   B<-t>, B<--tag>=<string>                sort on value of a (tag,value) pair in the description
   B<-x>, B<--regex>=<regex>               sort on value of a regex capture
   B<-S>, B<--split-on-regex>=<regex>      split description for field matching using regex 
@@ -284,13 +284,13 @@ Options specific to B<fassort>:
 
 Options general to FAST:
   -B<h>, B<--help>                        print a brief help message
-  B<--man>             	                  print full documentation
-  B<--version>                            print version
+  B<--man>             	           print full documentation
+  B<--version>                         print version
   -B<l>, B<--log>                         create/append to logfile	
   -B<L>, B<--logname>=<string>            use logfile name <string>
   -B<C>, B<--comment>=<string>            save comment <string> to log
-  B<--format>=<format>                    use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>        specify input sequence type
+  B<--format>=<format>                 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
   -q, --fastq                       use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
@@ -435,14 +435,21 @@ Use fastq format as input and output.
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Sort sequences by their length:
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+B<faslen> data.fas | B<fassort> -nt length
 
 =back
 
+Sort sequences by their third-position adenosine contents:
+
+=over 8
+
+B<fascut> 1:-1:3 cds.fas | B<fascomp> | B<fassort> -nt comp_A
+
+=back
 
 =head1 SEE ALSO
 

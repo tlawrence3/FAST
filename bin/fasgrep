@@ -219,14 +219,14 @@ characters from interpretation by the shell.
 Options specific to B<fasgrep>:
   -B<s>, B<--sequence>                    match on sequence 
   -B<d>, B<--description>                 match on description 
-  -B<f>, B<--field>=<int>                 match field <int> in description
+  -B<f>, B<--field>=<int>                 match field <int> in description using one-based indexing
   -B<t>, B<--tag>=<string>                match on value of a "tag[=:]value" pair in the description
   -B<S>, B<--split-on-regex>=<regex>      use regex to split description
   -B<v>, B<--negate>                      output sequences that do not match
   -B<i>, B<--insensitive>                 match case-insensitively
-  -B<e>, B<--iupac-expand-nuc>            expand ambiguities for DNA/RNA
-  -B<r>, B<--revcom-iupac-expand-nuc>     reverse complement and expand
-  -B<p>, B<--iupac-expand-prot>           expand ambiguities for protein
+  -B<e>, B<--iupac-expand-nuc>            expand IUPAC ambiguities for DNA/RNA in query
+  -B<r>, B<--revcom-iupac-expand-nuc>     reverse complement query and expand IUPAC
+  -B<p>, B<--iupac-expand-prot>           expand ambiguities for protein in query
 
 Options general to FAST:
   -B<h>, B<--help>                        print a brief help message
@@ -440,6 +440,14 @@ B<fasgrep> -se "RRY"  < data.fas > RRY.fas
 B<fasgrep> -s "[AG][AG][CT]" < data.fas > RRY.fas
 
 B<fasgrep> -s "[AG]{2}[CT]" < data.fas > RRY.fas
+
+=back
+
+Print sequence records containing characters that are not IUPAC nucleotide ambiguities:
+
+=over 8
+
+B<fasgrep> -is '[^ACUTGRYWSMKBDHVN]'
 
 =back
 

@@ -174,28 +174,30 @@ B<fasuniq> [options] [MULTIFASTA-FILE]
 
 =head1 DESCRIPTION
 
-B<fasuniq> concatenates IDs of adjacent duplicate sequence records in a 
-multifasta datastream. The sequences should be sorted such as output
-from B<fassort -s>. Only the sequence data itself must be
+B<fasuniq> removes duplicate sequence records in a
+multifasta file or datastream. The sequences should be sorted 
+such as output from B<fassort -s>. Only the sequence data itself must be
 identical, not identifiers or descriptions. By default, the first
 matching sequence record in a series of matches (including identifier
-and description) is the one printed.
+and description) is the one printed. IDs of adjacent duplicate sequence records 
+can be concatenated to the printed sequence using the -c, --concat option.
 
 Options specific to fasuniq:
-  -c, --concat                     concatenate identifiers 
-  -d<string>, --delimiter=<string> use <string> between identifers [:] 
-  -D, --description                match on description
-  -I, --id                         match on identifiers
+  B<-c>, B<--concat>               concatenate identifiers 
+  B<-d>, B<--delimiter>=<string>   use <string> between identifers [:] 
+  B<-D>, B<--description>          match on description
+  B<-I>, B<--id>                   match on identifiers
+
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>     specify input sequence type
-  -q, --fastq                       use fastq format as input and output
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=><string>            use logfile name <string>
+  B<-C>, B<--comment=><string>            save comment <string> to log
+  B<--format=><format>                 use alternative format for input  
+  B<--moltype=><[dna|rna|protein]>     specify input sequence type
+  B<-q>, B<--fastq>                       use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -282,11 +284,11 @@ Use fastq format as input and output.
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Remove duplicate sequences and append concatnated IDs of duplicate sequences to printed sequence:
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+B<fassort -s> data1.fas | B<fasuniq -c>
 
 =back
 

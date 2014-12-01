@@ -19,6 +19,7 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_join_string = $FAST::DEF_JOIN_STRING;
 my $def_tag  = "taxaddress:";
 
 ## OPTION VARIABLES
@@ -29,12 +30,14 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $noname               = undef; #-n
+my $tax_id_mode          = undef; #-T
 my $split_on_regex       = undef; #-S
 my $field                = undef; #-f
 my $identifier           = undef; #-i
 my $index                = undef; #--index
 my $tag                  = $def_tag;  # -m
+my $annotate             = undef;
+my $join                 = $def_join_string; # -j
 my $fastq                = undef;
 
 GetOptions('help|h'         		 => \$help, 
@@ -54,10 +57,12 @@ GetOptions('help|h'         		 => \$help,
 						  $field = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
-	   'no-names|n'                  => \$noname,
+	   'tax-id-mode|T'               => \$tax_id_mode,
 	   'identifier|i'                => \$identifier,
 	   'index'                       => \$index,
-           'fastq|q'                     => sub {$format = 'fastq'},
+	   'annotate|a'                  => \$annotate,
+	   'join|j=s'                    => \$join,
+           'q|fastq'                     => sub {$format = 'fastq'},
 	  ) 
   or exit(1);
 
@@ -65,14 +70,19 @@ pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file, path to NCBI \"names.dmp\" file, and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
-pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file and path to NCBI \"names.dmp\" file when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+unless ($tax_id_mode) {
+  pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file, path to NCBI \"names.dmp\" file, and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
+  pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file and path to NCBI \"names.dmp\" file when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+}
+else {
+  pod2usage("$NAME: in tax-id-mode, expects path to NCBI \"nodes.dmp\" file and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 2));
+  pod2usage("$NAME: in tax-id-mode, expects path to NCBI \"nodes.dmp\" file when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 1);
+}
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
 my $nodesfile;
 my $namesfile;
-my $nonamemode;
 my %id;
 my %name;
 my %parent;
@@ -82,16 +92,15 @@ my %childaddress;
 my %childrenseen;
 my %seq;
 
-unless ($noname){
+unless ($tax_id_mode){
   ($nodesfile,$namesfile) = splice @ARGV,0,2;
 }
 else {
   ($nodesfile) = shift @ARGV;
-  $nonamemode = 1; ## numerical ID query and numerical ID data
 }
 
 if ($namesfile) {
-  die "NCBI-taxonomy-names-file $namesfile cannot be found\n" unless (-e $namesfile);
+  die "$NAME: NCBI-taxonomy-names-file $namesfile cannot be found\n" unless (-e $namesfile);
   open (NAMES,$namesfile) or die "Can't open NCBI-taxonomy-names-file $namesfile\n";
   while (<NAMES>) {
     my ($id,$name,@stuff) = split /\t\|\t/,$_;
@@ -105,7 +114,7 @@ if ($namesfile) {
   close NAMES;
 }
 
-die "NCBI-taxonomy-nodes-file $nodesfile cannot be found\n" unless (-e $nodesfile);
+die "$NAME: NCBI-taxonomy-nodes-file $nodesfile cannot be found\n" unless (-e $nodesfile);
 open (NODES,$nodesfile) or die "Can't open NCBI-taxonomy-nodes-file $nodesfile\n";
 while (<NODES>) {
   my ($tax,$parent,@stuff) = split /\t\|\t/,$_;
@@ -116,18 +125,19 @@ while (<NODES>) {
 }
 close NODES;
 
-$address{ 1 } = "00";
+$address{ 1 } = "0x00";
 if ($index) {
-  print $tag,join " ",$address{ 1 },$name{1},"\n";
+  print $tag,join " ",$address{ 1 },($tax_id_mode ? 1 : $name{1}),"\n";
 }
 &address_DFS(1);
 sub address_DFS(){
   my $tax = shift;
   $childaddress{$tax} = 0;
   foreach my $child (sort {$a <=> $b} keys %{ $children{$tax} } ) { 
-    $address{ $child } = join "",(join ".",$address{ $tax },(sprintf "%02s",$childaddress{ $tax }++));
+    $address{ $child } = join "",(join ".",$address{ $tax },(sprintf "%02X",$childaddress{ $tax }++));
+    ## overflow is no problem. If there are more than 256 children, childaddress will print with 3 or more figures.
     if ($index) {
-      print $tag,join " ",$address{ $child },$name{$child},"\n";
+      print $tag,join " ",$address{ $child },($tax_id_mode ? $child : $name{$child}),"\n";
     }
     if (exists $children{$child}) {  
       &address_DFS($child);
@@ -193,7 +203,7 @@ while ($IN or @ARGV) {
       }
       next unless $data;
   
-      if ($nonamemode) {
+      if ($tax_id_mode) {
 	push @{ $seq{$data} },$seq;
 	$id = $data;
       }
@@ -218,8 +228,11 @@ sub DFS_seq {
   my $node = shift;
   if (exists $seq{$node} ) {
     foreach my $seq (@{ $seq{$node} }){
-      $seq->desc(join " ",$seq->desc,(join "",$tag,$address{$node}));
+      if ($annotate) {
+	$seq->desc(join $join,$seq->desc,(join "",$tag,$address{$node}));
+      }
       print $OUT $seq;      
+
     }
   }
   if (exists $childrenseen{$node} ) {
@@ -239,7 +252,7 @@ sub address_sort {
     return -1 if ($aa < $bb);
     return  1 if ($aa > $bb);
   }
-  warn "${NAME}::address_sort: invalid condition. Please c\n";
+  warn "${NAME}::address_sort: invalid condition. Please contact the author.\n";
 }
 
 __END__
@@ -250,34 +263,57 @@ B<fastaxsort> - sort sequence records based on NCBI taxonomy
 
 =head1 SYNOPSIS
 
-B<fastaxsort> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<fastaxsort>  [OPTION]...  [NODES-FILE] [NAMES-FILE] [MULTIFASTA-FILE]...
+B<fastaxsort>  --tax-id-mode [OPTION]... [NODES-FILE] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<fastaxsort> takes multifasta format sequence or alignment data as input,
+B<fastaxsort> takes NCBI Taxonomy data and multifasta format sequence
+or alignment data as input and, if directed to valid NCBI Taxonomic
+names or IDs in the sequence records, outputs those records
+sorted taxonomically, or more specifically, sorted by pre-order
+depth-first traversal through the NCBI Taxonomy tree.
+
+NCBI Taxonomy data must be downloaded separately from <NCBI
+Taxonomy|http://www.ncbi.nlm.nih.gov/taxonomy>, particularly one of
+the files marked "taxdump" from for example
+<ftp://ftp.ncbi.nih.gov/pub/taxonomy>. Only the files "nodes.dmp" and
+"names.dmp" in the downloaded data are used.
+
+At least some part of sequence records must contain NCBI taxonomic
+names or IDs. By default, the entire description is expected to
+exactly match exactly one NCBI taxonomic name (or ID in
+--tax-id-mode). B<fastaxsort> can optionally sort sequence records
+taxonomically by their identifiers, or by indexed fields within
+descriptions or identifiers, where fields are generated by splitting
+with a delimiter; by default, one or more white-space
+characters. Alternative delimiters may be specified by a user-defined
+regex. Positive integers index fields from the beginning; the first
+field has index one. Negative integers index fields from the end.
 
 Options specific to B<fastaxsort>:
-  -n, --noname
-  -S, --split
-  -F, --field
-  -I, --identifier
-  -i, --index
-  -m, --marker
+  B<-T>, B<--tax-id-mode>              sort records using NCBI taxonomic IDs in data
+  B<-i>, B<--identifier>               sort records using sequence identifiers
+  B<-f>, B<--field>=<int>              sort records using fields
+  B<-S>, B<--split-on-regex>=<regex>   split descriptions or identifiers using regex 
+  B<-a>, B<--annotate>                 annotate records with a dot-hex taxonomic address
+  B<-j>, B<--join>=<string>            use <string> to join taxonomic addresses to descriptions 
+  B<--index>                        output an index mapping dot-hex addresses to NCBI Taxonomy
 
 Options general to FAST:
-  -h, --help                        print a brief help message
-    --man             	            print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
-  -q, --fastq                        use fastq format as input and output
+  B<-h>, B<--help>                        print a brief help message
+  B<--man>             	              print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=<string>>            use logfile name <string>
+  B<-C>, B<--comment=<string>>            save comment <string> to log
+  B<--format=<format>>                 use alternative format for input  
+  B<--moltype=<[dna|rna|protein]>>      specify input sequence type
+  B<-q>, B<--fastq>                        use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<fastaxsort> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -287,35 +323,57 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-n>
-      B<--noname>
+=item B<-T>
+      B<--tax-id-mode>
 
-Description
-
-=item B<-S>
-      B<--split>
-
-Description
-
-=item B<-F>
-      B<--field>
-
-Description
-
-=item B<-I>
-      B<--indentifier>
-
-Description
+NCBI Taxonomic data in sequence records are IDs, not names.
 
 =item B<-i>
-      B<--index>
+      B<--indentifier>
 
-Description
+Taxa are sorted using sequence identifiers (default uses whole descriptions)
 
-=item B<-m>
-      B<--marker>
+=item B<-f>
+      B<--field>
 
-Description
+Sort sequence records by values at a specific field in sequence
+descriptions or identifiers.  With this option, the description or
+identifier is split into fields using strings of white space as field
+delimiters (the default Perl delimiter for splitting lines of data
+into fields, which are invalid characters in sequence identfiers).
+
+This option takes a mandatory integer option argument giving the index
+for which field to sort by. One-based indexing is used, so the first
+field after the sequence identifier has index 1. As standard in Perl,
+negative indices count backwards from the last field; field "-1" is
+the last field, "-2" is the second-to-last etc. Sequence records for
+which the specified field does not exist will sort on a null key.
+
+=item B<-S>
+      B<--split-on-regex>
+
+Use regex <regex> to split descriptions/identifiers for the -f option
+instead of the perl default (which splits on one or more whitespace
+characters). Special characters must be quoted to protect them from
+the shell.
+
+=item B<-a>
+      B<--annotate>
+
+Add FAST taxonomic addresses in dot-hex notation to sequence record descriptions
+
+=item B<-j [string]>
+      B<--join=[strong]>
+
+Use [string] to append FAST taxonomic addresses to sequence record
+descriptions, instead of default " "
+
+=item B<--index>
+
+Instead of printing the sorted sequence records, print a key that maps
+B<fastaxsort> taxonomically generated taxonomic addresses in
+dot-hexadecimal notation to NCBI taxonomic names or IDs.
+
 
 =item B<-h>,
       B<--help>
@@ -374,7 +432,9 @@ Print all sequences with "-DNA" in the ID:
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+Sort sequences where the taxonomic identifier is found in the third field of the description:
+
+B<fastaxsort> -f 3 -S " \| " nodes.dmp names.dmp tRNAdb-CE.sample2000.fas
 
 =back
 

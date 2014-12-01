@@ -127,7 +127,6 @@ close NODES;
 my @queue;
 ## here is where we compute the match criterion
 if ($nonamemode){
-#if($numquerymode){ deleted by Katie. Wrong variable name
   push @queue,$query;
 }
 else {
@@ -230,26 +229,24 @@ taxonomic identifier for a record to match. B<fastax> can optionally
 match identifiers or indexed fields in descriptions split by default
 on strings of white-space or a user-defined regex.
 
-Options specific to fastax:
-  -v, --negate               return all sequences that are not from the taxon
-  -s, --strict-negate        return all sequences that are not from the taxon, but only
-                               if they are from a recognized taxon
-  -i, --identifier             taxa are searched over sequence identifiers (default is over descriptions)
-  -f, --field=<int>          split descriptions or identifers into fields  and field <int> (1-based) 
-  -S, --regex-split=<string> in split-mode (-S) split on perl-regex <regex> instead of default separator,
-                               which is a tab character \t. Do "man perlre" and "man perlfunc" for split.
-  -n, --no-name-mode         no-name mode (only use NCBI taxonomic IDS, which are integer strings)
+Options specific to B<fastax>:
+  B<-v>, B<--negate>               return all sequences that are not from the taxon
+  B<-s>, B<--strict-negate>        return all sequences that are not from the taxon, but only if they are from a recognized taxon
+  B<-i>, B<--identifier>           taxa are searched over sequence identifiers (default is over descriptions)
+  B<-f>, B<--field>=<int>          split descriptions or identifers into fields and field <int> (1-based) 
+  B<-S>, B<--regex-split>=<string> in split-mode (-S) split on perl-regex <regex>instead of default separator, which is a tab character \t. Do "man perlre" and "man perlfunc" for split.
+  B<-n>, B<--no-name-mode>         no-name mode (only use NCBI taxonomic IDS, which are integer strings)
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
-  -q, --fastq                        Use fastq format as input and output  
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=><string>            use logfile name <string>
+  B<-C>, B<--comment=><string>            save comment <string> to log
+  B<--format=><format>                 use alternative format for input  
+  B<--moltype=><[dna|rna|protein]>     specify input sequence type
+  B<-q>, B<--fastq>                       use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
