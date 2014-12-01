@@ -125,7 +125,7 @@ while (<NODES>) {
 }
 close NODES;
 
-$address{ 1 } = "0x00";
+$address{ 1 } = "00";
 if ($index) {
   print $tag,join " ",$address{ 1 },($tax_id_mode ? 1 : $name{1}),"\n";
 }
@@ -264,6 +264,7 @@ B<fastaxsort> - sort sequence records based on NCBI taxonomy
 =head1 SYNOPSIS
 
 B<fastaxsort>  [OPTION]...  [NODES-FILE] [NAMES-FILE] [MULTIFASTA-FILE]...
+
 B<fastaxsort>  --tax-id-mode [OPTION]... [NODES-FILE] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
@@ -301,10 +302,10 @@ Options specific to B<fastaxsort>:
   B<--index>                        output an index mapping dot-hex addresses to NCBI Taxonomy
 
 Options general to FAST:
-  B<-h>, B<--help>                        print a brief help message
-  B<--man>             	              print full documentation
-  B<--version>                         print version
-  B<-l>, B<--log>                         create/append to logfile	
+  B<-h>, B<--help>                     print a brief help message
+  B<--man>             	        print full documentation
+  B<--version>                      print version
+  B<-l>, B<--log>                         qcreate/append to logfile	
   B<-L>, B<--logname=<string>>            use logfile name <string>
   B<-C>, B<--comment=<string>>            save comment <string> to log
   B<--format=<format>>                 use alternative format for input  

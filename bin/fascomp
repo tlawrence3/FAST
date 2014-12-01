@@ -61,7 +61,7 @@ GetOptions('help|h'              => \$help,
 						},
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
-     'format=s'                    => \$format,
+           'format=s'                    => \$format,
 	   'comment|C=s'                 => \$comment,
 	   'normalize|n'                 => \$normalize,
 	   'table|t'                     => \$table,
@@ -71,7 +71,7 @@ GetOptions('help|h'              => \$help,
 	   'alphabet|a=s'                => \$alphabet,
 	   'width|w=i'                   => \$width,
 	   'precision|p=i'               => \$precision,
-     'fastq|q'                     => sub{$format = 'fastq';},
+           'fastq|q'                     => sub{$format = 'fastq';},
 	  )
   or pod2usage(2);
 		  

@@ -33,7 +33,7 @@ my $strict_negate        = undef;        # -s
 my $identifier           = undef;        # -i
 my $field                = undef;        # -f
 my $split_on_regex       = undef;        # -S
-my $noname               = undef;        # -n
+my $tax_id_mode          = undef;        #-T
 my $fastq                = undef;
 
 GetOptions('help|h'         		 => \$help, 
@@ -56,7 +56,7 @@ GetOptions('help|h'         		 => \$help,
 						  $field = $val;
 						},
 	   'split-on-regex|S=s'          => \$split_on_regex,
-	   'no-names|n'                  => \$noname,
+	   'tax-id-mode|T'               => \$tax_id_mode,
            'q|fastq'                     => sub {$format = 'fastq'},
 	  ) 
   or exit(1);
@@ -65,14 +65,18 @@ pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
-pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and [Taxon] when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 3);
-
+unless ($tax_id_mode) {
+  pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\", a taxonomic query, and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 4));
+  pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and a taxonomic query when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 3);
+}
+else {
+  pod2usage("$NAME: in --tax-id-mode, expects path to \"nodes.dmp\", a taxonomic query, and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
+  pod2usage("$NAME: in --tax-id-mode, expects path to \"nodes.dmp\" and a taxonomic query when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+}
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
-my $nonamemode;
-my $numquery;
 my $query; 
+my $numquery; 
 my $nodesfile;
 my $namesfile;
 my $line;
@@ -81,41 +85,34 @@ my %parent;
 my %children;
 my %match;
 
-unless ($noname){
+unless ($tax_id_mode){
   ($nodesfile,$namesfile,$query) = splice @ARGV,0,3;
-  if ($query !~ /[^\d]/) {
-    #$numquerymode = 1; # expecting tax ID query on named data
-    $numquery = $query;
-
-  }
 }
 else {
   ($nodesfile,$query) = splice @ARGV,0,2;
-  $nonamemode = 1; ## numerical ID query and numerical ID data
-  die "With only two arguments, the second argument expected to be an NCBI-taxon-ID and must be an integer. Try $NAME -h for help.\n" if ($query =~ /[^\d]/);
+  die "$NAME: in --tax-id-mode with two arguments, the second argument is expected to be an NCBI-taxon-ID and must be an integer. Try $NAME -h for help.\n" if ($query =~ /[^\d]/);
   $numquery = $query;
-
 }
 
 if ($namesfile) {
   die "NCBI-taxonomy-names-file $namesfile cannot be found\n" unless (-e $namesfile);
   $line = `grep \"$query\" $namesfile`;
-  die "The taxon name $query you entered cannot be found in NCBI-taxonomy-names-file $namesfile\n" unless ($line);
+  die "$NAME: The taxon name $query you entered cannot be found in NCBI-taxonomy-names-file $namesfile\n" unless ($line);
   open (NAMES,$namesfile) or die "Can't open NCBI-taxonomy-names-file $namesfile\n";
   while (<NAMES>) {
     my ($id,$name,@stuff) = split /\t\|\t/,$_;
     $id{$name} = $id;
-    if (!$noname and $name eq $query) {
+    if ($name eq $query) {
       $numquery = $id;
     }
   }
   close NAMES;
-  die "The taxon name $query you entered cannot be found in NCBI-taxonomy-names-file $namesfile\n" unless ($noname or $numquery);
+  die "$NAME: The taxon name $query you entered cannot be found in NCBI-taxonomy-names-file $namesfile\n" unless ($numquery);
 }
 
-die "NCBI-taxonomy-nodes-file $nodesfile cannot be found\n" unless (-e $nodesfile);
+die "$NAME: NCBI-taxonomy-nodes-file $nodesfile cannot be found\n" unless (-e $nodesfile);
 $line = `grep \"$numquery\" $nodesfile`;
-die "The taxon ID \"$numquery\" cannot be found in NCBI-taxonomy-nodes-file $nodesfile (or your NCBI taxonomy files do not correspond)\n" unless ($line);
+die "$NAME: The taxon ID \"$numquery\" cannot be found in NCBI-taxonomy-nodes-file $nodesfile (or your NCBI taxonomy files do not correspond)\n" unless ($line);
 open (NODES,$nodesfile) or die "Can't open NCBI-taxonomy-nodes-file $nodesfile\n";
 while (<NODES>) {
   my ($tax,$parent,@stuff) = split /\t\|\t/,$_;
@@ -126,12 +123,7 @@ close NODES;
 
 my @queue;
 ## here is where we compute the match criterion
-if ($nonamemode){
-  push @queue,$query;
-}
-else {
-  push @queue,$id{$query};
-}
+push @queue,$numquery;
 while (@queue){
   my $first = shift @queue;
   $match{$first} = (($negate || $strict_negate)? 0 : 1);
@@ -186,7 +178,7 @@ while ($IN or @ARGV) {
 	$data = $datae[$index];
       }
       next unless $data;
-      if ($nonamemode) {
+      if ($tax_id_mode) {
 	print $OUT $seq if (($strict_negate and exists $parent{$data} and not exists($match{$data})) or ($negate and not exists($match{$data})) or $match{$data});
       }
       else {
@@ -209,14 +201,17 @@ B<fastax> -- select sequence records by NCBI taxonomic names or IDs
 
 B<fastax> [OPTION]... [NODES-FILE] [NAMES-FILE] [TAXON] [MULTIFASTA-FILE]...
 
+B<fastax> --tax-id-mode [OPTION]... [NODES-FILE] [TAXON] [MULTIFASTA-FILE]...
+
 =head1 DESCRIPTION
 
 B<fastax> takes NCBI Taxonomy data and sequence or alignment data on
 input and, if directed to valid NCBI Taxonomic ID labels in the
-sequence records, outputs sequence records that belong to a specific
-taxon. For example, a query of "Alphaproteobacteria" will match data
-such as "Rickettsiales" and "Caulobacter crescentus NA1000" but not
-"Escherichia coli O157:H7" or "Metazoa"
+sequence records, outputs sequence records that belong to a taxonomic
+clade as specified by a query argument. For example, a query of
+"Alphaproteobacteria" will match data such as "Rickettsiales" and
+"Caulobacter crescentus NA1000" but not "Escherichia coli O157:H7" or
+"Metazoa"
 
 NCBI Taxonomy data must be downloaded separately from <NCBI
 Taxonomy|http://www.ncbi.nlm.nih.gov/taxonomy>, particularly one of
@@ -230,23 +225,23 @@ match identifiers or indexed fields in descriptions split by default
 on strings of white-space or a user-defined regex.
 
 Options specific to B<fastax>:
-  B<-v>, B<--negate>               return all sequences that are not from the taxon
-  B<-s>, B<--strict-negate>        return all sequences that are not from the taxon, but only if they are from a recognized taxon
-  B<-i>, B<--identifier>           taxa are searched over sequence identifiers (default is over descriptions)
-  B<-f>, B<--field>=<int>          split descriptions or identifers into fields and field <int> (1-based) 
-  B<-S>, B<--regex-split>=<string> in split-mode (-S) split on perl-regex <regex>instead of default separator, which is a tab character \t. Do "man perlre" and "man perlfunc" for split.
-  B<-n>, B<--no-name-mode>         no-name mode (only use NCBI taxonomic IDS, which are integer strings)
+  B<-T>, B<--tax-id-mode>              search records by NCBI taxonomic IDs instead of names
+  B<-i>, B<--identifier>               search records by sequence identifiers 
+  B<-f>, B<--field>=<int>              search records using indexed fields
+  B<-S>, B<--split-on-regex>=<regex>   split descriptions or identifiers into fields using <regex>
+  B<-v>, B<--negate>                   return records that do *not* match query
+  B<-s>, B<--strict-negate>            return records that do *not* match query only if it does match a valid taxon
 
 Options general to FAST:
-  B<-h>, B<--help>                  	 print a brief help message
-  B<--man>             	           print full documentation
-  B<--version>                         print version
-  B<-l>, B<--log>                         create/append to logfile	
-  B<-L>, B<--logname=><string>            use logfile name <string>
-  B<-C>, B<--comment=><string>            save comment <string> to log
-  B<--format=><format>                 use alternative format for input  
-  B<--moltype=><[dna|rna|protein]>     specify input sequence type
-  B<-q>, B<--fastq>                       use fastq format as input and output
+  B<-h>, B<--help>                     print a brief help message
+  B<--man>             	        print full documentation
+  B<--version>                      print version
+  B<-l>, B<--log>                      create/append to logfile	
+  B<-L>, B<--logname=><string>         use logfile name <string>
+  B<-C>, B<--comment=><string>         save comment <string> to log
+  B<--format=><format>              use alternative format for input  
+  B<--moltype=><[dna|rna|protein]>  specify input sequence type
+  B<-q>, B<--fastq>                    use fastq format as input and output
 
 =head1 INPUT AND OUTPUT
 
@@ -284,13 +279,14 @@ and field <int> (1-based) is searched for taxonomic identifiers
 
 =item B<-S [string]>,
       B<--regex-split=[string]>
+
 in field-mode (B<-f>) split on perl-regex <regex> instead of the default separator,
 which is strings of white-space. Do "man perlre" and "man perlfunc" for split.
 
-=item B<-n>,
-      B<--no-name-mode>
- 
-no-name mode (only use NCBI taxonomic IDS, which are integer strings)
+=item B<-T>
+      B<--tax-id-mode>
+
+NCBI Taxonomic data in sequence records are numeric IDs, not names.
 
 =item B<-h>,
       B<--help>
