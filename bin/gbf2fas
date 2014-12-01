@@ -59,7 +59,7 @@ pod2usage(-verbose => 2) if $man;
 
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: Requires at least one argument when taking input from terminal. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 0));
+pod2usage("$NAME: Requires at least one argument when taking input from terminal. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 1));
 pod2usage("$NAME: Requires at least one argument. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
