@@ -19,6 +19,7 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_tag  = "taxaddress:";
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -31,9 +32,9 @@ my $comment              = undef;        # -C
 my $noname               = undef; #-n
 my $split_on_regex       = undef; #-S
 my $field                = undef; #-f
-my $identifier            = undef; #-i
+my $identifier           = undef; #-i
 my $index                = undef; #--index
-my $marker               = '#'; #-m
+my $tag                  = $def_tag;  # -m
 my $fastq                = undef;
 
 GetOptions('help|h'         		 => \$help, 
@@ -56,8 +57,7 @@ GetOptions('help|h'         		 => \$help,
 	   'no-names|n'                  => \$noname,
 	   'identifier|i'                => \$identifier,
 	   'index'                       => \$index,
-	   'marker|M=s'                  => \$marker,
-           'q|fastq'                     => sub {$format = 'fastq'},
+           'fastq|q'                     => sub {$format = 'fastq'},
 	  ) 
   or exit(1);
 
@@ -65,8 +65,8 @@ pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
-pod2usage("$NAME: expects path to \"nodes.dmp\" and path to \"names.dmp\" when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file, path to NCBI \"names.dmp\" file, and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
+pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file and path to NCBI \"names.dmp\" file when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
 
@@ -118,7 +118,7 @@ close NODES;
 
 $address{ 1 } = "00";
 if ($index) {
-  print $marker,join " ",$address{ 1 },$name{1},"\n";
+  print $tag,join " ",$address{ 1 },$name{1},"\n";
 }
 &address_DFS(1);
 sub address_DFS(){
@@ -127,7 +127,7 @@ sub address_DFS(){
   foreach my $child (sort {$a <=> $b} keys %{ $children{$tax} } ) { 
     $address{ $child } = join "",(join ".",$address{ $tax },(sprintf "%02s",$childaddress{ $tax }++));
     if ($index) {
-      print $marker,join " ",$address{ $child },$name{$child},"\n";
+      print $tag,join " ",$address{ $child },$name{$child},"\n";
     }
     if (exists $children{$child}) {  
       &address_DFS($child);
@@ -189,7 +189,7 @@ while ($IN or @ARGV) {
 	else {
 	  @data = split ' ',$data;
 	}
-	$data = $data[$field];
+	$data = $data[$field_index];
       }
       next unless $data;
   
@@ -218,7 +218,7 @@ sub DFS_seq {
   my $node = shift;
   if (exists $seq{$node} ) {
     foreach my $seq (@{ $seq{$node} }){
-      $seq->desc(join " ",$seq->desc,(join "",$marker,$address{$node}));
+      $seq->desc(join " ",$seq->desc,(join "",$tag,$address{$node}));
       print $OUT $seq;      
     }
   }
@@ -239,14 +239,14 @@ sub address_sort {
     return -1 if ($aa < $bb);
     return  1 if ($aa > $bb);
   }
-  warn "${NAME}::address_sort: invalid condition. Please contact author.\n";
+  warn "${NAME}::address_sort: invalid condition. Please c\n";
 }
 
 __END__
 
 =head1 NAME
 
-B<fastaxsort> - sort and identify sequences based on NCBI taxonomy
+B<fastaxsort> - sort sequence records based on NCBI taxonomy
 
 =head1 SYNOPSIS
 

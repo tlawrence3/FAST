@@ -37,37 +37,30 @@ $^{4}$School of Engineering, University of California, Merced, CA, USA}
 \maketitle
 
 \begin{abstract}
-  FAST (Fast Analysis of Sequences Toolbox) provides simple
-  command-line tools for rapid prototyping of powerful and
-  reproducible bioinformatic workflows on flat-file biological
-  sequence databases.  Modeled after the GNU (GNU's Not UNIX)
-  Textutils such as {\tt grep}, {\tt cut}, and {\tt tr}, FAST tools
-  such as {\tt fasgrep}, {\tt fascut}, and {\tt fastr} are designed to
-  be serially composed in UNIX-style pipelines. Unlike UNIX tools,
-  FAST processes data per-sequence-record rather than per-line. This
-  enables efficient inline processing of biological sequence data in a
-  concise, expressive and time-tested idiom with no programming
-  experience required.  Bringing all the advantages of open-source
-  software consistent with scientific ideals, FAST has a shallow
-  learning curve through consistency of interfaces across utilities
-  and a high return on investment of mastery through conformity with
-  conventions of GNU utilities, Matlab, Perl, BioPerl and R.
-  Portability, ease of installation, and security of FAST are
-  inherently derived from its BioPerl and Perl foundations. The
-  default data exchange format in FAST is MultiFastA (specifically, a
-  restriction of BioPerl FastA format), while Sanger and Illumina 1.8+
-  FASTQ formatted files are also compatible.  Functionality highlights
-  include fully automated numerical and taxonomic selection and
-  sorting of sequence records, annotation-based selection of sites
-  from alignments, selection and transformation with regular
-  expressions, molecular biological statistics including composition
-  and codon usage, and molecular population genetic statistics. FAST
-  promotes reproducibility in bioinformatic workflows by reducing
-  manual interventions and increasing documentability of data
-  processing and facilitates the interactive investigation and control
-  of data by its users. FAST brings the power of Perl and BioPerl to
-  bioinformatic users at the command-line without requiring previous
-  programming skills and experience. \tiny \keyFont{
+  FAST (Fast Analysis of Sequences Toolbox) provides a set of
+  relatively simple yet powerful command-line tools to filter,
+  transform, annotate and analyze biological sequence data. Modeled
+  after the GNU (GNU's Not UNIX) Textutils such as {\tt grep}, {\tt
+    cut}, and {\tt tr}, FAST tools such as {\tt fasgrep}, {\tt
+    fascut}, and {\tt fastr} are designed for rapid prototyping of
+  concise, production-scale reproducible bioinformatic workflows in a
+  generic idiom with no programming required.  Interface consistency
+  and conformity with GNU, Matlab, Perl, BioPerl, R and GenBank
+  conventions are key to making FAST easy and rewarding to learn. FAST
+  is also portable, easy to install, and secure, given its BioPerl and
+  Perl foundations. The default data exchange format in FAST is
+  MultiFastA (specifically, a restriction of BioPerl FastA format),
+  while Sanger and Illumina 1.8+ FASTQ formatted files are also
+  compatible.  FAST automates numerical, textual and taxonomic
+  selection and filtering of sequence records, coordinate and
+  annotation-based sequence extractions, and statistics including molecular biological
+  statistics including composition and codon usage, and molecular
+  population genetic statistics. FAST promotes reproducibility by
+  reducing the need for manual data interventions and making it easier
+  to document complex biological data processing. The command-line
+  basis of FAST makes it easier to interactively investigate and
+  control biological data at the speed of thought and brings the power
+  of Perl and BioPerl to nonprogrammers. \tiny \keyFont{
   \section{Keywords:} Unix philosophy, MultiFASTA, pipeline,
   bioinformatic workflow, open source, BioPerl, regular expression,
   NCBI Taxonomy}
@@ -75,21 +68,24 @@ $^{4}$School of Engineering, University of California, Merced, CA, USA}
 
 \section{Introduction}
 
-The field of molecular biology has changed significantly with the
-advent of Next Generation Sequencing (NGS) technology. It is now
-commonplace to analyze gigabases of data per experiment. Commonly,
-bioinformatics programs developed for visualization and basic sequence
-manipulation use a monolithic application with a Graphical User
-Interface (GUI)~\citep{Smith1994, Rampp2006, Librado01062009}, usually
-without any facility to record and document user actions for later
-reproduction of a bioinformatic workflow.
+Next Generation Sequencing (NGS) technology makes gigabyte- and
+terabyte-scale biological sequence datasets commonplace.  Non-free
+bioinformatic applications for basic sequence manipulation are often
+monolithic with Graphical User Interfaces (GUIs)~\citep{Smith1994,
+  Rampp2006, Librado01062009}.  Detailed documentation of
+bioinformatic workflows, towards their ultimate reproducibility, often goes missing along scientific service chains
 
-Early calls for reproducible research and code publication in
-bioinformatics and biostatistics were motivated in part to combat
-fraudulent research in biomedicine~\citep{Peng01072009}. Open-source
-software in science facilitates crowd-sourced verification, correction
-and extension of code-based analysis~\citep{barnes2010publish}, and
-reuse of software and data to make discoveries using public
+consistently and uniformly required for
+publication. These trends fly in the face of calls for greater
+reproducibility in modern biological research. Recent calls for
+adequate documentation of bioinformatic and biostatistical workflows
+and open source code sharing upon publication in bioinformatics
+reproducible research and and biostatistics were motivated in part to
+combat fraudulent research in
+biomedicine~\citep{Peng01072009}. Open-source software in science
+facilitates crowd-sourced verification, correction and extension of
+code-based analysis~\citep{barnes2010publish}, and reuse of software
+and data to make discoveries using public
 data~\citep{Peng02122011}. The absence of adequate documentation for
 analysis of high-dimensional data can obscure errors in processing
 with profound potential ethical and financial
