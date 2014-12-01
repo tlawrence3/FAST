@@ -34,7 +34,6 @@ my $case                 = undef;
 my $location             = undef;
 my $primary              = undef;
 my $context              = undef;
-#my $tag                  = undef; # -t
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -65,9 +64,9 @@ pod2usage("$NAME: Requires at least one argument. Try \"perldoc $NAME\"") if ($f
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-my @tag = undef;
-my @op = undef;
-my @tag_regex = undef;
+my @tag = ();
+my @op = ();
+my @tag_regex = ();
 
 
 if ($tag_match) { 
@@ -122,14 +121,15 @@ while ($IN or @ARGV) {
     my $loc_string  = $feat->location->to_FTstring;
     $loc_string =~ s/omplement//;
     ## HANDLE CONTEXT
-    if ($context != 0  and $feat->start > $feat->end) {
-      $feat->start($feat->start + $context);
-      $feat->end  ($feat->end   - $context);
-    }
-    elsif ($context != 0) {
-      $feat->start($feat->start - $context);
-      $feat->end  ($feat->end   + $context);
-    }
+    ## 12-1-14 $context is never defined so this code doesn't do anything
+    ##if ($context != 0  and $feat->start > $feat->end) {
+    ##  $feat->start($feat->start + $context);
+    ##  $feat->end  ($feat->end   - $context);
+    ##}
+    ##elsif ($context != 0) {
+    ##  $feat->start($feat->start - $context);
+    ##  $feat->end  ($feat->end   + $context);
+    ##}
 
     $featseq = $feat->spliced_seq;
     ## SET DISPLAY ID TO RETURN ALL TAG INFORMATION; THIS CAN BE OPTIONALLY RESTRICTED
