@@ -70,7 +70,7 @@ perldoc faswc
 *** Calculating sequence length
 
 Chromosome 1 from the /Saccharomyces cerevisiae/ genome is available
-in =t/data/chr01.fsa=. By default, =faswc= calculates the lengths of
+in =t/data/chr01.fsa=. By default, =faslen= calculates the lengths of
 sequence records on its input, and outputs its input, augmenting
 sequence descriptions with its calculations using the tag (or name)
 =length= and a (name,value) separator =:=, as in =length:872=. We can
@@ -78,7 +78,7 @@ therefore easily obtain the length of this chromosome sequence as
 follows:
 
 #+BEGIN_SRC shell
-faswc t/data/chr01.fsa | egrep ">"
+faslen t/data/chr01.fsa | egrep ">"
 #+END_SRC
 
 Alternatively, =faswc -c= will output the length of the chromosome
