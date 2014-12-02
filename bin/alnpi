@@ -13,7 +13,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "Calculate statistics from a polymorphic DNA alignment.\n";
+$DESC    = "Calculate population genetic statistics from a polymorphic DNA alignment.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -474,33 +474,40 @@ format SILENT_TOP =
 
 __END__
 
-=head1 NAME
+=head1 alnpi
 
-name - what it does
+B<alnpi> - B<alnpi> takes multifasta format alignment data as input, and calculates population genetic statistics
 
 =head1 SYNOPSIS
 
-name [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<alnpi> [options] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-name takes multifasta format sequence or alignment data as input,
+B<alnpi> takes multifasta format alignment data as input, and calculates population genetic statistics
 
 Options specific to name:
 
+  B<-s>, B<--suppress>             suppress table heading              
+  B<-x>, B<--latex>                print table with latex formating
+  B<-p>, B<--pairwise>                  
+  B<-w>, B<--window>                                        
+  B<--absolute>                   
+  B<--label>                    
+
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=<string>>            use logfile name <string>
+  B<-C>, B<--comment=<string>>            save comment <string> to log
+  B<--format=<format>>                 use alternative format for input  
+  B<--moltype=<[dna|rna|protein]>>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
-name is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<alnpi> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -509,6 +516,22 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-s>, 
+      B<--suppress>              
+ 
+=item B<-x>, 
+      B<--latex>                
+  
+=item B<-p>, 
+      B<--pairwise>                  
+  
+=item B<-w>, 
+      B<--window>                                        
+  
+=item B<--absolute>                   
+  
+=item B<--label>  
 
 =item B<-h>,
       B<--help>
