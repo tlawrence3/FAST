@@ -277,7 +277,7 @@ Output all sequences under the feature "exon" and add location labels:
 
 =over 8
 
-B<gbf2fas> -l p exon > data.dna.gb
+B<gbf2fas> -lp exon > data.dna.gb
 
 =back
 
