@@ -44,7 +44,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'index|i'                     => \$index,
+     'indices|i'                     => \$index,
      'threshold|t=f'               => \$threshold, #if the fraction of the letters in the column that form a
                                                    #(relative) majority is NOT >= $threshold the column is retained.
                                                    #The default $threshold is 1.
@@ -114,27 +114,30 @@ alnsite - Extracts only variable sites from an alignment
 
 =head1 SYNOPSIS
 
-alnsite [options] [MULTIFASTA-FILE...]
+B<alnsite> [options] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-alnsite takes multifasta format sequence or alignment data as input,
+B<alnsite> takes multifasta format sequence or alignment data as input,
 
-Options specific to name:
+Options specific to alnsite:
+
+  B<-i>, B<--indices>                 print alignment positions to stderr that remain after removal of invariable columns based on threshold value        
+  B<-t>, B<--threshold=<float>>       if the fraction of the letters in the column that form a (relative) majority is NOT >= <threshold> the column is retained. The default is 1.
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=<string>>            use logfile name <string>
+  B<-C>, B<--comment=<string>>            save comment <string> to log
+  B<--format=<format>>                 use alternative format for input  
+  B<--moltype=<[dna|rna|protein]>>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
-alnsite is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<alnsite> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -143,6 +146,18 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-i>
+      B<--indices>
+
+Print alignment positions to stderr that remain after removal of invariable
+ columns based on threshold value.
+
+=item B<-t>
+      B<--threshold>
+
+If the fraction of the letters in the column that form a (relative) majority 
+is NOT >= <threshold> the column is retained. The default is 1.
 
 =item B<-h>,
       B<--help>
@@ -192,11 +207,13 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Remove alignment columns that contain 75% or more of a single character 
+from alignment file data.fas and save column indices remaining after 
+removal to file indices.txt: 
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+B<alnsite> -it 0.75 data.fas 2> indices.txt
 
 =back
 
