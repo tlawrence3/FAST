@@ -292,11 +292,11 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Remove columns that contain 50% or more gaps from the alignment contained in data.fas
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+B<alndegap> -g 0.50 data.fas  
 
 =back
 
