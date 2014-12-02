@@ -220,7 +220,7 @@ B<gbfalncut> [options] alignment-file genbank-file 'perl-reg-exp'
 
 B<gbfalncut> takes multifasta format sequence or alignment data as input,
 
-Options specific to name:
+Options specific to B<gbfalncut>:
   B<-i>, B<--case-insensitive>          case-insensitive pattern matching for tag-value regexes with -t option
   B<-n>, B<--negate>
   B<-t>, B<--tag>=<string>

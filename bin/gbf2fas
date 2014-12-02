@@ -164,7 +164,7 @@ B<gbf2fas> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...]
 
 B<gbf2fas> extract subsequences for potentially split features from GenBank file(s) with tag-based filtering
 
-Options specific to name:
+Options specific to B<gbf2fas>:
   B<-t>, B<--tag=<string>>                filter only features that have all specified tags
   B<-i>, B<--case-insensitive>            case-insensitive pattern matching for tag-value regexes with -t option
   B<-l>, B<--location>                    print genomic location strings in the sequence descriptions

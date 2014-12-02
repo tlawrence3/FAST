@@ -344,7 +344,7 @@ B<fascodon> takes multifasta format sequence or alignment data as input, and
 analyzes codon usage. Output can be for multifasta file or for individual
 fasta files within a multifasta.
 
-Options specific to fascodon:
+Options specific to B<fascodon>:
   B<-b>, B<--base-order>
   B<-v>, B<--individual>                  option will print codon usage for 
                                	 individual fasta files

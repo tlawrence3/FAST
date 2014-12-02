@@ -124,7 +124,7 @@ B<gbfgrep> - extract neighboring features from Genbank file(s) corresponding to 
 Radius of neighboring features to be extracted is set by the -r, --radius option with a default value of 1. 
 Only tags found under the primary tag CDS or primary tags containing the word RNA are searchable.  
 
-Options specific to name:
+Options specific to B<gbfgrep>:
   B<-r>, B<--radius>=<integer>          print <r> features before matched tag and <r> features after matched tag. Default r=1 
   B<-i>, B<--case-insensitive>          case-insensitive pattern matching for tag-value regexes with -t option
   B<-b>, B<--begin>=<integer>           only return matches that start after this sequence location 

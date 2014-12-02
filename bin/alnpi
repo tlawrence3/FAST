@@ -486,7 +486,7 @@ B<alnpi> [options] [MULTIFASTA-FILE...]
 
 B<alnpi> takes multifasta format alignment data as input, and calculates population genetic statistics
 
-Options specific to name:
+Options specific to B<alnpi>:
 
   B<-s>, B<--suppress>             suppress table heading              
   B<-x>, B<--latex>                print table with latex formating

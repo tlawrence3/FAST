@@ -120,7 +120,7 @@ B<alnsite> [options] [MULTIFASTA-FILE...]
 
 B<alnsite> takes multifasta format sequence or alignment data as input,
 
-Options specific to alnsite:
+Options specific to B<alnsite>:
 
   B<-i>, B<--indices>                 print alignment positions to stderr that remain after removal of invariable columns based on threshold value        
   B<-t>, B<--threshold=<float>>       if the fraction of the letters in the column that form a (relative) majority is NOT >= <threshold> the column is retained. The default is 1.
