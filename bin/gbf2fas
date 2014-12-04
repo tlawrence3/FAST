@@ -139,7 +139,7 @@ while ($IN or @ARGV) {
     $id ||= join "_", $feat->get_tagset_values("product");
     $id ||= $loc_string;
     $featseq->display_id($id);
-    $featseq->desc(join " ",(map {join "=",$_,(join "","\"",(join ";",grep {!/geneid/i} $feat->get_tagset_values($_)),"\"")} $feat->get_all_tags()),($log ? "location=\"$loc_string\"" : '')); 
+    $featseq->desc(join " ",(map {join "=",$_,(join "","\"",(join ";",grep {!/geneid/i} $feat->get_tagset_values($_)),"\"")} $feat->get_all_tags()),($location ? "location=\"$loc_string\"" : '')); 
     
     print $OUT $featseq;
   }
@@ -164,7 +164,7 @@ B<gbf2fas> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...]
 
 B<gbf2fas> extract subsequences for potentially split features from GenBank file(s) with tag-based filtering
 
-Options specific to name:
+Options specific to B<gbf2fas>:
   B<-t>, B<--tag=<string>>                filter only features that have all specified tags
   B<-i>, B<--case-insensitive>            case-insensitive pattern matching for tag-value regexes with -t option
   B<-l>, B<--location>                    print genomic location strings in the sequence descriptions
@@ -265,11 +265,28 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Output the 5' and 3' UTR sequences:
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+B<gbf2fas> -p UTR > data.dna.gb
+
+=back
+
+Output all sequences under the feature "exon" and add location labels:
+
+=over 8
+
+B<gbf2fas> -lp exon > data.dna.gb
+
+=back
+
+Output all feature sequences with an "organism" tag set to "Stylonychia lemnae":
+
+=over 8
+
+B<gbf2fas> -t "organism=Stylonychia lemnae" > data.dna.gb
+
 
 =back
 

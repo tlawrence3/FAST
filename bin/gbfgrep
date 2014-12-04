@@ -33,23 +33,23 @@ my $begin_match          = undef;
 my $end_match            = undef;
 
 
-GetOptions('help|h'         		   => \$help, 
-	   'man'            		         => \$man,
+GetOptions('help|h'         		 => \$help, 
+	   'man'            		 => \$man,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'radius|r=i'                  => \$radius,
-     'case-insensitive|i'          => \$case,
-     'begin|b=i'                   => \$begin_match,
-     'end|e=i'                     => \$end_match,
-     'tag|t=s'                       => \$tag_match,                
+	   'radius|r=i'                  => \$radius,
+	   'case-insensitive|i'          => \$case,
+	   'begin|b=i'                   => \$begin_match,
+	   'end|e=i'                     => \$end_match,
+	   'tag|t=s'                     => \$tag_match,                
 
 	  ) 
   or pod2usage(2);
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file. Try $NAME -h for help.") if (!(-t STDIN) && (@ARGV != 0));
+pod2usage("Usage: $0 -[hi] [-t <tag>] [-r radius [1]] \'perl-reg-exp\' < genbank-file. Try $NAME -h for help.") if (!(-t STDIN) && (@ARGV != 1));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -84,7 +84,7 @@ while(my $seqobj = $IN->next_seq()) {
     ++$k;
     print "\n\nMatch $k:\n";
     for my $j (($i - $radius) .. ($i + $radius)) {
-      if ($feat[$j]){ #Check that feature exists
+      if ($feat[$j]) { #Check that feature exists
       my $lfeat = $feat[$j];
       $start = $lfeat->start;
       $stop  = $lfeat->end;
@@ -112,22 +112,24 @@ __END__
 
 =head1 NAME
 
-B<gbfgrep> - extract neighboring features from Genbank files corresponding to reg-ex match on tags
+B<gbfgrep> - extract neighboring features from Genbank file(s) corresponding to reg-ex match on tags-values
 
 =head1 SYNOPSIS
 
-B<gbfgrep> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<gbfgrep> -[hi] [-t <tag>] [-b int] [-e int] [-r radius [1]] perl-reg-exp < genbank-file
 
 =head1 DESCRIPTION
 
-B<gbfgrep> takes multifasta format sequence or alignment data as input,
+B<gbfgrep> - extract neighboring features from Genbank file(s) corresponding to reg-ex match on tag-values.
+Radius of neighboring features to be extracted is set by the -r, --radius option with a default value of 1. 
+Only tags found under the primary tag CDS or primary tags containing the word RNA are searchable.  
 
-Options specific to name:
-  B<-r>, B<--radius>=<integer>
-  B<-i>, B<--case-insensitive>
-  B<-b>, B<--begin>=<integer>
-  B<-e>, B<--end>=<integer>
-  B<-t>, B<--tag>=<string>
+Options specific to B<gbfgrep>:
+  B<-r>, B<--radius>=<integer>          print <r> features before matched tag and <r> features after matched tag. Default r=1 
+  B<-i>, B<--case-insensitive>          case-insensitive pattern matching for tag-value regexes with -t option
+  B<-b>, B<--begin>=<integer>           only return matches that start after this sequence location 
+  B<-e>, B<--end>=<integer>             only return matches that end before this sequence location
+  B<-t>, B<--tag>=<string>              tag used for tag-value reg-ex match. 
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
@@ -154,27 +156,28 @@ reformat other formats to and from multifasta.
 =item B<-r [integer]>,
       B<--radius [integer]>
 
+ print <r> features before matched tag and <r> features after matched tag
 
 
 =item B<-i>,
       B<--case-insensitive>
 
-
+Enable case-insensitive matching of tag-values.
 
 =item B<-b [integer]>,
       B<--begin [integer]>
 
-
+Only return matches that start after this sequence location.
 
 =item B<-e [integer]>,
       B<--end [integer]>
 
-
+Only return matches that end before this sequence location.
 
 =item B<-t [string]>,
       B<--tag [string]>
 
-
+Tag used for value reg-ex match.
 
 =item B<-h>,
       B<--help>
@@ -224,11 +227,11 @@ processing data).
 
 =head1 EXAMPLES
 
-Print all sequences with "-DNA" in the ID:
+Extract up to three features before and after tags that contain the word polmerase from the genbank file AF194338.1.gb:  
 
 =over 8
 
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
+gbfgrep -r 3 -t"product" 'polymerase' < t/data/AF194338.1.gb
 
 =back
 

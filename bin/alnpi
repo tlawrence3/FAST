@@ -475,7 +475,7 @@ format SILENT_TOP =
 
 __END__
 
-=head1 NAME
+=head1 alnpi
 
 B<alnpi> - calculate molecular population genetic statistics from DNA alignments
 
@@ -486,19 +486,35 @@ B<alnpi> [OPTIONS] [MULTIFASTA-FILE...]
 =head1 DESCRIPTION
 
 B<alnpi> takes multifasta format alignment data as input, and calculates
-molecular population genetic statistics including
+molecular population genetic statistics, specifically:
 
-Options specific to name:
+=over 4
+
+=item 1. Number of sequences (n)
+=item 2. Number of alleles/distinct sequences (k)
+=item 3. Probability of allelic configuration (H, Karlin and MacGregor 1972)
+=item 4.
+
+=back
+
+Options specific to B<alnpi>:
+
+  B<-s>, B<--suppress>             suppress table heading              
+  B<-x>, B<--latex>                print table with latex formating
+  B<-p>, B<--pairwise>                  
+  B<-w>, B<--window>                                        
+  B<--absolute>                   
+  B<--label>                    
 
 Options general to FAST:
-  -h, --help                  	 print a brief help message
-  --man             	           print full documentation
-  --version                         print version
-  -l, --log                         create/append to logfile	
-  -L, --logname=<string>            use logfile name <string>
-  -C, --comment=<string>            save comment <string> to log
-  --format=<format>                 use alternative format for input  
-  --moltype=<[dna|rna|protein]>      specify input sequence type
+  B<-h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  B<-L>, B<--logname=<string>>            use logfile name <string>
+  B<-C>, B<--comment=<string>>            save comment <string> to log
+  B<--format=<format>>                 use alternative format for input  
+  B<--moltype=<[dna|rna|protein]>>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
@@ -511,6 +527,22 @@ reformat other formats to and from multifasta.
 =head1 OPTIONS
 
 =over 8
+
+=item B<-s>, 
+      B<--suppress>              
+ 
+=item B<-x>, 
+      B<--latex>                
+  
+=item B<-p>, 
+      B<--pairwise>                  
+  
+=item B<-w>, 
+      B<--window>                                        
+  
+=item B<--absolute>                   
+  
+=item B<--label>  
 
 =item B<-h>,
       B<--help>

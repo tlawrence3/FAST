@@ -214,21 +214,21 @@ B<gbfalncut> - extract subalignments based on reg-ex matching on features in an 
 
 =head1 SYNOPSIS
 
-B<gbfalncut> [options] \'PERL-REGEX\' [MULTIFASTA-FILE...]
+B<gbfalncut> [options] alignment-file genbank-file 'perl-reg-exp'
 
 =head1 DESCRIPTION
 
 B<gbfalncut> takes multifasta format sequence or alignment data as input,
 
-Options specific to name:
-  B<-i>, B<--case-insensitive>
+Options specific to B<gbfalncut>:
+  B<-i>, B<--case-insensitive>          case-insensitive pattern matching for tag-value regexes with -t option
   B<-n>, B<--negate>
   B<-t>, B<--tag>=<string>
   B<-s>, B<--slice>=<string>
   B<-x>, B<--intersect>=<string>
   B<-P>, B<--primary>=<string>
   B<-g>, B<--gap-delete>
-  B<-v>, B<--verbose>
+  B<-v>, B<--verbose>                   produce verbose output              
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
