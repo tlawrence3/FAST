@@ -219,9 +219,9 @@ characters from interpretation by the shell.
 Options specific to B<fasgrep>:
   -B<s>, B<--sequence>                    match on sequence 
   -B<d>, B<--description>                 match on description 
-  -B<f>, B<--field>=<int>                 match field <int> in description using one-based indexing
-  -B<t>, B<--tag>=<string>                match on value of a "tag[=:]value" pair in the description
-  -B<S>, B<--split-on-regex>=<regex>      use regex to split description
+  -B<f>, B<--field>=<int>                 match on field <int> in description
+  -B<t>, B<--tag>=<string>                match on tagged value in description
+  -B<S>, B<--split-on-regex>=<regex>      use regex to split description for fields
   -B<v>, B<--negate>                      output sequences that do not match
   -B<i>, B<--insensitive>                 match case-insensitively
   -B<e>, B<--iupac-expand-nuc>            expand IUPAC ambiguities for DNA/RNA in query
