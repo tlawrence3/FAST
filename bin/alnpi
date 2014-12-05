@@ -85,7 +85,12 @@ GetOptions('help|h'         		 => \$help,
 	   'suppress|s'                  => \$suppress,
 	   'latex|x'                     => \$latex,
 	   'pairwise|p'                  => \$pairwise,
-	   'window|w'                    => \$slide_window,
+	   'window|w=s'                  => sub{  my (undef,$val) = @_;
+						  my ($ws,$ss,$stat) = split /:/,$val;
+                                                  die "$NAME: --window or -w option expects string argument <window-size>:<step-size>:<statistic>\nin which <window-size> and <step-size> are positive integers\nand <statistic> is either \"p\", \"w\" or \"d\"\nselecting pi, Watterson's estimator per-site or Tajima's D respectively.\n"
+						    unless ($ws && $ws =~ /^\d+$/ && $ws > 0 && $ss && $ws =~ /^\d+$/ && $ss > 0 && $stat =~ /^[pwd]$/);
+                                                  $slide_window = $val;
+						},
 	   'upblue|u'                    => \$upblue,
 	   'absolute'                    => \$absolute,
 	   'label=s'                     => \$label_input,
@@ -109,134 +114,154 @@ $^ = 'ABS_TOP' if ($absolute);
 $~ = 'STDOUT_ABS' if ($absolute);
 
 my $IN;
-if ($moltype) {
-  $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
-}
-else {
-  $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+unless (@ARGV) {
+  if ($moltype) {
+    $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+  }
+  else {
+    $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+  }
 }
 
-if ($IN) {
-  while ( my $aln = $IN->next_aln){
-    my @seqs = $aln->each_seq();
-    my $ua = FAST::Bio::UnivAln->new('-seqs' => [$aln->each_seq()]);
-    $TL = $aln->length();
-    ## CALCULATION OF NEEDED PARAMETERS THAT DEPEND ON NUMBER OF SEQS
-    $nseq = (scalar (@seqs)); 
-    ##  $nseq_stat = ($opt_p ? 2 : scalar (@seqs)); 
-    $a1 = $a2 = 0;
-    for my $i (1..($nseq - 1)) {
-      $a1 += (1 / $i);
-      $a2 += (1 / ($i ** 2)); ## a2 = bn in Fu Li 93
+while ($IN or @ARGV) {
+  if (@ARGV) {
+    my $file = shift (@ARGV);
+    unless (-e $file) {
+      warn "$NAME: Could not find file $file. Skipping.\n";
+      next;
     }
-    my $b1 = ($nseq + 1) / (3 * ($nseq -1));
-    my $b2 = 2 * (($nseq ** 2) + $nseq + 3) / (9 * $nseq * ($nseq - 1));
-    my $c1 = ($b1 - (1 / $a1));
-    my $c2 = $b2 - (($nseq + 2) / ($a1 * $nseq)) + ($a2 / ($a1 ** 2));
-    $e1 = $c1 / $a1;
-    $e2 = $c2 / ($a1 ** 2 + $a2);
-    
-    if ($slide_window) { ## SLIDING-WINDOW MODE
-      my ($win_sz,$step_sz,$output) = split /:/,$slide_window;
-      my $gfi = $ua->gap_free_inds(); ## IGNORE GAP-FREE SITES FROM WHOLE ALIGNMENT
-      my $inds = $gfi; 
-      
-      if ($pairwise) { ## PAIRWISE-PI-WINDOW MODE
-	$output = 'p'; ## FORCE OUTPUT TO BE PI
-	## OUTPUT PAIRWISE-MODE HEADER
-	my @ids = @{ $ua->row_ids() };
-	for my $i (0..$#ids) {
-	  for my $j (($i+1)..$#ids) { 
-	    printf "%10s ",$ids[$i];
-	  }
-	}
-	print "\n";
-	for my $i (0..$#ids) {
-	  for my $j (($i+1)..$#ids) { 
-	    printf "%10s ",$ids[$j];
-	  }
-	}
-	print "\n";
-      } ## END PAIRWISE-MODE HEADER
-      
-      ## BEGIN SLIDING WINDOWS
-      for (my $b = 0; ($b + $win_sz - 1) < $#$inds; $b += $step_sz) {
-	my $first = $$inds[$b];
-	my $last  = $$inds[($b + $win_sz - 1)];
-	my $midpoint = $first + (($last - $first) / 2);
-	my $slice = [ @$inds[$b..($b+$win_sz-1)]];
-	my $sz = scalar(@$slice);
-	warn "ERROR: window size is $sz instead of $win_sz.\n" unless ($sz == $win_sz);
-	
-	unless ($pairwise) {
-	  my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([],$slice)));
-	  my $return_val = calculate($subaln,$output);
-	  printf "%d-%d %d %7.6f\n",$first,$last,$midpoint, $return_val;
-	}
-	else { ##PAIRWISE MODE
-	  printf "%d ",$midpoint;
-	  for my $i (1..$nseq) {
-	    for my $j (($i+1)..$nseq) { 
-	      my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],$slice)));
-	      my $return_val = calculate($subaln,$output);
-	      printf "%10.6f ",$return_val;
-	    } 
-	  }
-	  print "\n";
-	}
-      }
-    }
-    
-    elsif ($pairwise) { ## PAIRWISE-MATRIX-MODE
-      ## WE PUT OPT_U HERE TO MAXIMIZE SEGSITES BETWEEN PAIRS
-      ## INSTEAD OF REMOVING ALL SITES CONTAINING A GAP IN ANY
-      ## ALLELE
-      
-      my $output = 'p'; ## output is 'pi', modifies behavior of &calculate
-      my @ids = @{ $ua->row_ids() };
-      ## PRINT HEADER
-      print (' ' x 11);
-      for my $i (0..($#ids-1)) {
-	print ($latex ? '& ' : '  '); ## LATEX MODE
-	printf "%10s ",$ids[$i];
-      }
-      print ($latex ? "\\\\\n" : "\n");
-      
-      ## PRINT MATRIX
-      for my $i (1..$nseq) {
-	printf "%10s ",$ids[($i-1)];
-	
-	for my $j (1..($i-1)) { 
-	  print ($latex ? '& ' : '  '); ## LATEX MODE
-	  my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
-	  my $return_val = &calculate($pair,$output);
-	  printf "%10.6f ",$return_val;
-	}
-	if ($latex) {
-	  for my $j ($i..($nseq-1)) { 
-	    print "&",(' ' x 12);
-	  }
-	}
-	print ($latex ? " \\\\\n" : "\n");
-      }
-    }
-    elsif ($upblue) {
-      print $nseq,"\n";
-      for my $i (1..$nseq) {
-	for my $j (($i+1)..$nseq) { 
-	  my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
-	  print join ' ',$i,$j;
-	  my $return_val = &calculate($pair,'p');
-	}
-      }
+    elsif ($moltype) {
+      $IN = FAST::Bio::AlignIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
     }
     else {
-      &calculate($ua);
+      $IN = FAST::Bio::AlignIO->new(-file => $file, '-format' => $def_format);
     }
-    
+  }
+  if ($IN) { 
+    while ( my $aln = $IN->next_aln){
+      my @seqs = $aln->each_seq();
+      my $ua = FAST::Bio::UnivAln->new('-seqs' => [$aln->each_seq()]);
+      $TL = $aln->length();
+      ## CALCULATION OF NEEDED PARAMETERS THAT DEPEND ON NUMBER OF SEQS
+      $nseq = (scalar (@seqs)); 
+      ##  $nseq_stat = ($opt_p ? 2 : scalar (@seqs)); 
+      $a1 = $a2 = 0;
+      for my $i (1..($nseq - 1)) {
+	$a1 += (1 / $i);
+	$a2 += (1 / ($i ** 2)); ## a2 = bn in Fu Li 93
+      }
+      my $b1 = ($nseq + 1) / (3 * ($nseq -1));
+      my $b2 = 2 * (($nseq ** 2) + $nseq + 3) / (9 * $nseq * ($nseq - 1));
+      my $c1 = ($b1 - (1 / $a1));
+      my $c2 = $b2 - (($nseq + 2) / ($a1 * $nseq)) + ($a2 / ($a1 ** 2));
+      $e1 = $c1 / $a1;
+      $e2 = $c2 / ($a1 ** 2 + $a2);
+      
+      if ($slide_window) { ## SLIDING-WINDOW MODE
+	my ($win_sz,$step_sz,$output) = split /:/,$slide_window;
+	my $gfi = $ua->gap_free_inds(); ## IGNORE GAP-FREE SITES FROM WHOLE ALIGNMENT
+	my $inds = $gfi; 
+	
+	if ($pairwise) { ## PAIRWISE-PI-WINDOW MODE
+	  $output = 'p'; ## FORCE OUTPUT TO BE PI
+	  ## OUTPUT PAIRWISE-MODE HEADER
+	  my @ids = @{ $ua->row_ids() };
+	  for my $i (0..$#ids) {
+	    for my $j (($i+1)..$#ids) { 
+	      printf "%10s ",$ids[$i];
+	    }
+	  }
+	  print "\n";
+	  for my $i (0..$#ids) {
+	    for my $j (($i+1)..$#ids) { 
+	      printf "%10s ",$ids[$j];
+	    }
+	  }
+	  print "\n";
+	} ## END PAIRWISE-MODE HEADER
+	
+	## BEGIN SLIDING WINDOWS
+	for (my $b = 0; ($b + $win_sz - 1) < $#$inds; $b += $step_sz) {
+	  my $first = $$inds[$b];
+	  my $last  = $$inds[($b + $win_sz - 1)];
+	  my $midpoint = $first + (($last - $first) / 2);
+	  my $slice = [ @$inds[$b..($b+$win_sz-1)]];
+	  my $sz = scalar(@$slice);
+	  warn "ERROR: window size is $sz instead of $win_sz.\n" unless ($sz == $win_sz);
+	  
+	  unless ($pairwise) {
+	    my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([],$slice)));
+	    my $return_val = calculate($subaln,$output);
+	    printf "%d-%d %d %7.6f\n",$first,$last,$midpoint, $return_val;
+	  }
+	  else { ##PAIRWISE MODE
+	    printf "%d ",$midpoint;
+	    for my $i (1..$nseq) {
+	      for my $j (($i+1)..$nseq) { 
+		my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],$slice)));
+		my $return_val = calculate($subaln,$output);
+		printf "%10.6f ",$return_val;
+	      } 
+	    }
+	    print "\n";
+	  }
+	}
+      }
+      
+      elsif ($pairwise) { ## PAIRWISE-MATRIX-MODE
+	## WE PUT OPT_U HERE TO MAXIMIZE SEGSITES BETWEEN PAIRS
+	## INSTEAD OF REMOVING ALL SITES CONTAINING A GAP IN ANY
+	## ALLELE
+	
+	my $output = 'p'; ## output is 'pi', modifies behavior of &calculate
+	my @ids = @{ $ua->row_ids() };
+	## PRINT HEADER
+	print (' ' x 11);
+	for my $i (0..($#ids-1)) {
+	  print ($latex ? '& ' : '  '); ## LATEX MODE
+	  printf "%10s ",$ids[$i];
+	}
+	print ($latex ? "\\\\\n" : "\n");
+	
+	## PRINT MATRIX
+	for my $i (1..$nseq) {
+	  printf "%10s ",$ids[($i-1)];
+	  
+	  for my $j (1..($i-1)) { 
+	    print ($latex ? '& ' : '  '); ## LATEX MODE
+	    my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
+	    my $return_val = &calculate($pair,$output);
+	    printf "%10.6f ",$return_val;
+	  }
+	  if ($latex) {
+	    for my $j ($i..($nseq-1)) { 
+	      print "&",(' ' x 12);
+	    }
+	  }
+	  print ($latex ? " \\\\\n" : "\n");
+	}
+      }
+      elsif ($upblue) {
+	print $nseq,"\n";
+	for my $i (1..$nseq) {
+	  for my $j (($i+1)..$nseq) { 
+	    my $pair = new FAST::Bio::UnivAln(-seqs=>scalar($ua->seqs([$i,$j],[])));
+	    print join ' ',$i,$j;
+	    my $return_val = &calculate($pair,'p');
+	  }
+	}
+      }
+      else {
+	&calculate($ua);
+      }
+      
+    }
+    undef $IN;
+ 
   }
   
 }
+
 
 ## THIS FUNCTION WILL BE MAPPED OVER ALIGNMENT COLUMNS TO COUNT STATES
 sub get_pattern {
@@ -261,7 +286,7 @@ sub calculate {
   my $ua = shift;
   my $output = shift;
   if ($output && $output !~ /[pwd]/) { 
-    die "Error, output (third parameter to -w) must be equal to \'p\', \'w\', or \'d\´.\n"; 
+    die "$NAME: Error, output (third parameter to -w) must be equal to \'p\', \'w\', or \'d\´.\n"; 
   }
 
   my $gfs = $ua->gap_free_sites();
@@ -485,36 +510,100 @@ B<alnpi> [OPTIONS] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-B<alnpi> takes multifasta format alignment data as input, and calculates
-molecular population genetic statistics, specifically:
+B<alnpi> takes multifasta format alignment data as input, and outputs
+molecular population genetic statistics. Options modulate the type of
+statistics calculated, the mode of calculation, and the style of
+output. By default, per-site statistics are calculated over the entire
+output, specifically after gap-containing sites are
+removed. Optionally, statistics may be calculated pair-wise across
+sequences, or in sliding windows of specified length. The statistics
+calculated by default include:
 
 =over 4
 
 =item 1. Number of sequences (n)
+
 =item 2. Number of alleles/distinct sequences (k)
-=item 3. Probability of allelic configuration (H, Karlin and MacGregor 1972)
-=item 4.
+
+=item 3. Heterozygosity (H)
+
+=item 4. Expected number of alleles given Watterson estimator (Ewens, 1972)
+
+=item 5. Probability of allelic configuration (H, Karlin and MacGregor 1972)
+
+=item 6. Total alignment length (L)
+
+=item 7. Number of gap-free sites (L_gf)
+
+=item 8. Number of segregating sites (S)
+
+=item 9. Fraction of gap-free segregating sites (s)
+
+=item 10. Watterson estimator per gap-free site (Th_w_ps, Watterson 1975)
+
+=item 11. Standard Error of Th_w_ps assuming no recombination (SE_Thwps_LD)
+
+=item 12. Standard Error of Th_w_ps assuming free recombination (SE_Thwps_LE)
+
+=item 13. Nucleotide Diversity (pi, Nei and Li 1979)     
+
+=item 14. Standard Error of pi assuming no recombination (SE_pi_LD)  
+
+=item 15. Standard Error of pi assuming free recombination (SE_pi_LE)  
+
+=item 16. Tajima's D (Tajima, 1989)
+
+=item 17. Fu and Li's D* (Fu and Li, 1993)   
+
+=item 18. Fu and Li's F* (Fu and Li, 1993, Simonsen et al. 1995)     
 
 =back
 
-Options specific to B<alnpi>:
+Invoked in absolute mode with B<alnpi --absolute>, B<alnpi> outputs these 
+statistics instead:
 
-  B<-s>, B<--suppress>             suppress table heading              
-  B<-x>, B<--latex>                print table with latex formating
-  B<-p>, B<--pairwise>                  
-  B<-w>, B<--window>                                        
-  B<--absolute>                   
-  B<--label>                    
+=over 4
+
+=item 1. Number of sequences (n)
+
+=item 2. Number of alleles/distinct sequences (k)
+
+=item 3. Number of gap-free sites (Len)
+
+=item 4. Number of segregating gap-free sites (S)
+
+=item 5. Watterson estimator for gap-free sites (Th_W, Watterson 1975)
+
+=item 6. Total alignment length (L)
+
+=item 7. Average pairwise number of differences among gap-free sites (Pi)
+
+=item 8. Eta S, (Fu and Li, 1993)  
+
+=item 9. Eta, (Fu and Li, 1993)  
+
+=back
+
+Sliding window analysis supports output for only for nucleotide
+diversity, Watterson estimator per-site, and Tajima's D.
+
+Options specific to B<alnpi>:
+  B<-s>, B<--suppress>                 suppress table header output              
+  B<-x>, B<--latex>                    print table with Latex formating
+  B<-p>, B<--pairwise>                 calculate stats pairwise across sequences     
+  B<-w>, B<--window>=<string>          calculate stats in sliding windows                                        
+  B<--absolute>                     output statistics not normalized per-site
+  B<--label>=<string>               label input/output descriptively with <string>
 
 Options general to FAST:
-  B<-h>, B<--help>                  	 print a brief help message
-  B<--man>             	           print full documentation
-  B<--version>                         print version
-  B<-l>, B<--log>                         create/append to logfile	
-  B<-L>, B<--logname=<string>>            use logfile name <string>
-  B<-C>, B<--comment=<string>>            save comment <string> to log
-  B<--format=<format>>                 use alternative format for input  
-  B<--moltype=<[dna|rna|protein]>>      specify input sequence type
+  B<-h>, B<--help>                     print a brief help message
+  B<--man>             	        print full documentation
+  B<--version>                      print version
+  B<-l>, B<--log>                      create/append to logfile	
+  B<-L>, B<--logname>=<string>         use logfile name <string>
+  B<-C>, B<--comment>=<string>         save comment <string> to log
+  B<--format>=<format>              use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]   specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
@@ -531,18 +620,34 @@ reformat other formats to and from multifasta.
 =item B<-s>, 
       B<--suppress>              
  
+Supress header output
+
 =item B<-x>, 
       B<--latex>                
   
+LaTeX-style output
+
 =item B<-p>, 
       B<--pairwise>                  
   
-=item B<-w>, 
-      B<--window>                                        
-  
-=item B<--absolute>                   
-  
+Statistics are calculated pairwise over all sequences
+
+=item B<-w>, B<--window>=<string> 
+
+Sliding window analysis. Option argument <string> expected to be in
+the form "window-size:step-size:statistic" where window-size and
+step-size are positive integers and "statistic" may be one of "p", "s"
+or "d" for nucleotide diversity, Watterson estimator or Tajima's D
+respectively.
+
+=item B<--absolute>
+
+Output a smaller set of statistics not normalized by number of
+gap-free sites.
+
 =item B<--label>  
+
+Text label for the input data, to be placed in the output.
 
 =item B<-h>,
       B<--help>
@@ -591,15 +696,6 @@ processing data).
 =back
 
 =head1 EXAMPLES
-
-Print all sequences with "-DNA" in the ID:
-
-=over 8
-
-cat data.fas | B<fasgrep> "-DNA" > data.dna.fas
-
-=back
-
 
 
 
