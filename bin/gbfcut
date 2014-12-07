@@ -29,8 +29,8 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $tag_match            = undef; #-t
-my $case                 = undef;
+my $tag_match            = undef; # -t
+my $insensitive          = undef; # -i
 my $location             = undef;
 my $primary              = undef;
 my $context              = undef;
@@ -46,14 +46,14 @@ GetOptions('help|h'         		 => \$help,
 	   'log'                         => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'tag|t=s'                     => \$tag_match,
-     'case-insensitive|i'          => \$case,
-     'location|l'                  => \$location,
-     'primary|p=s'                 => \$primary,
-
+	   'tag|t=s'                     => \$tag_match,
+	   'insensitive|i'               => \$insensitive,
+	   'location|l'                  => \$location,
+	   'primary|p=s'                 => \$primary,
+	   
 	  ) 
   or pod2usage(2);
-		  
+
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
 
