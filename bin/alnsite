@@ -123,17 +123,17 @@ B<alnsite> takes multifasta format sequence or alignment data as input,
 Options specific to B<alnsite>:
 
   B<-i>, B<--indices>                 print alignment positions to stderr that remain after removal of invariable columns based on threshold value        
-  B<-t>, B<--threshold=<float>>       if the fraction of the letters in the column that form a (relative) majority is NOT >= <threshold> the column is retained. The default is 1.
+  B<-t>, B<--threshold>=<float>       if the fraction of the letters in the column that form a (relative) majority is NOT >= <threshold> the column is retained. The default is 1.
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
   B<--man>             	           print full documentation
   B<--version>                         print version
   B<-l>, B<--log>                         create/append to logfile	
-  B<-L>, B<--logname=<string>>            use logfile name <string>
-  B<-C>, B<--comment=<string>>            save comment <string> to log
-  B<--format=<format>>                 use alternative format for input  
-  B<--moltype=<[dna|rna|protein]>>      specify input sequence type
+  B<-L>, B<--logname>=<string>            use logfile name <string>
+  B<-C>, B<--comment>=<string>            save comment <string> to log
+  B<--format>=<format>                 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>      specify input sequence type
 
 =head1 INPUT AND OUTPUT
 

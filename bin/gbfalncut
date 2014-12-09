@@ -52,7 +52,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'insensitive|i'               => \$insensitive,
+	   'case-insensitive|i'          => \$insensitive,
 	   'negate|v'                    => \$negate,
 	   'qualifier|q=s'               => \$qualifier,
 #	   'intersect|x=s'               => \$intersect_match,
@@ -201,7 +201,7 @@ supported. Reverse-strand features (specified with a "complement"
 operator) are not reverse-complemented; check fasrc for that.
 
 Options specific to B<gbfalncut>:
-  B<-i>, B<--insensitive>          case-insensitive pattern matching
+  B<-i>, B<--case-insensitive>     case-insensitive pattern matching
   B<-n>, B<--negate>               cut sites that don't belong to a feature
   B<-q>, B<--qualifier>=<string>   match on values of specific feature qualifier <string> 
                                default qualifier is "note" (as in /note="intron")          
@@ -233,7 +233,7 @@ reformat other formats to and from multifasta.
 =over 8
 
 =item B<-i>,
-      B<--insensitive>
+      B<--case-insensitive>
 
 Match data case-insensitively.
 
