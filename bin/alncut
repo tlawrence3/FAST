@@ -44,10 +44,10 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'indices|i'                     => \$index,
-     'threshold|t=f'               => \$threshold, #if the fraction of the letters in the column that form a
-                                                   #(relative) majority is NOT >= $threshold the column is retained.
-                                                   #The default $threshold is 1.
+	   'indices|i'                     => \$index,
+	   'threshold|t=f'               => \$threshold, #if the fraction of the letters in the column that form a
+	                                                 #(relative) majority is NOT >= $threshold the column is retained.
+	                                                 #The default $threshold is 1.
 
 	  ) 
   or pod2usage(2);
@@ -123,7 +123,7 @@ B<alnsite> takes multifasta format sequence or alignment data as input,
 Options specific to B<alnsite>:
 
   B<-i>, B<--indices>                 print alignment positions to stderr that remain after removal of invariable columns based on threshold value        
-  B<-t>, B<--threshold=<float>>       if the fraction of the letters in the column that form a (relative) majority is NOT >= <threshold> the column is retained. The default is 1.
+  B<-t>, B<--threshold=<float>        if the fraction of the letters in the column that form a (relative) majority is NOT >= <threshold> the column is retained. The default is 1.
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message

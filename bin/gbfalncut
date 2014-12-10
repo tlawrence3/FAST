@@ -202,13 +202,13 @@ operator) are not reverse-complemented; check fasrc for that.
 
 Options specific to B<gbfalncut>:
   B<-i>, B<--insensitive>          case-insensitive pattern matching
-  B<-n>, B<--negate>               cut sites that don't belong to a feature
-  B<-q>, B<--qualifier>=<string>   match on values of specific feature qualifier <string> 
+  B<-v>, B<--negate>               cut sites that don't belong to a feature
+  B<-q>, B<--qualifier>=<string>   match on values of qualifier <string> 
                                default qualifier is "note" (as in /note="intron")          
   B<-k>, B<--key>=<string>         restrict search to features with keys <string>. 
   B<-K>, B<--key-search>           regex match directly on feature keys
   B<-x>, B<--intersect>=<string>   filter hitting sites against 
-  B<-v>, B<--verbose>              produce verbose output              
+  B<--verbose>                  produce verbose output              
 
 Options general to FAST:
   B<-h>, B<--help>                 print a brief help message

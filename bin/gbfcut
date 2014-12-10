@@ -201,7 +201,7 @@ their specific perl-regexes: perl-regex1, perl-regex2, etc.
 Examples of tags: 'product', 'note', 'gene', 'db_xref'
 
 =item B<-i>,
-      B<--case-insensitive>
+      B<--insensitive>
 
 Enable case-insensitive matching of tags.
 

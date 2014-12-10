@@ -279,8 +279,8 @@ Options specific to B<fasxl>:
   B<-t>, B<--table>=<int>       NCBI genetic code tableID for translating sequences [1]
   B<-3>                      translate each sequence in all three forward frames
   B<-6>                      translate each sequence in all six frames
-  B<-s>, B<--stop>=<char>       string representing stop codons ["*"]
-  B<-u>, B<--unknown>=<char>    string representing unknown amino acids ["X"]
+  B<-s>, B<--stop>=<char>       character representing stop codons ["*"]
+  B<-u>, B<--unknown>=<char>    character representing unknown amino acids ["X"]
   B<--tables>, B<--codes>       print NCBI table ids of genetic codes for -t option
 
 Options general to FAST:
@@ -350,6 +350,11 @@ Specify the frame for translation [0,1,2]. By default frame 0 is used.
       B<--table>=<int>
 
 Specify an NCBI genetic code tableID for translating sequences.
+
+=item B<--tables>,
+      B<--codes>
+
+Output a list of NCBI genetic code tableIDs and exit.
 
 =item B<-3>
 

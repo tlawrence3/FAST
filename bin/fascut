@@ -20,8 +20,9 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_split_on_regex = $FAST::DEF_SPLIT_REGEX; # ' '
-my $def_field_join     = $FAST::DEF_JOIN_STRING; # " "
+my $def_split_description_regex  = $FAST::DEF_SPLIT_REGEX; # ' '
+my $def_split_other_regex        = ''; 
+my $def_field_join               = $FAST::DEF_JOIN_STRING; # " "
 
 ## OPTION VARIABLES
 my $man                  = undef;               # --man
@@ -35,7 +36,7 @@ my $strict               = undef;               # --strict
 my $identifier           = undef;               # -i
 my $description          = undef;               # -d
 my $field                = undef;               # -f
-my $split_on_regex       = $def_split_on_regex; # -S 
+my $split_on_regex       = undef;               # -S 
 my $join                 = $def_field_join;     # -j
 #my $spawn                = undef;               # -w
 
@@ -56,7 +57,6 @@ GetOptions('help|h'         		 => \$help,
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'join|j=s'                    => \$join,
            'fastq|q'                     => sub{$format = 'fastq';},
-#	   'spawn|w'                     => \$spawn,
 	  ) 
   or exit(1);
 
@@ -74,8 +74,8 @@ pod2usage("$NAME: expects one range-string argument when input is on STDIN.\n") 
 my @RANGES = ();
 my $ranges = shift @ARGV;
 if ($ranges =~ /,/) {
-    @RANGES = split (/,/,$ranges);
-  }
+  @RANGES = split (/,/,$ranges);
+}
 else {
   $RANGES[0] = $ranges;
 }
@@ -114,18 +114,21 @@ foreach my $range (@RANGES) {
 }
 
 my ($selector,$type);
-if ($identifier) {
-  $selector = "id";
-  $type = "identifier";
-}
-elsif ($description || $field) {
+if ($description || $field) {
   $selector = "desc";
   $type = "description";
   $type .= " field" if ($field);
+  $split_on_regex ||= $def_split_description_regex;
+}
+elsif ($identifier) {
+  $selector = "id";
+  $type = "identifier";
+  $split_on_regex ||= $def_split_other_regex;
 }
 else {
   $selector = "seq";
   $type = "sequence";
+  $split_on_regex ||= $def_split_other_regex;
 }
 
 my $split_re = qr/$split_on_regex/;
@@ -134,12 +137,12 @@ my $split_re = qr/$split_on_regex/;
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 unless (@ARGV) {
-    if ($moltype) {
-  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
-    }
-    else {
-  $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
-    }
+  if ($moltype) {
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
+  }
+  else {
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
+  }
 }
 
 while ($IN or @ARGV) {
@@ -157,7 +160,7 @@ while ($IN or @ARGV) {
     }
   }
   if ($IN) { 
-record: while (my $seq = $IN->next_seq()) {
+  record: while (my $seq = $IN->next_seq()) {
       my $olddata = $seq->$selector();
       my $seqid = $seq->id(); # for error messages if necessary
       my $length; 
@@ -165,22 +168,22 @@ record: while (my $seq = $IN->next_seq()) {
       my @oldqual = (); #used to store quality data if cutting sequence
       if ($field) {
 	@olddata = split $split_re,$olddata;
-  #if ($selector eq 'seq' and $format eq 'fastq'){
-   #my $length_seq;
-   #my @oldqual_split = split ' ', $seq->qual_text(); #store qual data for cutting
-   #foreach my $seq_length (@olddata) {
-    # $length_seq = length($seq_length);
-     # push @oldqual, splice (@oldqual_split,,$length_seq);
-    #} 
-  #} 
+	#if ($selector eq 'seq' and $format eq 'fastq'){
+	#my $length_seq;
+	#my @oldqual_split = split ' ', $seq->qual_text(); #store qual data for cutting
+	#foreach my $seq_length (@olddata) {
+	# $length_seq = length($seq_length);
+	# push @oldqual, splice (@oldqual_split,,$length_seq);
+	#} 
+	#} 
 	$length = scalar @olddata;
       }
       else {
-	@olddata = split //,$olddata;
-  $length = length $olddata;
-  if ($selector eq 'seq' and $format eq 'fastq'){
-    @oldqual = split ' ', $seq->qual_text(); #store qual data for cutting
-  }      
+	@olddata = split $split_re,$olddata;
+	$length = length $olddata;
+	if ($selector eq 'seq' and $format eq 'fastq'){
+	  @oldqual = split ' ', $seq->qual_text(); #store qual data for cutting
+	}      
       }
       my @newdata = ();
       my @newqual = ();
@@ -228,21 +231,21 @@ record: while (my $seq = $IN->next_seq()) {
 	my @slice = ();
 	if ($b == $e) {
 	  push @newdata,$olddata[$b];
-    if ($selector eq 'seq' && $format eq 'fastq'){
-      push @newqual,$oldqual[$b];
-    }
+	  if ($selector eq 'seq' && $format eq 'fastq'){
+	    push @newqual,$oldqual[$b];
+	  }
 	}
 	elsif ($by) {
 	  push @newdata,@olddata[@{ List::Gen::range ($b,$e,$by) }];
-    if ($selector eq 'seq' && $format eq 'fastq'){
-      push @newqual,@oldqual[@{ List::Gen::range ($b,$e,$by) }];
-    }
+	  if ($selector eq 'seq' && $format eq 'fastq'){
+	    push @newqual,@oldqual[@{ List::Gen::range ($b,$e,$by) }];
+	  }
 	}
 	else {
 	  push @newdata,@olddata[@{ List::Gen::range ($b,$e) }];
-    if ($selector eq 'seq' && $format eq 'fastq'){
-      push @newqual,@oldqual[@{ List::Gen::range ($b,$e) }];
-    }
+	  if ($selector eq 'seq' && $format eq 'fastq'){
+	    push @newqual,@oldqual[@{ List::Gen::range ($b,$e) }];
+	  }
 	}
       }
       ## if -sequence and no @newdata, don't print
@@ -258,19 +261,19 @@ record: while (my $seq = $IN->next_seq()) {
       
 
       if ($format eq 'fastq'){
-         if ($moltype) {
+	if ($moltype) {
           $newseq = new FAST::Bio::Seq::Quality(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -qual => $seq->qual, -alphabet => $moltype);
-          }
+	}
         else {
           $newseq = new FAST::Bio::Seq::Quality(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -qual => $seq->qual);
         }
       }
       else {
         if ($moltype) {
-	       $newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
+	  $newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc, -alphabet => $moltype);
         }
         else {
-	       $newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc);
+	  $newseq = new FAST::Bio::Seq(-seq => $seq->seq,-id => $seq->id,-desc => $seq->desc);
         }
       }
       $newseq->$selector($newdata);
@@ -307,13 +310,14 @@ B<fascut> [OPTION]... [RANGES] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION 
 
-B<fascut> takes biological sequence records on input and outputs the
-transformation of those records under index-based selection and
-reordering of their sequence data (by default), identifiers or
-descriptions. By default, B<fascut> cuts data per-character. For
-sequence data, this utility outputs the concatenation of slices from
-each sequence specified by a comma-separated list of coordinates and
-coordinate ranges, allowing arbitrary reordering and repetition.
+B<fascut> takes biological sequence records on input, and outputs the
+transformation of each record under index-based "slicing" (selection
+and reordering) of its sequence, identifier or description data. By
+default, B<fascut> slices sequence data. Indices are specified by the
+first argument as a comma-separated list of coordinates and coordinate
+ranges, in which arbitrary reordering and repetition of indices is
+allowed. For each seqiB<fascut> outputs the concatenation of slices
+for each sequence record on input.
 
 The one mandatory argument to B<fascut> is a sequence of indices or
 index ranges separated by commas (,). The ranges may be specified in
@@ -342,9 +346,6 @@ it defaults to "1". If "to" is greather than a sequence length, it
 defaults to "-1".  However, if strict-mode (-s) is enabled, then both
 types of bad range specifications will abort processing of a sequence
 record with no output for that sequence except a warning.
-
-(spawn-mode has been disabled) If "spawn-mode" (-w) is enabled, each range-input combination produces
-a distinct sequence to output.
 
 Options specific to B<fascut>:
   -B<i>, B<--identifier>                  cuts identifiers by character

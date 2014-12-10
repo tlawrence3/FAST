@@ -9,7 +9,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "merge sequence of files";
+$DESC    = "concatenate sequence records";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -134,26 +134,27 @@ do {
       }
 
       unless($outputseq) {
-         $outputseq = $seq;
-      } else {
+	$outputseq = $seq;
+      } 
+      else {
         $delim = $delims[$delimpos];
         $delimpos += 1;
-
+	
         if ($delimpos >= $maxdelim) {
           $delimpos = 0;
         }
-
+	
         $descdelim = $descdelims[$descdelimpos];
         $descdelimpos += 1;
-
+	
         if ($descdelimpos >= $maxdescdelim) {
           $descdelimpos = 0;
         }
-
+	
 	if ($descdelim) {
           $outputseq->desc(join $descdelim, $outputseq->desc(), $seq->desc());
 	}
-
+	
         $outputseq->seq(join $delim ? $delim : '', $outputseq->seq(), $seq->seq());
         if ($format eq 'fastq'){
           @outputqual = split ' ', $outputseq->qual_text();
@@ -178,7 +179,7 @@ __END__
 
 =head1 NAME
 
-B<faspaste> - merge sequences in files
+B<faspaste> - concatenate sequences or other data in sequence records
 
 =head1 SYNOPSIS
 

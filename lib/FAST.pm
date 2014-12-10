@@ -4,15 +4,6 @@ use strict;
 use Carp;
 use warnings FATAL => 'all';
 
-=head1 NAME
-
-FAST - FAST Analysis of Sequences Toolbox
-
-=head1 VERSION
-
-Version 1.00
-
-=cut
 
 our $VERSION = '1.0';
 
@@ -43,6 +34,14 @@ sub log {
 }
 
 
+=head1 NAME
+
+FAST - FAST Analysis of Sequences Toolbox
+
+=head1 VERSION
+
+Version 1.00
+
 =head1 SYNOPSIS
 
 The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX utilities
@@ -62,7 +61,7 @@ David H. Ardell, C<< <dhard at cpan.org> >>
 and members of the Ardell Laboratory 
 and other contributors including:
 Travis Lawrence
-Dane Carper
+Dana Carper
 Katherine Amrine
 Kyle Kauffman
 Claudia Canales
