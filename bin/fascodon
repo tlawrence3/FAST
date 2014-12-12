@@ -57,7 +57,7 @@ GetOptions('help|h'         		 => \$help,
            'amino-order|o=s'             => \$amino_order,
            'order-by-amino|g'            => \$orderby_amino,
            'table|t=i'                   => \$table,
-           'annotate|a'                    => \$append,
+           'annotate|a'                  => \$append,
            'fastq|q'                     => sub{$format = 'fastq';},
 
 ) 
@@ -353,7 +353,7 @@ Options specific to B<fascodon>:
   B<-g>, B<--order-by-amino>              option will order amino acid ouput in 
                                     alaphabetical order 
   B<-t>, B<--table>                       specifies which codon table to use
-  B<-a>, B<--append>                      option will append description with
+  B<-a>, B<--annotate>                      option will append description with
                                     information of codon usage
 
 Options general to FAST:

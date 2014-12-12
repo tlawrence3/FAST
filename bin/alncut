@@ -233,7 +233,7 @@ sites it has selected. Therefore, to print all sites that are not all
 gap, combine the B<-a> and B<-v> options.
 
 Parsimoniously informative sites are variable sites in which at least
-two differnt site-characters or states are each represented in at
+two different site-characters or states are each represented in at
 least two different sequences. B<alnsite> wil return parsimoniously
 informative sites with the B<-parsinf> or B<-p> option.
 
@@ -281,7 +281,10 @@ Print only sites that contain exclusively gaps
 =item B<-p>
       B<--parsinf>
 
-Print only sites that are parsimoniously informative
+Print only sites that are parsimoniously informative. Parsimoniously
+informative sites are variable sites in which at least two different
+site-characters or states are each represented in at least two
+different sequences.
 
 =item B<-v>
       B<--negate>
@@ -376,6 +379,14 @@ Print sites in which the frequency of minor variants is less than 15 percent:
 =over 8
 
 B<alncut> -f 0.15 data.fas 
+
+=back
+
+Print variable sites:
+
+=over 8
+
+B<alncut> -v data.fas 
 
 =back
 

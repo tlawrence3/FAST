@@ -9,7 +9,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "output the first n seqences";
+$DESC    = "Output leading sequence records";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -20,7 +20,7 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_join_string = "";
+my $def_join_string =  $FAST::DEF_JOIN_STRING;
 my $def_print_num = 10;
 
 ## OPTION VARIABLES
@@ -32,9 +32,9 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $n			 = $def_print_num; # -n
-my $verbose              = undef; # -v
-my $silent               = undef; # -q
-my $fastq                = undef;
+my $append               = undef; # -a
+my $join                 = $def_join_string; # -j
+my $fastq                = undef; #-q
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -47,13 +47,13 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'lines|n=i'                   => sub{  my (undef,$val) = @_; 
-						  die "$NAME: -n option expects a positive integer argument\n" 
+	   'records|n=i'                   => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --records or -n option expects a positive integer argument\n" 
 						    unless $val > 0;
 						  $n = $val;
 					       },
-	   'v|verbose'                   => \$verbose,
-	   'Q|quiet|silent'              => \$silent,
+	   'a|annotate'                   => \$append,
+	   'join|j=s'                      => \$join,
            'fastq|q'                     => sub{$format = 'fastq';},
 	  ) 
   or exit(1);
@@ -67,7 +67,7 @@ pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NA
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
-my $append_file_name = (!$silent and ($verbose or (!($fromSTDIN) and @ARGV > 1)));
+my $append_file_name = ($append and (!($fromSTDIN) and @ARGV > 0));
 
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 my $IN;
@@ -100,11 +100,12 @@ while ($IN or @ARGV) {
   if ($IN) { 
     while ($seq_count < $n and my $seq = $IN->next_seq()) {
 	if ($append_file_name) {
-	  $seq->desc(join " ", $seq->desc(), (fileparse($file))[0]);
+	  my $annotation = join "","file:", (fileparse($file))[0];
+	  $seq->desc(join $join, $seq->desc(), $annotation); 
 	}
 
 	print $OUT $seq;
-      $seq_count += 1;
+	$seq_count++;
     }
     undef $IN;
     $seq_count = 0;
@@ -115,7 +116,7 @@ __END__
 
 =head1 NAME
 
-B<fashead> - print the first n sequences
+B<fashead> - print first sequence records
 
 =head1 SYNOPSIS
 
@@ -123,15 +124,15 @@ B<fashead> [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<fashead> takes sequence or alignment data as input, and outputs
-the first n sequence records for each inputed file. B<fashead> by
-default prints the first 10 sequence records.
+B<fashead> takes sequence or alignment data as input, and outputs the
+first n sequence records of each input file or, if no files are
+specified, of the standard input. B<fashead> by default prints the
+first 10 sequence records.
 
 Options specific to B<fashead>:
   B<-n>, B<--lines>=<integer>             the number of sequences to print
-  B<-v>, B<--verbose>                     append file name to sequence descriptions
-  B<-Q>, B<--quiet>, B<--silent>             do not append file name to sequence
-                                    descriptions
+  B<-a>, B<--annotate>                    annotate sequence records with source filename in descriptions
+  B<-j>, B<--join>=<string>               use <string> to join annotation in descriptions
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
@@ -157,24 +158,21 @@ reformat other formats to and from multifasta.
 =over 8
 
 =item B<-n [integer]>,
-      B<--lines [integer]>
+      B<--records=[integer]>
 
 The number of sequences to print. Must be a positive integer. Defaults to 10
 if the parameter is not specified.
 
-=item B<-v>,
-      B<--verbose>
+=item B<-a>,
+      B<--annotate>
 
-Always append file names to sequence descriptions.
-Defaults to on if multiple files are passed.
+Annotate sequence descriptions with file names if and when input is
+being processed from files.
 
-=item B<-Q>,
-      B<--quiet>,
-      B<--silent>
+=item B<-j>,
+      B<--join=[string]>
 
-Never append file names to sequence descriptions.
-Defaults to on if only one file is passed or if data is on STDIN. 
-Takes priority over verbose.
+Use [string] to append filenames in descriptions.
 
 =item B<-h>,
       B<--help>
@@ -241,16 +239,8 @@ Print the first 5 sequences with file name added to the description:
 
 =over 8
 
-cat data.fas | B<fashead> -v -n 5 > data.dna.fas
+cat data.fas | B<fashead> -a -n 5 > data.dna.fas
     
-=back
-
-Print the first 5 sequences without file name added to the description:
-    
-=over 8
-
-B<fashead> -q -n 5 data.fas data2.fas > data.dna.fas
-
 =back
 
 =head1 SEE ALSO
