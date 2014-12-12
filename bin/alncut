@@ -5,11 +5,12 @@ use Pod::Usage;
 use FAST;
 use FAST::Bio::AlignIO;
 use FAST::Bio::UnivAln;
+use Bit::Vector;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "";
+$DESC    = "Filter sites in alignments based on variation and gap-content.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -29,9 +30,12 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $index                = undef;
-my $threshold            = 1; #default value
-
+my $negate               = undef; # -v
+my $gapfree              = undef; # -g
+my $allgap               = undef; # -a
+my $parsinf              = undef; # -p
+my $frequency            = 0;     # -f
+my $verbose              = undef; # --verbose
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -44,14 +48,20 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'indices|i'                     => \$index,
-	   'threshold|t=f'               => \$threshold, #if the fraction of the letters in the column that form a
-	                                                 #(relative) majority is NOT >= $threshold the column is retained.
-	                                                 #The default $threshold is 1.
-
+           'negate|v'                    => \$negate,
+           'gapfree|g'                   => \$gapfree,
+           'allgap|a'                    => \$allgap,
+           'parsinf|p'                   => \$parsinf,
+	   'frequency|f=f'                => sub{  my (undef,$val) = @_; # keep if complement of largest component freq <= arg or if gap-freq <= arg.
+                                                  die "$NAME: --frequency or f option expects a positive integer or a floating-point argument between 0 and 1.\n"
+						    unless (($val =~ /\A[1-9]\d*\Z/ && $val >= 1) || ($val =~ /(([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+)))?/ && $val > 0 && $val < 1));
+						  $frequency = $val;
+						},   
+	   'verbose|V'                   => \$verbose,
 	  ) 
   or pod2usage(2);
-		  
+	
+	  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
 pod2usage("$NAME: Expects at least one input filename or glob. Try \"perldoc $NAME\"") if ((-t STDIN) && (@ARGV < 1));
@@ -59,6 +69,63 @@ pod2usage("$NAME: Expects no arguments when reading from STDIN. Try \"perldoc $N
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
+my $mapf;
+sub generate_map_function {
+  my $cutoff = shift;
+  if ($parsinf) {
+    $mapf = sub {
+      my @chars = @{ $_[0] };
+      my %freqs = ();
+      map $freqs{$_}++, @chars;
+      my @vals = sort {$b <=> $a} values %freqs;
+      if (@vals > 1 && $vals[1] > 1) {
+	return ($negate ? 0 : 1);
+      }
+      else {
+	return ($negate ? 1 : 0);
+      }
+    }
+  }
+  elsif ($allgap) {
+    $mapf = sub {
+      my @chars = @{ $_[0] };
+      my @gaps = grep /-/, @chars;
+      if (@gaps == @chars) {
+	return ($negate ? 0 : 1);
+      }
+      else {
+	return ($negate ? 1 : 0);
+      }
+    }
+  }
+  elsif ($gapfree) {
+    $mapf = sub {
+      my @chars = @{ $_[0] };
+      my @gaps = grep {/-/} @chars;
+      if ((@gaps/@chars) <= $cutoff) {
+	return ($negate ? 0 : 1);
+      }
+      else {
+	return ($negate ? 1 : 0);
+      }
+    }
+  }
+  else {
+    $mapf = sub {
+      my @chars = @{ $_[0] };
+      my %freqs = ();
+      map $freqs{$_}++, @chars;
+      my @vals = sort {$b <=> $a} values %freqs;
+      if ((1 - ($vals[0]/@chars)) <= $cutoff) {
+	return ($negate ? 0 : 1);
+      }
+      else {
+	return ($negate ? 1 : 0);
+      }
+    }
+  }
+  return $mapf;
+}
 
 my $IN;
 unless (@ARGV) {   
@@ -86,19 +153,47 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $saln = $IN->next_aln){
-     my @seqs = $saln->each_seq();
-     my $aln  = FAST::Bio::UnivAln->new('-seqs' => \@seqs);
-
-     if ($index) {
-       my $inds = $aln->var_inds($threshold);
-       print STDERR join ' ',@{$inds},"\n";
+      my @seqs = $saln->each_seq();
+      my $aln  = FAST::Bio::UnivAln->new('-seqs' => \@seqs);
+      my $nseqs = scalar (@seqs);
+      my $cutoff;
+      if ($frequency >= 1) {
+	$cutoff = $frequency / $nseqs;
       }
-     my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->var_sites($threshold)), -row_ids=>$aln->row_ids);
-     #$subaln->ffmt($opt_f); 
-     my $layout = $subaln->layout();
-     ## FIX FASTA PRINT BUG (IDs SHOULD GO RIGHT AFTER '>') 
-     $layout =~ s/^>\s+/>/gm;
-     print "$layout";
+      else {
+	$cutoff = $frequency;
+      }
+
+      my $mapf = generate_map_function($cutoff);
+     
+      if ($verbose) {
+	my $inds = [$aln->map_c($mapf)];
+	my $bv = Bit::Vector->new_Bin(scalar(@$inds),join "",@$inds);
+	my $type;
+	if ($parsinf) {
+	  $type = "parsimoniously informative";
+	}
+	elsif ($allgap) {
+	  $type = "all-gap";
+	}
+	elsif ($gapfree) {
+	  $type = "gap-free";
+	}
+	else {
+	  $type = "invariant";
+	}
+	$type = "non-" . $type      if ($negate);
+	printf STDERR "# $NAME matched %d %s sites.\n", (scalar (grep {$_ == 1} @$inds)), $type;
+	printf STDERR "# A relative frequency cutoff of %6.4f gaps or variants was allowed.\n", $cutoff if ($frequency > 0);
+	printf STDERR "# Matching indices (zero-based):\n%s\n", $bv->to_Enum();
+      }
+   
+      my $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->seqs([],$mapf)), -row_ids=>$aln->row_ids, -row_descs=>$aln->row_descs());
+      #$subaln->ffmt($opt_f); 
+      my $layout = $subaln->layout();
+      ## FIX FASTA PRINT BUG (IDs SHOULD GO RIGHT AFTER '>') 
+      $layout =~ s/^>\s+/>/gm;
+      print "$layout";
     }
     undef $IN;
   }
@@ -110,21 +205,46 @@ __END__
 
 =head1 NAME
 
-alnsite - Extracts only variable sites from an alignment
+alncut - filter sites in alignments based on variation and gap-content
 
 =head1 SYNOPSIS
 
-B<alnsite> [options] [MULTIFASTA-FILE...]
+B<alncut> [options] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-B<alnsite> takes multifasta format sequence or alignment data as input,
+B<alncut> takes multifasta format alignment data as input and returns
+that data filtered for sites with various properties. By default, only
+invariant sites (sites with no variation) are returned. When the B<-f>
+option is used, sites will be returned that are invariant up to a
+specified cut-off. More precisely, a site will be returned if the
+complement of the largest frequency component of that site is less
+than or equal to the cut-off.
+
+B<alncut> may also be used to degap alignments. Gap-free sites may be
+selected with the B<-g> option. When combined with the B<-f> option,
+sites will be returned that are gap-free up to a cut-off, i.e. in
+which the gap-frequency is less than or equal to the cut-off.
+
+With the B<---allgap> or B<-a> option, B<alncut> returns sites that
+contain only gaps. The B<-f> option is ignored. In all of its uses,
+the B<-v> option will cause B<alnsite> to output the set-complement of
+sites it has selected. Therefore, to print all sites that are not all
+gap, combine the B<-a> and B<-v> options.
+
+Parsimoniously informative sites are variable sites in which at least
+two differnt site-characters or states are each represented in at
+least two different sequences. B<alnsite> wil return parsimoniously
+informative sites with the B<-parsinf> or B<-p> option.
 
 Options specific to B<alnsite>:
-
-  B<-i>, B<--indices>                 print alignment positions to stderr that remain after removal of invariable columns based on threshold value        
-  B<-t>, B<--threshold>=<float>       if the fraction of the letters in the column that form a (relative) majority is NOT >= <threshold> the column is retained. The default is 1.
->>>>>>> f341ff1e93c305c49550d58d451e5450d6103dd0:bin/alnsite
+  B<-g>, B<--gapfree>                     print gap-free sites              
+  B<-a>, B<--allgap>                      print all-gap sites
+  B<-p>, B<--parsinf>                     print parsimoniously informative sites
+  B<-v>, B<--negate>                      print set-complement of selected sites 
+  B<-f>, B<--frequency>=<int>             print sites with max <int> minor variants or gaps
+  B<-f>, B<--frequency>=<float>           print sites with max <float> minor variants or gaps
+  B<-V>, B<--verbose>                     report number and indices of selected sites to STDERR
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
@@ -134,7 +254,7 @@ Options general to FAST:
   B<-L>, B<--logname>=<string>            use logfile name <string>
   B<-C>, B<--comment>=<string>            save comment <string> to log
   B<--format>=<format>                 use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]>      specify input sequence type
+  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
 
 =head1 INPUT AND OUTPUT
 
@@ -148,17 +268,44 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-i>
-      B<--indices>
+=item B<-g>
+      B<--gapfree>
 
-Print alignment positions to stderr that remain after removal of invariable
- columns based on threshold value.
+Print only sites that contain no gaps
 
-=item B<-t>
-      B<--threshold>
+=item B<-a>
+      B<--allgap>
 
-If the fraction of the letters in the column that form a (relative) majority 
-is NOT >= <threshold> the column is retained. The default is 1.
+Print only sites that contain exclusively gaps
+
+=item B<-p>
+      B<--parsinf>
+
+Print only sites that are parsimoniously informative
+
+=item B<-v>
+      B<--negate>
+
+Print set-complement of sites otherwise selected; as a sole option,
+will print only variable sites
+
+=item B<-f [int]>,
+      B<--frequency=[int]>
+
+Print sites that contain gaps or minor variants up to a maximum of
+[int] sequences
+
+
+=item B<-f [float]>,
+      B<--frequency=[float]>
+
+Print sites that contain gaps or minor variants up to a maximum of
+[float] relative frequency
+
+
+=item B<--verbose>
+
+Print numbers and indices of sites selected by the criteria to STDERR
 
 =item B<-h>,
       B<--help>
@@ -208,16 +355,29 @@ processing data).
 
 =head1 EXAMPLES
 
-Remove alignment columns that contain 75% or more of a single character 
-from alignment file data.fas and save column indices remaining after 
-removal to file indices.txt: 
+Print sites that are not all gap:
 
 =over 8
 
-B<alnsite> -it 0.75 data.fas 2> indices.txt
+B<alncut> -av data.fas 
 
 =back
 
+Print sites with gaps in maximum 2 sequences:
+
+=over 8
+
+B<alncut> -gf 2 data.fas 
+
+=back
+
+Print sites in which the frequency of minor variants is less than 15 percent:
+
+=over 8
+
+B<alncut> -f 0.15 data.fas 
+
+=back
 
 
 =head1 SEE ALSO

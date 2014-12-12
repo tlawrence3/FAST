@@ -1,6 +1,5 @@
-bin/alndegap
+bin/alncut
 bin/alnpi
-bin/alnsite
 bin/fascodon
 bin/fascomp
 bin/fasconvert
@@ -19,7 +18,7 @@ bin/fastr
 bin/fasuniq
 bin/faswc
 bin/fasxl
-bin/gbf2fas
+bin/gbfcut
 bin/gbfalncut
 bin/gbfgrep
 Changes
