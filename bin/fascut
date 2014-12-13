@@ -20,9 +20,10 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_split_description_regex  = $FAST::DEF_SPLIT_REGEX; # ' '
-my $def_split_other_regex        = ''; 
-my $def_field_join               = $FAST::DEF_JOIN_STRING; # " "
+my $def_split_field_regex  = $FAST::DEF_SPLIT_REGEX; # ' '
+my $def_split_other_regex  = ''; 
+my $def_field_join         = $FAST::DEF_JOIN_STRING; # " "
+my $def_other_join         = ''; 
 
 ## OPTION VARIABLES
 my $man                  = undef;               # --man
@@ -37,8 +38,7 @@ my $identifier           = undef;               # -i
 my $description          = undef;               # -d
 my $field                = undef;               # -f
 my $split_on_regex       = undef;               # -S 
-my $join                 = $def_field_join;     # -j
-#my $spawn                = undef;               # -w
+my $join                 = undef;               # -j
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -114,23 +114,34 @@ foreach my $range (@RANGES) {
 }
 
 my ($selector,$type);
-if ($description || $field) {
+if ($field) {
+  $selector = "desc";
+  $type = "description field";
+  unless (defined $split_on_regex) {
+    $split_on_regex = $def_split_field_regex;
+  }
+}
+elsif ($description) {
   $selector = "desc";
   $type = "description";
-  $type .= " field" if ($field);
-  $split_on_regex ||= $def_split_description_regex;
+  unless (defined $split_on_regex) {
+    $split_on_regex = $def_split_other_regex;
+  }
 }
 elsif ($identifier) {
   $selector = "id";
   $type = "identifier";
-  $split_on_regex ||= $def_split_other_regex;
+  unless (defined $split_on_regex) {
+    $split_on_regex = $def_split_other_regex;
+  }
 }
 else {
   $selector = "seq";
   $type = "sequence";
-  $split_on_regex ||= $def_split_other_regex;
+  unless (defined $split_on_regex) {
+    $split_on_regex = $def_split_other_regex;
+  }
 }
-
 my $split_re = qr/$split_on_regex/;
 
 
@@ -179,7 +190,7 @@ while ($IN or @ARGV) {
 	$length = scalar @olddata;
       }
       else {
-	@olddata = split $split_re,$olddata;
+	@olddata = split $split_re, $olddata;
 	$length = length $olddata;
 	if ($selector eq 'seq' and $format eq 'fastq'){
 	  @oldqual = split ' ', $seq->qual_text(); #store qual data for cutting
@@ -248,13 +259,22 @@ while ($IN or @ARGV) {
 	  }
 	}
       }
-      ## if -sequence and no @newdata, don't print
-      next if (!(scalar @newdata));
-      if ($field && $join eq '\t'){
+      ## if  no @olddata, don't print
+      if ( @newdata == 0 || @newdata == 1 && not defined $newdata[0]) {
+	warn "$NAME: empty data slice on sequence $seqid. Skipping.\n";
+	next;
+      }
+
+      if ($field && defined $join && $join eq '\t'){
 	$join = "\t";
       }
-      elsif (!$field) {
-	$join = "";
+      elsif (not defined $join) {
+	if ($field) {
+	  $join = $def_field_join;
+	}
+	else {
+	  $join = $def_other_join;
+	}
       }
       $newdata = join $join,@newdata;
       
@@ -293,18 +313,18 @@ B<fascut> - select biosequence record data by character or field ranges
 
 =head1 SYNOPSIS
 
-B<fascut> [OPTION]... [RANGES] [MULTIFASTA-FILE]...
+B<fascut> [OPTION]... [INDEX-SET] [MULTIFASTA-FILE]...
 
 =head1 RANGE SPECIFICATION
 
-        RANGES  : { RANGE | RANGE,RANGES }
-         RANGE  : { INDEX | FROM>SEP<TO | FROM>SEP<TO:BY } 
-         >SEP<  : {    ..     |       :       |       -      }
+    RANGE-LIST  : {  RANGE  |  RANGE,RANGE-LIST }
+         RANGE  : {  INDEX  |   FROM>SEP<TO     | FROM>SEP<TO:BY } 
+         >SEP<  : {   ..    |        :          |       -        }
          INDEX  : nonzero integer
        FROM,TO  : nonzero integer or the empty string 
-                   -- positive integers count from the first character or field         
-                   -- negative integers count back from the last character or field
-            BY  : a nonzero integer
+                   -- positive integers count from data first character or field         
+                   -- negative integers count back from data last character or field
+            BY  : nonzero integer
                    -- positive integers step forward       
                    -- negative integers step backward
 
@@ -313,19 +333,19 @@ B<fascut> [OPTION]... [RANGES] [MULTIFASTA-FILE]...
 B<fascut> takes biological sequence records on input, and outputs the
 transformation of each record under index-based "slicing" (selection
 and reordering) of its sequence, identifier or description data. By
-default, B<fascut> slices sequence data. Indices are specified by the
-first argument as a comma-separated list of coordinates and coordinate
-ranges, in which arbitrary reordering and repetition of indices is
-allowed. For each seqiB<fascut> outputs the concatenation of slices
-for each sequence record on input.
+default, B<fascut> slices sequence data by character. Indices are
+specified by the first argument as a comma-separated list of ranges
+and indices. Arbitrary repetition of indices is allowed within the
+list range argument. B<fascut> outputs the concatenation of slices for
+each sequence record on input.
 
 The one mandatory argument to B<fascut> is a sequence of indices or
-index ranges separated by commas (,). The ranges may be specified in
-Perl-style (or Genbank coordinate range-style) as in "from..to", in
+ranges separated by commas (,). The ranges may be specified in
+Perl-style (or Genbank coordinate style) as in "from..to", in
 R/Octave-style as in "from:to" or UNIX B<cut>-style as in
 "from-to". If the index bounds of a simple range are missing, "from"
 defaults to "1" and "to" defaults to "-1". An optional ":by" suffix
-specifies an integer step-increment. 
+specifies an integer step-increment.
 
 B<One-based indexing> applies when B<fascut> cuts sequences (or
 optionally identifiers or descriptions) by character (like B<cut
@@ -335,22 +355,23 @@ indexing in B<fascut> is also one-based.
 
 Negative indices count backwards from last characters and fields. If
 the first range begins with a negative index, you will need to
-terminate option processing with "--" before the range-string argument.  After converting negative
-indices to positive indices for any given sequence on input, B<fascut>
-expects every "from" index to be less than its respective "to" index
-for every range unless a negative "by" parameter is given, in which
-case "from" is expected to be greater than "to". If any of this is
-violated for a given range and sequence, then that range will be
-skipped for that sequence. If after conversions, "from" is negative,
-it defaults to "1". If "to" is greather than a sequence length, it
-defaults to "-1".  However, if strict-mode (-s) is enabled, then both
-types of bad range specifications will abort processing of a sequence
-record with no output for that sequence except a warning.
+terminate option processing with "--" before the range-string
+argument.  After converting negative indices to positive indices for
+any given sequence on input, B<fascut> expects every "from" index to
+be less than its respective "to" index for every range unless a
+negative "by" parameter is given, in which case "from" is expected to
+be greater than "to". If any of this is violated for a given range and
+sequence, then that range will be skipped for that sequence. If after
+conversions, "from" is negative, it defaults to "1". If "to" is
+greater than a sequence length, it defaults to "-1".  However, if
+strict-mode (-s) is enabled, then both types of bad range
+specifications will abort processing of a sequence record with no
+output for that sequence except a warning.
 
 Options specific to B<fascut>:
-  -B<i>, B<--identifier>                  cuts identifiers by character
-  -B<d>, B<--description>                 cuts descriptions by character
-  -B<f>, B<--field>                       cuts descriptions by field
+  -B<i>, B<--identifier>                  cuts identifiers (by character)
+  -B<d>, B<--description>                 cuts descriptions (by character)
+  -B<f>, B<--field>                       cuts descriptions (by field)
   -B<S>, B<--split-on-regex>=<regex>      split description to fields using <regex>
   -B<j>, B<--join>=<string>               join selected field ranges using <string>
   -B<s>, B<--strict>                      strict range-checking; skips sequences with 
@@ -382,25 +403,27 @@ reformat other formats to and from multifasta.
 =item B<-i>
       B<--identifier>
 
-Cut identifiers by character.
+Cut identifiers by character. Use the B<-S> option to alter how the
+identifier data is split.
 
 =item B<-d>
       B<--description>
 
-Cut descriptions by character.
+Cut descriptions by character. Use the B<-f> option to split
+descriptions by strings of whitespace instead. Use the B<-S> option to
+split the description with an arbitrary regex.
 
 =item B<-f>
       B<--field>
 
-Cuts descriptions by field.
+Cut descriptions by field. By default, the description is split on
+strings of white-space.
 
 =item B<-S regex >
       B<--split-on-regex regex>
 
-Use B<regex> to split description into fields (with B<-f>). Instead of
-the perl default (which splits on one or more whitespace
-characters). Special characters must be quoted to protect them from
-the shell.
+Use B<regex> to split data. Special characters in the regex option
+argument must be quoted to protect them from the shell.
 
 
 =item B<-j string>
@@ -412,9 +435,10 @@ description. Default is a single space character " ".
 =item B<-s>
       B<--strict>
 
-This option will implement strict range checking on the coordinates. When
-used this option will skip any sequences that the coordinates are out of
-bounds on. (default is to give longest subsequence for that range)
+This option will implement strict range checking on the
+coordinates. When used this option will skip any sequences for which
+the coordinates are out of range (the default is to output the longest
+valid subsequence contained within the range).
 
 =item B<-h>,
       B<--help>

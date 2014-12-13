@@ -82,7 +82,7 @@ if ($tag_match) {
     }
     push @tag,$tag; 
     push @op,($op eq "=" ? 1 : 0);
-    push @tag_regex,($case ? qr/$tag_regex/i : qr/$tag_regex/);
+    push @tag_regex,($insensitive ? qr/$tag_regex/i : qr/$tag_regex/);
   }
 }
 

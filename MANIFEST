@@ -20,7 +20,6 @@ bin/faswc
 bin/fasxl
 bin/gbfcut
 bin/gbfalncut
-bin/gbfgrep
 Changes
 doc/FAST_Cookbook.html
 doc/FAST_Cookbook.org

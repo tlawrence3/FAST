@@ -115,10 +115,10 @@ run_output_matches('fascut', ['-d', '7:27', $test_file],
 run_output_matches('fascut', ['-f', '-d', '1', $test_file],
 		   \@field_test, [], 'Checking field option');
 
-run_output_matches('fascut', ['-i', '-fS\|', '2', $test_file],
+run_output_matches('fascut', ['-i', '-S\|', '2', $test_file],
 		   \@split_test, [], 'Checking split option');
 
-run_output_matches('fascut', ['-i', '-fS\|', '-j|', '2,4', $test_file],
+run_output_matches('fascut', ['-i', '-S\|', '-j|', '2,4', $test_file],
 		   \@join_test, [], 'Checking join option');
 
 run_output_matches('fascut', ['--strict', '1:1000', $test_file], [],
