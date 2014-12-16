@@ -393,7 +393,13 @@ B<alncut> -v data.fas
 
 =head1 SEE ALSO
 
+To degap each sequence on input individually, see
+
 =over 8
+
+=item C<fastr --degap>
+
+=back
 
 =item C<man perlre>
 

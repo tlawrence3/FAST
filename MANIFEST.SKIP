@@ -18,6 +18,7 @@
 ^\.#
 /\.#
 DS_Store
+^old/
 
 #FAST
 FAST\.\log\.txt

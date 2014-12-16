@@ -45,7 +45,7 @@ GetOptions('help|h'         		   => \$help,
 						  $moltype = $val;
 						},
 	   'nobrand|n'                   => \$nobrand,
-     'fastq|q'                     => sub {$format = 'fastq';},
+	   'fastq|q'                     => sub {$format = 'fastq';},
 	  )
   or pod2usage(2);
 		  
@@ -103,17 +103,16 @@ __END__
 
 =head1 NAME
 
-B<fasrc> - reverse complement nucleotide sequences and alignments.
+B<fasrc> - reverse complement nucleotide sequences and alignments
 
 =head1 SYNOPSIS
 
-B<fasrc> [options] [MULTIFASTA-FILE...]
+B<fasrc> [OPTIONS] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-B<fasrc> takes multifasta format DNA or RNA codon sequences or alignments
-as input, and generates reverse complements of those sequences as
-output.
+B<fasrc> takes multifasta format nucleotide sequences or alignments as
+input, and generates reverse complements of those sequences as output.
 
 Options specific to fasrc:
   B<-n>, B<--nobrand>                     don't "brand" sequence ids with "-rc" extension 

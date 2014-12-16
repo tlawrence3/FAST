@@ -265,7 +265,7 @@ while ($IN or @ARGV) {
 	next;
       }
 
-      if ($field && defined $join && $join eq '\t'){
+      if ($field && defined $join && $join && $join eq '\t'){
 	$join = "\t";
       }
       elsif (not defined $join) {

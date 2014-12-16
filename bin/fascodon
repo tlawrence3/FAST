@@ -21,6 +21,7 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_join_string = $FAST::DEF_JOIN_STRING;
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -31,14 +32,15 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $base_order           = undef; #-b
-my $individual           = undef; #-v
 my $suppress             = undef; #-s
 my $amino_order          = undef; #-o
 my $orderby_amino        = undef;
-my $table                = 1; #-t 
-my $append               = undef;
+my $code                 = undef; #-c
+my $table                = undef;     #-t 
+my $join                 = $def_join_string; # -j
 my $fastq                = undef;
-
+my $width                = undef;
+my $precision            = 3;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -52,25 +54,29 @@ GetOptions('help|h'         		 => \$help,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
            'base-order|b=s'              => \$base_order,
-           'individual|v'                => \$individual,
            'suppress|s'                  => \$suppress,
            'amino-order|o=s'             => \$amino_order,
            'order-by-amino|g'            => \$orderby_amino,
-           'table|t=i'                   => \$table,
-           'annotate|a'                  => \$append,
+           'code|c=i'                    => \$code,
+           'table|t'                     => \$table,
+	   'join|j=s'                    => \$join,
+	   'width|w=i'                   => \$width,
+	   'precision|p=i'               => \$precision,
            'fastq|q'                     => sub{$format = 'fastq';},
 
 ) 
 or pod2usage(2);
 		  
-pod2usage(1) if $help;
+		  
+pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires at least one argument (a fasta-file). Try $NAME -h for help.") if ((-t STDIN) && (@ARGV == 0));
-pod2usage("$0: Expects no arguments when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV != 0);
+my $fromSTDIN = ((-t STDIN) ? false : true);
+pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input from STDIN.\n") if (!($fromSTDIN) && (@ARGV == 0));
+pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-my $code = FAST::Bio::Tools::CodonTable->new(-id => $table);
+my $geneticcode = FAST::Bio::Tools::CodonTable->new(-id => $code);
 my @append_seqs;
 
 my @bases;
@@ -84,24 +90,31 @@ else {
 
 my %synonyms = ();
 foreach my $aa (split //, "ARNDCQEGHILKMFPSTWYV*") {
-    push @{ $synonyms{$aa}},  map {uc $_} $code->revtranslate($aa);
+  push @{ $synonyms{$aa}},  map {uc $_} $geneticcode->revtranslate($aa);
 }
 
-my %count = ();
-my %startcount = (); ## start codons
+my $count = {};
+my $startcount = {}; ## start codons
+my $totalcount = {};
+my $totalstartcount = {}; ## start codons
+
 my $middlecodons = my $startcodons = my $stopcodons = my $ambiguous_middle = my $ambiguous_start = my $ambiguous_stop = my $bad_length = my $numseqs = my $stop_at_middle = my $stop_at_start = my $nonstop = 0;
 
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
 my $IN;
 
+unless ($width) {
+  $width = $precision + 2;
+}
+
 unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
-    }
+  if ($moltype) {
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
+  }
+  else {
+    $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
+  }
 }
 
 while ($IN or @ARGV) {
@@ -120,202 +133,179 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      if ($individual) {
-        %count = ();
-        %startcount = (); ## start codons
-      }
-
+      $count = {};
+      $startcount = {}; ## start codons
+      $numseqs++;
+      
       my $id=$seq->id();
       my $length = $seq->length(); ## is this slow?
       if ($length % 3) {
         warn "count_codons error_4: $id has length not of modulo 3, skipping this sequence.\n" unless ($suppress);
         $bad_length++;
       } 
-      $numseqs++;
-    
+            
       my $seqseq = uc $seq->seq();
       ##    $seqseq =~ y/T/U/;
       my @bases = split//,$seqseq; 
-
+      
       ## count start codons separately
       my $startcodon = join "",splice(@bases, 0, 3);
-      my $aa = $code->translate($startcodon); 
+      my $aa = $geneticcode->translate($startcodon); 
       if ($aa eq "X") { ## ambiguous amino acid from ambiguous base, bioperl can resolve IUPAC codes
-       $ambiguous_start++;
+	$ambiguous_start++;
       }
       elsif ($aa eq "*") {
-       warn "count_codons error_5: $id starts in a stop codon.\n" unless ($suppress);
-       $stop_at_start++;
+	warn "count_codons error_5: $id starts in a stop codon.\n" unless ($suppress);
+	$stop_at_start++;
       }
       else { 
-       $startcount{$startcodon}++;
-       $startcodons++;
+	$$startcount{$startcodon}++;
+	$$totalstartcount{$startcodon}++;
+	$startcodons++;
       }
-
-
-    
+      
+      
+      
       ## count stop codons together with others, but control them
       my $stopcodon = join "",splice(@bases, -3);
-      $aa = $code->translate($stopcodon); 
+      $aa = $geneticcode->translate($stopcodon); 
       if ($aa eq "X") {
-       $ambiguous_stop++ 
+	$ambiguous_stop++ 
       }
       else {
-       if ($aa ne "*") {
-         warn "count_codons error_1: $id does not end in a stop codon, it ends in $stopcodon.\n" unless ($suppress);
-         $nonstop++;
-       }
-       else {
-        $stopcodons++
-       }
-       $middlecodons++;
-       $count{$stopcodon}++; 
+	if ($aa ne "*") {
+	  warn "count_codons error_1: $id does not end in a stop codon, it ends in $stopcodon.\n" unless ($suppress);
+	  $nonstop++;
+	}
+	else {
+	  $stopcodons++
+	}
+	$middlecodons++;
+	$$count{$stopcodon}++; 
+	$$totalcount{$stopcodon}++; 
       }
-
-    
-     while (@bases) {
-     my $codon = join "",splice(@bases, 0, 3);
-     $aa = $code->translate($codon);
-     if ($aa eq "X") {
-       $ambiguous_middle++ 
+      
+      
+      while (@bases) {
+	my $codon = join "",splice(@bases, 0, 3);
+	$aa = $geneticcode->translate($codon);
+	if ($aa eq "X") {
+	  $ambiguous_middle++ 
+	}
+	elsif ($aa eq "*") {
+	  warn "count_codons error_2: $id has a premature stop codon.\n" unless ($suppress); 
+	  $stop_at_middle++;
+	  $$count{$codon}++;
+	  $$totalcount{$codon}++; 
+	  $middlecodons++;
+	}
+	else { ## ambiguous amino acid from ambiguous base, bioperl can resolve IUPAC codes
+	  $$count{$codon}++;
+	  $$totalcount{$codon}++; 
+	  $middlecodons++;
+	}
+	
       }
-     elsif ($aa eq "*") {
-       warn "count_codons error_2: $id has a premature stop codon.\n" unless ($suppress); 
-       $stop_at_middle++;
-       $count{$codon}++;
-       $middlecodons++;
+      if ($table){
+	my $id = $seq->id . $seq->desc();
+	&print_output($id,$startcount,$count);
       }
-      else { ## ambiguous amino acid from ambiguous base, bioperl can resolve IUPAC codes
-       $count{$codon}++;
-       $middlecodons++;
+      else{
+	my $old_desc = $seq->desc();
+	my $new_desc = &print_output($id,$startcount,$count);
+	$new_desc = join $join, $old_desc,$new_desc;
+	$seq->desc($new_desc);
+	print $OUT $seq;
       }
-
-      }
-    if ($individual) {
-     if (!$append){
-     my $id = $seq->id . $seq->desc();
-     &print_output($id);
-     }
-     else{
-      my $old_desc = $seq->desc();
-      my $new_desc = &print_output;
-      $new_desc = "$old_desc $new_desc";
-      $seq->desc($new_desc);
-      print $OUT $seq;
-     }
-     }
-    
-    if ($append && !$individual){ #keep seq objects to append to later
-      push (@append_seqs, $seq);
     }
-  }
     undef $IN;
   }
 }
-
-unless ($individual) {
-    if (!$append){&print_output;}
-    else{
-      my $desc_add = &print_output;
-      my $old;
-      my $desc_print;
-      foreach my $print_seq (@append_seqs){
-        $old = $print_seq->desc();
-        $desc_print = "$old $desc_add";
-        $print_seq->desc($desc_print);
-        print $OUT $print_seq;
-      }
-    }
+if ($table) {
+  &print_output("ALL_DATA",$totalstartcount,$totalcount);
+  &print_end_totals; 
 }
-if (!$append){&print_end_totals;}
-
 
 sub print_output {
-    # calculate RCSU for middle codons
-    my $append_count = 0;
-    my $seq = $_[0];
-    my $sum;
-    my %rcsu = ();
-    my %startrcsu = ();
-    foreach my $aa (split //, "ARNDCQEGHILKMFPSTWYV*") {
-     my @syns = @{$synonyms{$aa}};
-     for (@syns) {
-      $count{$_} ||= 0;
-     }
-  @rcsu{@syns} = @count{@syns};
-  foreach my $syn (@syns) { 
-      $sum += $rcsu{$syn};
-  }
-  $sum ||= 1;
-  foreach my $syn (@syns) { 
-      $rcsu{$syn} /= $sum;
-  }
+  my ($seqid,$startcount,$count) = @_;
+  # calculate RCSU for middle codons
+  my $append_count = 0;
+  my $sum;
+  my %rcsu = ();
+  my %startrcsu = ();
+  foreach my $aa (split //, "ARNDCQEGHILKMFPSTWYV*") {
+    my @syns = @{$synonyms{$aa}};
+    for (@syns) {
+      $$count{$_} ||= 0;
     }
-    
-    # calculate RCSU for start codons
-    # only consider start codons actually seen
-    %startrcsu  = %startcount;
-    $sum = 0;
-    foreach my $codon (keys %startrcsu) { 
-  $sum += $startrcsu{$codon};
+    @rcsu{@syns} = @$count{@syns};
+    foreach my $syn (@syns) { 
+      $sum += $rcsu{$syn};
     }
     $sum ||= 1;
-    foreach my $codon (keys %startrcsu) { 
-  $startrcsu{$codon} /= $sum;
+    foreach my $syn (@syns) { 
+      $rcsu{$syn} /= $sum;
     }
-    map {$sum+=$_} values %startrcsu;
-    map {$_/$sum}  values %startrcsu;
-    
-    my $append_desc = "";
-    
-    if ($orderby_amino) { ## group output by amino acid
-  if ($individual && !$append){print "$seq\n";}
-  foreach my $aa (split //, ($amino_order || "ARNDCQEGHILKMFPSTWYV*")) {
-      foreach my $codon (@{$synonyms{$aa}}) {
-    $rcsu{$codon} ||= 0;
-    $startrcsu{$codon} ||= 0;
-    $count{$codon} ||= 0;
-    $startcount{$codon} ||= 0;
-    if (!$append){
-    printf("%s %s %5.3f %5.3f %10u %10u\n",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});
-    }
-    else{ #append
-      if ($append_count == 0){$append_desc .= sprintf("fascodon: %s %s %5.3f %5.3f %u %u|",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});}
-      else {$append_desc .= sprintf("%s %s %5.3f %5.3f %u %u|",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});}    
-      $append_count++;
-    }
-      }
-    }
-    if ($append){return $append_desc;}
-    }
-    else {
-  if ($individual && !$append){print "$seq\n";}
-  foreach my $first (@bases) { 
-      foreach my $second (@bases) { 
-    foreach my $third (@bases) { 
-        my $codon = join "",$first,$second,$third;
-        $rcsu{$codon} ||= 0;
-        $startrcsu{$codon} ||= 0;
-        $count{$codon} ||= 0;
-        $startcount{$codon} ||= 0;
-        if (!$append){
-        printf("%s %s %5.3f %5.3f %10u %10u\n",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});
-        }
-        else{ #append
-      if ($append_count == 0){$append_desc .= sprintf("fascodon: %s %s %5.3f %5.3f %u %u|",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});}
-      else {$append_desc .= sprintf("%s %s %5.3f %5.3f %u %u|",$code->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$count{$codon},$startcount{$codon});}    
-      $append_count++;
-    }
-    }
-      }
   }
-    if ($append){return $append_desc;}
-    
-
+  
+  # calculate RCSU for start codons
+  # only consider start codons actually seen
+  %startrcsu  = %$startcount;
+  $sum = 0;
+  foreach my $codon (keys %startrcsu) { 
+    $sum += $startrcsu{$codon};
+  }
+  $sum ||= 1;
+  foreach my $codon (keys %startrcsu) { 
+    $startrcsu{$codon} /= $sum;
+  }
+  map {$sum+=$_} values %startrcsu;
+  map {$_/$sum}  values %startrcsu;
+  
+  my @annotations = ();
+  if ($orderby_amino) { ## group output by amino acid
+    foreach my $aa (split //, ($amino_order || "ARNDCQEGHILKMFPSTWYV*")) {
+      foreach my $codon (@{$synonyms{$aa}}) {
+	$rcsu{$codon} ||= 0;
+	$startrcsu{$codon} ||= 0;
+	$$count{$codon} ||= 0;
+	$$startcount{$codon} ||= 0;
+	if ($table){
+	  printf("%s %s %s %5.3f %5.3f %10u %10u\n",$seqid,$geneticcode->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$$count{$codon},$$startcount{$codon});
+	}
+	else{ #append
+	  push @annotations, sprintf("freq_%s_%s:%u",$geneticcode->translate($codon),$codon,$$count{$codon});
+	  push @annotations, sprintf("RCSU_%s_%s:%${width}.${precision}f",$geneticcode->translate($codon),$codon,$rcsu{$codon});
+	}
+      }
+    }
+  }
+  else {
+    foreach my $first (@bases) { 
+      foreach my $second (@bases) { 
+	foreach my $third (@bases) { 
+	  my $codon = join "",$first,$second,$third;
+	  $rcsu{$codon} ||= 0;
+	  $startrcsu{$codon} ||= 0;
+	  $$count{$codon} ||= 0;
+	  $$startcount{$codon} ||= 0;
+	  if ($table){
+	    printf("%s %s %s %5.3f %5.3f %10u %10u\n",$seqid,$geneticcode->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$$count{$codon},$$startcount{$codon});
+	  }
+	  else{ #annotate
+	    push @annotations, sprintf("freq_%s_%s:%u",$geneticcode->translate($codon),$codon,$$count{$codon});
+	    push @annotations, sprintf("RCSU_%s_%s:%${width}.${precision}f",$geneticcode->translate($codon),$codon,$rcsu{$codon});
+	  }
+	}
+      }
+    }
+  }
+  unless ($table) {
+    return join $join,@annotations;
+  }
 }
-}
-
-sub print_end_totals {    
+  
+  sub print_end_totals {    
     printf "::--------------------------------------------------\n";
     printf ":1                %10u %10u            | unambiguous codons at tail (middle+end) and at start\n",$middlecodons,$startcodons;
     printf ":2                %10u %10u %10u | ambiguous   codons in middle, at start, and at end\n",$ambiguous_middle,$ambiguous_start,$ambiguous_stop;
@@ -325,10 +315,10 @@ sub print_end_totals {
     printf ":4                                      %10u | sense       codons at end (included in line 1)\n",$nonstop;
     printf "::--------------------------------------------------\n";
     printf ":5 %-10u of %-10lu sequences had a length non-modulo 3 and were skipped.\n",$bad_length,$numseqs;
-}
-
-
-__END__
+  }
+    
+    
+    __END__
 
 =head1 NAME
 

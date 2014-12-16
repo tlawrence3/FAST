@@ -87,7 +87,7 @@ GetOptions('help|h'         		 => \$help,
 						    unless $val >= 0 and $val <= 2;
 						  $frame = $val;
 						},
-	   'table|t=i'                    => sub{  my (undef,$val) = @_; 
+	   'code|c|table|t=i'            => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --table or -t option takes an integer argument, an NCBI genetic code table index in the set {1..6,9..16,21..23}." 
 						    unless $val >= 1 and $val <= 6 or $val >= 9 and $val <= 16 or $val >= 21 and $val <= 23;
 						  $table = $val;
@@ -96,7 +96,7 @@ GetOptions('help|h'         		 => \$help,
 	   'all-six|6'                   => \$all_six,	   
 	   'gapped|g'                    => \$gapped,
 	   'keep|k'                      => \$keep,
-	   'cds|c'                       => \$xl_as_cds,
+	   'CDS'                         => \$xl_as_cds,
 	   'codon2aa|o'                  => \$codon2aa,
            'fastq|q'                     => sub { $format = 'fastq'; },
 	  )
@@ -274,14 +274,14 @@ Options specific to B<fasxl>:
   B<-o>, B<--codon2aa>          turn codon alignment into a protein alignment 
                            	(best used for codon-based alignments, where gaps are mod 3 
                             	length and seqs are to be translated in frame 0)
-  B<-c>, B<--cds>               treat as CDS (for bacterial code, for example, treat init codons as M)(deprecated) 
+  B<--CDS>                   treat as CDS (for bacterial code, for example, treat init codons as M)(deprecated) 
   B<-f>, B<--frame>=<int>       frame for translation [0 (default),1, or 2].
-  B<-t>, B<--table>=<int>       NCBI genetic code tableID for translating sequences [1]
+  B<-c>, B<-t>, B<--code>=<int> NCBI genetic code tableID for translating sequences [1]
   B<-3>                      translate each sequence in all three forward frames
   B<-6>                      translate each sequence in all six frames
   B<-s>, B<--stop>=<char>       character representing stop codons ["*"]
   B<-u>, B<--unknown>=<char>    character representing unknown amino acids ["X"]
-  B<--tables>, B<--codes>       print NCBI table ids of genetic codes for -t option
+  B<--codes>, B<--tables>       print NCBI table ids of genetic codes for -t option
 
 Options general to FAST:
   B<-h>, B<--help>                  	    print a brief help message

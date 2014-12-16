@@ -258,10 +258,10 @@ sub print {
      my $olddesc = $obj->desc();
      my $compstring;
      if ($normalize) {
-       $compstring = join $join,map { (sprintf "comp_%s:%.${precision}f",$_,$$freq{$_}) } @$keys;
+       $compstring = join $join,map { (sprintf "comp_%s:%.${precision}f",$_,(exists $$freq{$_} ? $$freq{$_} : 0)) } @$keys;
      }
      else{
-       $compstring = join $join,map { (sprintf "comp_%s:%d",$_,$$freq{$_})   } @$keys;
+       $compstring = join $join,map { (sprintf "comp_%s:%d",$_,(exists $$freq{$_} ? $$freq{$_} : 0))   } @$keys;
      }
      $obj->desc(join $join,$olddesc,$compstring);
      print $OUT $obj;
@@ -283,11 +283,12 @@ B<fascomp> takes multifasta format sequence or alignment data as
 input, and counts the absolute or relative frequencies of monomers in
 each sequence individually and for all data on input. By default,
 absolute frequencies are computed and appended to the
-description. Optionally, B<fascomp> will output a frequency table to
-STDOUT as tagged values. With this kind of output, if the character
-alphabet of the job is determined by either setting B<--moltype> or
-from the type of the first sequence on input, and either B<--strict>,
-B<--iupac> or B<--alphabet> is set, header labels will be output.
+description. Optionally, B<fascomp --table> will output a frequency
+table to STDOUT as tagged values, both for individual sequences and
+for all data on input. In table-mode if the character alphabet of the
+job is determined by either setting B<--moltype> or from the type of
+the first sequence on input, and either B<--strict>, B<--iupac> or
+B<--alphabet> is set, header labels will be output as well. 
 
 Options specific to B<fascomp>:
   B<-n>, B<--normalize>               compute relative frequencies
@@ -332,8 +333,8 @@ Compute relative frequencies.
 
 Output a table to STDOUT. 
 
-=item B<-j>
-      B<--join>
+=item B<-j [string]>
+      B<--join=[string]>
 
 Use <string> to join tagged values in descriptions.
 
