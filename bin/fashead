@@ -116,7 +116,7 @@ __END__
 
 =head1 NAME
 
-B<fashead> - print first sequence records
+B<fashead> - print first sequence records on input
 
 =head1 SYNOPSIS
 
@@ -130,7 +130,7 @@ specified, of the standard input. B<fashead> by default prints the
 first 10 sequence records.
 
 Options specific to B<fashead>:
-  B<-n>, B<--lines>=<integer>             the number of sequences to print
+  B<-n>, B<--records>=<integer>           the number of sequence records to print
   B<-a>, B<--annotate>                    annotate sequence records with source filename in descriptions
   B<-j>, B<--join>=<string>               use <string> to join annotation in descriptions
 
@@ -160,8 +160,8 @@ reformat other formats to and from multifasta.
 =item B<-n [integer]>,
       B<--records=[integer]>
 
-The number of sequences to print. Must be a positive integer. Defaults to 10
-if the parameter is not specified.
+The number of sequence records to print. Must be a positive
+integer. Defaults to 10.
 
 =item B<-a>,
       B<--annotate>
