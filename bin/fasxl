@@ -346,10 +346,12 @@ Treat as CDS (for bacterial code, for example, treat init codons as M).
 
 Specify the frame for translation [0,1,2]. By default frame 0 is used.
 
-=item B<-t>,
-      B<--table>=<int>
+=item B<-c [int]>,
+      B<--code=[int]>
+      B<-t [int]>,
+      B<--table=[int]>
 
-Specify an NCBI genetic code tableID for translating sequences.
+Use NCBI genetic code tableID <int> for translating sequences.
 
 =item B<--tables>,
       B<--codes>

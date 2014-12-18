@@ -244,10 +244,10 @@ Options specific to B<fastr>:
   B<-S>, B<--squash>            squash duplicate replaced characters 
   B<-n>, B<--no-replace>        squash/delete characters in searchlist 
   B<-c>, B<--complement>        complement searchlist as a character set
-  B<--strict>                   map ambiguous/invalid nongap chars
-  B<--iupac>                    map invalid nongap chars (to N/X by default)
+  B<--strict>                map ambiguous/invalid nongap chars
+  B<--iupac>                 map invalid nongap chars (to N/X by default)
   B<-N>, B<-X>, B<--ambig>=<char>  map ambig/invalid chars to <char>
-  B<--degap>                       delete gap characters '-' 
+  B<--degap>                 delete gap characters '-' 
   B<-a>, B<--annotate>          encodes transformation and count in description 
   B<-j>, B<--join>=<string>     use <string> to join data annotation
 

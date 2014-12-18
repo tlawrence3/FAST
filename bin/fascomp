@@ -298,6 +298,7 @@ Options specific to B<fascomp>:
   B<-i>, B<--iupac>                   output character header including ambiguities for table-mode
   B<-a>, B<--alphabet>=<string>       tally only characters if they are in the set <string>, as in "ACGT-"
   B<-p>, B<--precision>=<int>         print relative frequencies with <int> digits after the decimal point 
+  B<-w>, B<--width>=<int>             print frequencies in fields of width <int>
 
 Options general to FAST:
   B<-h>, B<--help>                    print a brief help message
@@ -354,11 +355,14 @@ Output character header including ambiguities for table-mode.
 Tally only characters if they are in the set <string>, as in "ACGT-".
 
 =item B<-p> 
-B<--precision>=<int>
+      B<--precision>=<int>
 
 Print relative frequencies with <int> digits after the decimal point.
 
-=item B<--iupac>
+=item B<-w> 
+      B<--width>=<int>
+
+Print frequencies in fields of width <int>
 
 =item B<-h>,
       B<--help>

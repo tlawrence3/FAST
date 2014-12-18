@@ -32,15 +32,16 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $base_order           = undef; #-b
-my $suppress             = undef; #-s
+my $verbose             = undef; #--verbose
 my $amino_order          = undef; #-o
-my $orderby_amino        = undef;
 my $code                 = undef; #-c
-my $table                = undef;     #-t 
+my $codes                = undef;
+my $table                = undef; #-t // table output 
 my $join                 = $def_join_string; # -j
 my $fastq                = undef;
 my $width                = undef;
 my $precision            = 3;
+my $rscu                 = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -53,16 +54,21 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-           'base-order|b=s'              => \$base_order,
-           'suppress|s'                  => \$suppress,
-           'amino-order|o=s'             => \$amino_order,
-           'order-by-amino|g'            => \$orderby_amino,
+           'base-order|b=s'              =>  sub{  my (undef,$val) = @_; 
+						  die "$NAME: --base-order or -b option takes string of T,C,A, and G in some order" 
+						    unless ($val =~ /[TCAG]{4}/ and $val =~ /T/ and $val =~ /C/ and $val =~ /A/ and $val =~ /G/); 
+						   $base_order = $val;
+						},
+           'verbose'                     => \$verbose,
+           'amino-order|o:s'             => \$amino_order, #optional option argument. If not given, "ARNDCQEGHILKMFPSTWYV*"
            'code|c=i'                    => \$code,
            'table|t'                     => \$table,
 	   'join|j=s'                    => \$join,
 	   'width|w=i'                   => \$width,
 	   'precision|p=i'               => \$precision,
+	   'rscu|r'                      => \$rscu,
            'fastq|q'                     => sub{$format = 'fastq';},
+	   'codes'                       => \$codes,
 
 ) 
 or pod2usage(2);
@@ -77,15 +83,29 @@ pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 my $geneticcode = FAST::Bio::Tools::CodonTable->new(-id => $code);
+
+if ($codes) {
+  my $tables = FAST::Bio::Tools::CodonTable->tables;
+  my ($id, $name);
+  foreach $id (sort {$a <=> $b} sort keys %$tables) {
+    $name = $$tables{$id};
+    print "$id = $name\n";
+  }
+  die;
+}
+
 my @append_seqs;
 
 my @bases;
 if ($base_order) {
-    die "-b option requires a base ordering of T,C,A, and G separated by colons (:), as in T:C:A:G (the default)\n" if ($base_order =~ /[^TCAG:]/);
-    @bases = split /:/, $base_order;
+  @bases = split //, $base_order;
 }
 else {
-    @bases = qw/T C A G/;   
+  @bases = qw/T C A G/;   
+}
+
+if (defined $amino_order and $amino_order eq ""){
+  $amino_order = "ARNDCQEGHILKMFPSTWYV*";
 }
 
 my %synonyms = ();
@@ -140,7 +160,7 @@ while ($IN or @ARGV) {
       my $id=$seq->id();
       my $length = $seq->length(); ## is this slow?
       if ($length % 3) {
-        warn "count_codons error_4: $id has length not of modulo 3, skipping this sequence.\n" unless ($suppress);
+        warn "count_codons error_4: $id has length not of modulo 3, skipping this sequence.\n" if ($verbose);
         $bad_length++;
       } 
             
@@ -155,7 +175,7 @@ while ($IN or @ARGV) {
 	$ambiguous_start++;
       }
       elsif ($aa eq "*") {
-	warn "count_codons error_5: $id starts in a stop codon.\n" unless ($suppress);
+	warn "count_codons error_5: $id starts in a stop codon.\n" if ($verbose);
 	$stop_at_start++;
       }
       else { 
@@ -174,7 +194,7 @@ while ($IN or @ARGV) {
       }
       else {
 	if ($aa ne "*") {
-	  warn "count_codons error_1: $id does not end in a stop codon, it ends in $stopcodon.\n" unless ($suppress);
+	  warn "count_codons error_1: $id does not end in a stop codon, it ends in $stopcodon.\n" if ($verbose);
 	  $nonstop++;
 	}
 	else {
@@ -193,7 +213,7 @@ while ($IN or @ARGV) {
 	  $ambiguous_middle++ 
 	}
 	elsif ($aa eq "*") {
-	  warn "count_codons error_2: $id has a premature stop codon.\n" unless ($suppress); 
+	  warn "count_codons error_2: $id has a premature stop codon.\n" if ($verbose);
 	  $stop_at_middle++;
 	  $$count{$codon}++;
 	  $$totalcount{$codon}++; 
@@ -228,54 +248,58 @@ if ($table) {
 
 sub print_output {
   my ($seqid,$startcount,$count) = @_;
-  # calculate RCSU for middle codons
+  # calculate RSCU for middle codons
   my $append_count = 0;
   my $sum;
-  my %rcsu = ();
-  my %startrcsu = ();
+  my %rscu = ();
+  my %startrscu = ();
   foreach my $aa (split //, "ARNDCQEGHILKMFPSTWYV*") {
     my @syns = @{$synonyms{$aa}};
     for (@syns) {
       $$count{$_} ||= 0;
     }
-    @rcsu{@syns} = @$count{@syns};
+    @rscu{@syns} = @$count{@syns};
     foreach my $syn (@syns) { 
-      $sum += $rcsu{$syn};
+      $sum += $rscu{$syn};
     }
     $sum ||= 1;
     foreach my $syn (@syns) { 
-      $rcsu{$syn} /= $sum;
+      $rscu{$syn} /= $sum;
     }
   }
   
-  # calculate RCSU for start codons
+  # calculate RSCU for start codons
   # only consider start codons actually seen
-  %startrcsu  = %$startcount;
+  %startrscu  = %$startcount;
   $sum = 0;
-  foreach my $codon (keys %startrcsu) { 
-    $sum += $startrcsu{$codon};
+  foreach my $codon (keys %startrscu) { 
+    $sum += $startrscu{$codon};
   }
   $sum ||= 1;
-  foreach my $codon (keys %startrcsu) { 
-    $startrcsu{$codon} /= $sum;
+  foreach my $codon (keys %startrscu) { 
+    $startrscu{$codon} /= $sum;
   }
-  map {$sum+=$_} values %startrcsu;
-  map {$_/$sum}  values %startrcsu;
+  map {$sum+=$_} values %startrscu;
+  map {$_/$sum}  values %startrscu;
   
   my @annotations = ();
-  if ($orderby_amino) { ## group output by amino acid
-    foreach my $aa (split //, ($amino_order || "ARNDCQEGHILKMFPSTWYV*")) {
+  if ($amino_order) { ## group output by amino acid
+    foreach my $aa (split //, $amino_order) {
       foreach my $codon (@{$synonyms{$aa}}) {
-	$rcsu{$codon} ||= 0;
-	$startrcsu{$codon} ||= 0;
+	$rscu{$codon} ||= 0;
+	$startrscu{$codon} ||= 0;
 	$$count{$codon} ||= 0;
 	$$startcount{$codon} ||= 0;
 	if ($table){
-	  printf("%s %s %s %5.3f %5.3f %10u %10u\n",$seqid,$geneticcode->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$$count{$codon},$$startcount{$codon});
+	  printf("%s %s %s %5.3f %5.3f %10u %10u\n",$seqid,$geneticcode->translate($codon),$codon,$rscu{$codon},$startrscu{$codon},$$count{$codon},$$startcount{$codon});
 	}
-	else{ #append
-	  push @annotations, sprintf("freq_%s_%s:%u",$geneticcode->translate($codon),$codon,$$count{$codon});
-	  push @annotations, sprintf("RCSU_%s_%s:%${width}.${precision}f",$geneticcode->translate($codon),$codon,$rcsu{$codon});
+	else{ #annotate
+	  if ($rscu) {
+	    push @annotations, sprintf("RSCU_%s_%s:%${width}.${precision}f",$geneticcode->translate($codon),$codon,$rscu{$codon});
+	  }
+	  else {
+	    push @annotations, sprintf("freq_%s_%s:%u",$geneticcode->translate($codon),$codon,$$count{$codon});
+	  }
 	}
       }
     }
@@ -285,16 +309,20 @@ sub print_output {
       foreach my $second (@bases) { 
 	foreach my $third (@bases) { 
 	  my $codon = join "",$first,$second,$third;
-	  $rcsu{$codon} ||= 0;
-	  $startrcsu{$codon} ||= 0;
+	  $rscu{$codon} ||= 0;
+	  $startrscu{$codon} ||= 0;
 	  $$count{$codon} ||= 0;
 	  $$startcount{$codon} ||= 0;
 	  if ($table){
-	    printf("%s %s %s %5.3f %5.3f %10u %10u\n",$seqid,$geneticcode->translate($codon),$codon,$rcsu{$codon},$startrcsu{$codon},$$count{$codon},$$startcount{$codon});
+	    printf("%s %s %s %5.3f %5.3f %10u %10u\n",$seqid,$geneticcode->translate($codon),$codon,$rscu{$codon},$startrscu{$codon},$$count{$codon},$$startcount{$codon});
 	  }
 	  else{ #annotate
-	    push @annotations, sprintf("freq_%s_%s:%u",$geneticcode->translate($codon),$codon,$$count{$codon});
-	    push @annotations, sprintf("RCSU_%s_%s:%${width}.${precision}f",$geneticcode->translate($codon),$codon,$rcsu{$codon});
+	    if ($rscu) {
+	      push @annotations, sprintf("RSCU_%s_%s:%${width}.${precision}f",$geneticcode->translate($codon),$codon,$rscu{$codon});
+	    }
+	    else {
+	      push @annotations, sprintf("freq_%s_%s:%u",$geneticcode->translate($codon),$codon,$$count{$codon});
+	    }
 	  }
 	}
       }
@@ -330,21 +358,29 @@ B<fascodon> [options] [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-B<fascodon> takes multifasta format sequence or alignment data as input, and
-analyzes codon usage. Output can be for multifasta file or for individual
-fasta files within a multifasta.
+B<fascodon> takes multifasta format sequence or alignment data as
+input, and analyzes codon usage and other coding characteristics of
+the data. By default, B<fascodon> analyzes each sequence record
+individually, outputting raw codon frequencies appended to the
+description of each record, which allows sorting or filtering of data
+with other FAST tools. Optionally, B<fascodon -t> in "table-mode"
+outputs data in tabular format, followed by an aggregate summary of
+all the data on input.
 
 Options specific to B<fascodon>:
-  B<-b>, B<--base-order>
-  B<-v>, B<--individual>                  option will print codon usage for 
-                               	 individual fasta files
-  B<-Q>, B<--quiet>, B<--silent>             option will supress error messages
-  B<-o>, B<--amino-order>
-  B<-g>, B<--order-by-amino>              option will order amino acid ouput in 
-                                    alaphabetical order 
-  B<-t>, B<--table>                       specifies which codon table to use
-  B<-a>, B<--annotate>                      option will append description with
-                                    information of codon usage
+  B<-r>, B<--rscu>                   output RSCU values rather than raw frequency counts
+  B<-j>, B<--join>=<string>          use <string> to join tagged values in descriptions
+  B<-p>, B<--precision>=<int>        print RSCU with <int> digits after the decimal point 
+  B<-w>, B<--width>=<int>            print frequencies in fields of width <int>
+  B<-t>, B<--table>                  table-mode, outputs codon frequency table to STDOUT 
+  B<-b>, B<--base-order>=<string>    use base-order <string> to enumerate codons
+                                     default order is "TCAG"              
+  B<-o>, B<--amino-order>:<string>   enumerate codons by amino acids they encode
+                                     optionally, only for amino acids in <string>, or if
+                                     no argument, use default "ARNDCQEGHILKMFPSTWYV*";
+  B<-c>, B<--code>=<int>             use NCBI genetic code tableID <int> to translate
+  B<--codes>                         print NCBI tableIDs of genetic codes for -c option
+  B<--verbose>                    issue warnings about coding properties to STDERR
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
@@ -369,45 +405,53 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-b>
-      B<--base-order>
+=item B<-r>
+      B<--rscu>
 
-=item B<-v>
-      B<--individual>
+Output Relative Synonymous Codon Usage (RSCU) values rather than raw
+frequencies (default).
 
-This option will take each fasta within a multifasta and print codon usage
-seperated by the sequence identifiers
+=item B<-c [int]>
+      B<--code=[int]>
 
-=item B<-Q>,
-      B<--quiet>,
-      B<--silent>
+Use NCBI genetic code tableID <int> for translating sequences.
 
-This option will supress any error messages or warnings, such as messages warning
-about premature stop codons, sequences that do not end in stop codons or
-sequences that are not divisible by 3.
+=item B<--codes>
+
+Output a list of NCBI genetic code tableIDs and exit.
+
+=item B<-b [string]>
+      B<--base-order=[string]>
+
+Use bases in [string] order to enumerate codons. Default is "TCAG." 
+
+=item B<--verbose>,
+
+Issue warnings to STDERR about sequences with premature stop
+codons, that do not end in stop codons, sequences that are not
+divisible by 3, etc.
 
 =item B<-o>
       B<--amino-order>
+      B<-o [string]>
+      B<--amino-order=[string]>
 
+Enumerate codons by the amino acids they encode. If no option argument
+is given, codons are enumerated in the default order
+"ARNDCQEGHILKMFPSTWYV*". If option argument is given, it determines
+which amino acids (codon families) will be analyzed and in what order.
 
-=item B<-g>
-      B<--order-by-amino>
+=item B<-j [string]>
+      B<--join=[string]>
 
-This option will create an output of codon usages alphabetized by the 
-amino acid associated with the codon
+Use <string> to join tagged value output in sequence record
+descriptions.
+
 
 =item B<-t>
       B<--table>
 
-This option allows you to pick which codon table to use for amino acid
-assignment. Your choice is indicated by supplying the number associated
-with the codon table.
-
-=item B<-a>
-      B<--append>
-
-This option will append the description of each of the sequences, adding 
-the codon usage information.
+Print output in a table to STDOUT. 
 
 =item B<-h>,
       B<--help>

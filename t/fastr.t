@@ -44,5 +44,5 @@ run_output_matches('fastr', ['--strict', $test_file],
 run_output_matches('fastr', ['--iupac', $test_file],
 		   \@iupac_test, [], 'Checking iupac option');
 
-run_output_matches('fastr', ['--strict', '-a', 'X', $test_file],
+run_output_matches('fastr', ['--strict', '-X', 'X', $test_file],
 		   \@ambig_test, [], 'Checking ambig option');
