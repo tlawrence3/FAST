@@ -223,7 +223,7 @@ Options specific to B<fasgrep>:
   -B<t>, B<--tag>=<string>                match on tagged value in description
   -B<S>, B<--split-on-regex>=<regex>      use regex to split description for fields
   -B<v>, B<--negate>                      output sequences that do not match
-  -B<i>, B<--case-insensitive>            match case-insensitively
+  -B<i>, B<--insensitive>                 match case-insensitively
   -B<e>, B<--iupac-expand-nuc>            expand IUPAC ambiguities for DNA/RNA in query
   -B<r>, B<--revcom-iupac-expand-nuc>     reverse complement query and expand IUPAC
   -B<p>, B<--iupac-expand-prot>           expand ambiguities for protein in query
@@ -318,7 +318,7 @@ the shell.
 Output sequences that B<do not> match the regular expression argument.
 
 =item B<-i>,
-      B<--case-insensitive> 	   
+      B<--insensitive> 	   
 
 Match data case-insensitively.
 

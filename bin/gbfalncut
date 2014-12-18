@@ -12,7 +12,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "Extract sites from alignments based on reg-ex matching on features in an annotated genbank file.\n";
+$DESC    = "Extract sites from alignments based on regex matching on features in an annotated genbank file.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -52,7 +52,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'case-insensitive|i'          => \$insensitive,
+	   'insensitive|i'               => \$insensitive,
 	   'negate|v'                    => \$negate,
 	   'qualifier|q=s'               => \$qualifier,
 #	   'intersect|x=s'               => \$intersect_match,

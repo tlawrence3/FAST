@@ -48,7 +48,7 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
      'format=s'                    => \$format,
      'global|g'                    => \$global,
-     'case-insensitive|i'               => \$insensitive,
+     'insensitive|i'               => \$insensitive,
      'sequence|s'                  => \$sequence,
      'description|d'               => \$description,
      'fastq|q'                     => sub{$format = 'fastq';},
@@ -166,7 +166,7 @@ capture groups in your regex.
 Options specific to B<fassub>:
   B<-s>, B<--sequence>              substitute on sequences
   B<-d>, B<--description>           substitute on descriptions  
-  B<-i>, B<--case-insensitive>           match text case-insensitively
+  B<-i>, B<--insensitive>           match text case-insensitively
   B<-g>, B<--global>                substitute all matches in the data  
 
 Options general to FAST:
@@ -202,7 +202,7 @@ Substitute on the sequences. By default substitution occurs on identifiers.
 Substitute on the descriptions. By default substitution occurs on identifiers.
 
 =item B<-i>,
-      B<--case-insensitive>
+      B<--insensitive>
 
 Substitute case-insensitively. 
 
