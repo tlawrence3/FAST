@@ -128,8 +128,8 @@ while ($IN or @ARGV) {
 			    )
 			   );
 	}
-	my $loc_string  = $feat->location->to_FTstring;
-	$loc_string =~ s/omplement//;
+	## my $loc_string  = $feat->location->to_FTstring;
+	## $loc_string =~ s/omplement//;
 	## HANDLE CONTEXT
 	## 12-1-14 $context is never defined so this code doesn't do anything
 	##if ($context != 0  and $feat->start > $feat->end) {
@@ -143,12 +143,12 @@ while ($IN or @ARGV) {
 	
 	$featseq = $feat->spliced_seq;
 	## SET DISPLAY ID TO RETURN ALL TAG INFORMATION; THIS CAN BE OPTIONALLY RESTRICTED
-	$id = join "_", grep {/geneid/i} $feat->get_tagset_values($feat->get_all_tags());
-	$id ||= join "_", grep {/gi/i} $feat->get_tagset_values($feat->get_all_tags());
-	$id ||= join "_", $feat->get_tagset_values("gene");
-	$id ||= join "_", $feat->get_tagset_values("product");
-	$id ||= $loc_string;
-	$featseq->display_id($id);
+	## $id = join "_", grep {/geneid/i} $feat->get_tagset_values($feat->get_all_tags());
+	## $id ||= join "_", grep {/gi/i} $feat->get_tagset_values($feat->get_all_tags());
+	## $id ||= join "_", $feat->get_tagset_values("gene");
+	## $id ||= join "_", $feat->get_tagset_values("product");
+	## $id ||= $loc_string;
+	## $featseq->display_id($id);
 	$featseq->desc(join " ",(map {join "=",$_,(join "","\"",(join ";",grep {!/geneid/i} $feat->get_tagset_values($_)),"\"")} $feat->get_all_tags()),($location ? "location=\"$loc_string\"" : '')); 
 	
 	print $OUT $featseq;

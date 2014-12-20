@@ -64,7 +64,11 @@ GetOptions('help|h'         		 => \$help,
  		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires three arguments: $NAME [options] alignment-file genbank-file \'perl-reg-exp\'. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 3));
+
+my $fromSTDIN = ((-t STDIN) ? false : true);
+
+pod2usage("$NAME: Expects at least three arguments: genbank-file \'perl-reg-exp\' alignment-file. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 3));
+pod2usage("$NAME: Expects two arguments with input on STDIN: genbank-file \'perl-reg-exp\'. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 2);
 
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
@@ -75,53 +79,119 @@ my $subaln;
 my $rex;
 my $value;
 
-## PROCESS ARGUMENTS
-my $aln_file_nm = shift @ARGV;
 my $gb   = FAST::Bio::SeqIO->new(   -file =>  shift @ARGV , '-format' => 'genbank')->next_seq();
-my $aln  = FAST::Bio::UnivAln->new('-file' => $aln_file_nm);
-my $saln = FAST::Bio::AlignIO->new( -file =>  $aln_file_nm)->next_aln();
 my $rearg = shift @ARGV;
 my $re = ($insensitive ? qr/$rearg/i : qr/$rearg/);
 
-die "Genbank sequence ID not found in alignment\n" unless ( $saln->each_seq_with_id($gb->id()) ); 
-
-# ## PROCESS INTERSECTION RESTRICTION FEATURE ARG IF FOUND
-# if ($intersect_match) {
-#   $rearg = $intersect_match;
-#   $rex = ($insensitive ? qr/$rearg/i : qr/$rearg/);
-# }
+my $IN;
+unless (@ARGV) {   
+  if ($moltype){
+    $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format, '-alphabet' => $moltype);
+  }
+  else{
+    $IN = FAST::Bio::AlignIO->new(-fh => *STDIN{IO}, '-format' => $def_format);
+  }
+}
 
 ## SET COORDINATE POLICY TO NARROW
 my $narrow_policy = FAST::Bio::Location::NarrowestCoordPolicy->new();
 
-## SEARCH FEATURES
-foreach my $feat ( $gb->top_SeqFeatures() ) {
-  $feat->location->coordinate_policy($narrow_policy);
-  if ($key_search) { 
-    my $key = $feat->primary_tag();
-    if ($key =~ $re) {
-      print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring(),".\n" if ($verbose);
-      &push_sites($feat,\@colslice);
+while ($IN or @ARGV) {
+  if (@ARGV) {
+    my $file = shift (@ARGV);
+    unless (-e $file) {
+      warn "$NAME: Could not find file $file. Skipping.\n";
+      next;
     }
-    next;
+    elsif ($moltype) {
+      $IN = FAST::Bio::AlignIO->new(-file => $file, '-format' => $def_format, '-alphabet' => $moltype);
+    }
+    else {
+      $IN = FAST::Bio::AlignIO->new(-file => $file, '-format' => $def_format);
+    }
   }
-  next if ($key and $feat->primary_tag() ne $key); # "key" is NCBI nomenclature
-  if ($feat->has_tag($qualifier)) { # "qualifier" is NCBI nomenclature
-    foreach $value ( $feat->each_tag_value($qualifier) ) {
-      if ($value =~ $re) {
-	print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring()," with $qualifier $value.\n" if ($verbose);
-	&push_sites($feat,\@colslice);
+  if ($IN) { 
+    while (my $saln = $IN->next_aln){
+      my @seqs = $saln->each_seq();
+      my $aln  = FAST::Bio::UnivAln->new('-seqs' => \@seqs);
+      my $timesseen = 0;
+      my $gbseq;
+      foreach my $sob ($saln->each_seq_with_id($gb->id())){
+	$timesseen++;
+	$gbseq = $sob;
       }
-      # ## GET COLUMNS MATCHING INTERSECTION REGEX IF EXISTS
-      # if ($intersect_match and $value =~ $rex) {
-      # 	&push_sites($feat,\@x_colslice);
+      die "$NAME: genbank sequence ID not found in alignment\n" if ($timesseen == 0); 
+      die "$NAME: genbank sequence ID found more than once in alignment\n" if ($timesseen > 1); 
+      my $gbseqseq = $gbseq->seq();
+      my $gapchar = $saln->gap_char();
+      $gbseqseq =~ s/$gapchar//g;
+      die "$NAME: genbank sequence length is different in alignment\n" unless ( length( $gbseqseq ) == $gb->length );       
+
+      ## SEARCH FEATURES
+      foreach my $feat ( $gb->top_SeqFeatures() ) {
+	$feat->location->coordinate_policy($narrow_policy);
+	if ($key_search) { 
+	  my $key = $feat->primary_tag();
+	  if ($key =~ $re) {
+	    print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring(),".\n" if ($verbose);
+	    &push_sites($saln,$feat,\@colslice);
+	  }
+	  next;
+	}
+	next if ($key and $feat->primary_tag() ne $key); # "key" is NCBI nomenclature
+	if ($feat->has_tag($qualifier)) { # "qualifier" is NCBI nomenclature
+	  foreach $value ( $feat->each_tag_value($qualifier) ) {
+	    if ($value =~ $re) {
+	      print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring()," with $qualifier $value.\n" if ($verbose);
+	      &push_sites($saln,$feat,\@colslice);
+	    }
+	    # ## GET COLUMNS MATCHING INTERSECTION REGEX IF EXISTS
+	    # if ($intersect_match and $value =~ $rex) {
+	    # 	&push_sites($feat,\@x_colslice);
+	    # }
+	  }
+	}
+      }
+
+      ## SORT AND COMPRESS THE COLUMN LIST
+      my %seen = ();
+      my @sc_colslice =  sort {$a <=> $b} grep { ! $seen{$_} ++ } @colslice;
+      
+      ## TAKE SET-COMPLEMENT OF SITES IF --negate
+      if ($negate) {
+	@sc_colslice = grep { ! $seen{$_} } (1..$saln->length());
+      }
+      
+      
+      # if ($intersect_match) {
+      #   ## SORT AND COMPRESS THE INTERSECTION COL SLICE
+      #   %seen = ();
+      #   my @x_sc_colslice = sort {$a <=> $b} grep { ! $seen{$_} ++ } @x_colslice;
+      
+      #   ## FIND THE INTERSECTION OF THE TWO LISTS
+      #   my %union = my %isect = ();
+      #   foreach (@sc_colslice, @x_sc_colslice) { $union{$_}++ && $isect{$_}++ }
+      
+      #   @sc_colslice = keys %isect;
       # }
+
+      ## SUBSET AND PRINT ALIGNMENT
+      ## SUBSET SEQUENCES IN ALIGNMENT IF DESIRED
+      if (scalar @sc_colslice) {
+	$subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->seqs([],\@sc_colslice)), -row_ids=>$aln->row_ids);
+      }
+      $subaln->ffmt($def_format); 
+      my $layout = $subaln->layout();
+      ## FIX FASTA PRINT BUG (IDs SHOULD GO RIGHT AFTER '>') 
+      $layout =~ s/^>\s+/>/gm;
+      print "$layout";
     }
   }
+  undef $IN;
 }
 
 sub push_sites() {
-  my ($feat,$slice_array_ref) = @_;
+  my ($saln,$feat,$slice_array_ref) = @_;
   if (ref($feat->location) eq 'FAST::Bio::Location::Simple') {
     my $start = $saln->column_from_residue_number($gb->id(),$feat->start);
     my $stop  = $saln->column_from_residue_number($gb->id(),$feat->end);
@@ -136,42 +206,6 @@ sub push_sites() {
   }
 }
 
-## OLD CODE: perhaps one day we will optionally print some context sites as well
-#	  push @colslice, ($start < $stop ? ($start-$opt_C)..($stop+$opt_C) : ($stop-$opt_C)..($start+$opt_C)); 
-
-
-## SORT AND COMPRESS THE COLUMN LIST
-my %seen = ();
-my @sc_colslice =  sort {$a <=> $b} grep { ! $seen{$_} ++ } @colslice;
-
-## TAKE SET-COMPLEMENT OF SITES IF --negate
-if ($negate) {
-  @sc_colslice = grep { ! $seen{$_} } (1..$saln->length());
-}
-
-
-# if ($intersect_match) {
-#   ## SORT AND COMPRESS THE INTERSECTION COL SLICE
-#   %seen = ();
-#   my @x_sc_colslice = sort {$a <=> $b} grep { ! $seen{$_} ++ } @x_colslice;
-  
-#   ## FIND THE INTERSECTION OF THE TWO LISTS
-#   my %union = my %isect = ();
-#   foreach (@sc_colslice, @x_sc_colslice) { $union{$_}++ && $isect{$_}++ }
-  
-#   @sc_colslice = keys %isect;
-# }
-
-## SUBSET AND PRINT ALIGNMENT
-## SUBSET SEQUENCES IN ALIGNMENT IF DESIRED
-if (scalar @sc_colslice) {
-  $subaln = new FAST::Bio::UnivAln(-seqs=>scalar($aln->seqs([],\@sc_colslice)), -row_ids=>$aln->row_ids);
-}
-$subaln->ffmt($def_format); 
-my $layout = $subaln->layout();
-## FIX FASTA PRINT BUG (IDs SHOULD GO RIGHT AFTER '>') 
-$layout =~ s/^>\s+/>/gm;
-print "$layout";
 
 __END__
 
@@ -312,7 +346,7 @@ Print alignment of 5'UTRs
 
 =over 8
 
-B<gbfalncut> -K --verbose t/data/ArdellEtAl03_ncbi_popset_32329588.fas t/data/AF194338.1.gb 5.UTR 
+B<gbfalncut> -K --verbose t/data/AF194338.1.gb 5.UTR t/data/ArdellEtAl03_ncbi_popset_32329588.fas
 
 =back
 

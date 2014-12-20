@@ -64,8 +64,11 @@ GetOptions('help|h'         		 => \$help,
 	  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$NAME: Expects at least one input filename or glob. Try \"perldoc $NAME\"") if ((-t STDIN) && (@ARGV < 1));
-pod2usage("$NAME: Expects no arguments when reading from STDIN. Try \"perldoc $NAME\"") if (!(-t STDIN) && @ARGV != 0);
+
+my $fromSTDIN = ((-t STDIN) ? false : true);
+
+pod2usage("$NAME: Expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 1));
+pod2usage("$NAME: Expects no arguments with input on STDIN. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
