@@ -1,4 +1,6 @@
 #!/usr/bin/perl -w
+use Clone qw(clone);
+use List::Util qw(min max);
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
@@ -20,6 +22,8 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_field_join         = $FAST::DEF_JOIN_STRING; # " "
+my $def_other_join         = '';
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -29,9 +33,11 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $descdelim            = undef; # -d
+my $descdelim            = $def_field_join;
 my $serial               = undef; # -s
 my $seqdelims            = undef; # -j
+my $repeat               = undef;
+my $i;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -44,11 +50,11 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'delimiters=s'                => \$descdelim,
+	   'd|delimiters=s'              => \$descdelim,
 	   'serial|s'                    => \$serial,
 	   'j|join=s'                    => \$seqdelims,
-	   'd'                           => sub { $descdelim = ' '; },
-           'fastq|q'                     => sub {$format = 'fastq';},
+     'fastq|q'                     => sub {$format = 'fastq';},
+     'repeat|r'                    => \$repeat,
 	  ) 
   or exit(1);
 
@@ -87,7 +93,7 @@ my $outputseq = undef;
 my @outputqual = undef;
 
 unless (@ARGV and !$fromSTDIN) {
-    @ARGV = q/-/;
+    push @ARGV , q/-/;
 }
 
 while (@ARGV) {
@@ -112,6 +118,9 @@ while (@ARGV) {
   }
 }
 
+my @seq_track = undef;
+my $undef_tracker;
+Paste: {
 do {
   undef $outputseq;
   undef @outputqual;
@@ -119,15 +128,28 @@ do {
   my $delim = undef;
   my $descdelimpos = 0;
   $descdelim = undef;
-
+  $i = 0;
+  $undef_tracker = 0;
+  
   foreach my $seqio (@seqs) {
     my $seq = undef;
     unless ($seqio) {
       next;
     }
 
-    $seq = $seqio->next_seq();
-
+    if ($repeat){
+      $seq = $seqio->next_seq();
+      if (!$seq){
+        $seq = clone($seq_track[$i]);
+        $undef_tracker++;
+        last Paste if ($undef_tracker == scalar(@seqs));
+      }
+      else{
+        $seq_track[$i] = clone($seq);
+      }
+    }
+    else {$seq = $seqio->next_seq();}
+    
     do {
       unless ($seq) {
         next;
@@ -155,7 +177,7 @@ do {
           $outputseq->desc(join $descdelim, $outputseq->desc(), $seq->desc());
 	}
 	
-        $outputseq->seq(join $delim ? $delim : '', $outputseq->seq(), $seq->seq());
+        $outputseq->seq(join $delim ? $delim : $def_other_join, $outputseq->seq(), $seq->seq());
         if ($format eq 'fastq'){
           @outputqual = split ' ', $outputseq->qual_text();
           push @outputqual, split ' ', $seq->qual_text();
@@ -167,19 +189,22 @@ do {
     if ($serial) {
       last;
     }
-  }
+   $i++;
 
+  }
+  
   if ($outputseq) {
     print $OUT $outputseq;
   }
 
 } while ($outputseq);
+}
 
 __END__
 
 =head1 NAME
 
-B<faspaste> - concatenate sequences or other data in sequence records
+B<faspaste> - concatenate sequences of files
 
 =head1 SYNOPSIS
 
@@ -187,18 +212,20 @@ B<faspaste> [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<faspaste> takes sequence or alignment data as input, and joins the sequences. B<faspaste> by
-default joins sequences by file.
+B<faspaste> takes sequence or alignment data as input, and concatenates the sequences of the given input files. 
+By default if the last sequence is reached on an input file while other input files contain sequences, the remaining sequences
+will be concatenation of the remaining input files.
+
 
 Options specific to B<faspaste>:
-  B<-d>                             use a space a delimiter when joining
-                                     the descriptions together
-  B<--delimiter>=<string>           a list of dilimiters to use when joining
-                                     the descriptions together
+  B<-d>, <--delimiter>=<string>           a list of dilimiters to use when joining
+                                     the descriptions together. (Default: ' ')
   B<-j>, B<--join>=<string>         a list of delimiters to use when joining 
-                                     the sequences together
+                                     the sequences together (Default: '')
   B<-s>, B<--serial>                paste all sequences in a file together,
                                      instead of file by file.
+  B<-r>, B<--repeat>                if a source contains less sequences than the longest
+                                    source the last entry of the shorter source is repeated 
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
@@ -227,10 +254,8 @@ other formats to and from multifasta.
 =item B<-d>,
       B<--delimiter=[string]>
 
-A list of delimiters to used when joining the descriptions. Option B<-d> does 
-not take a list but instead uses a space for the delimiter. If unspecified the 
-descriptions will not be joined together and the resulting description will 
-come from the first file. If the list is shorter than number of joins the
+A list of delimiters to used when joining the descriptions. If unspecified the 
+descriptions will joined using a space as the delimiter. If the list is shorter than number of joins the
 delimiter wrap around and start over using the first character in the list. The
 characters '\t' will be replaced by a tab if used.
 
@@ -245,8 +270,14 @@ Append sequences together by file, so that each file produces one sequence.
 A list of delimiters to used when joining the sequences. If unspecified the 
 sequences will be joined together with no delimiter. If the list is shorter 
 than number of joins the delimiter wrap around and start over using the first 
-character in the list. If a character doesn't make sense in a sequence 
-bioperl with throw an error and stop.
+character in the list. The character must be an IUPAC character for the sequence 
+type or '*'.
+
+=item B<-r>,
+      B<--repeat>
+
+If a source contains less sequences than the longest source the last entry of the 
+shorter source is repeated.
 
 =item B<-h>,
       B<--help>
@@ -294,14 +325,6 @@ Use fastq format as input and output.
 
 =head1 EXAMPLES
 
-Print a file from STDIN:
-
-=over 8
-
-cat data.fas | B<faspaste> -
-
-=back
-
 Join sequences from two files together:
 
 =over 8
@@ -330,7 +353,7 @@ Join sequences with a delimiter from two files:
 
 =over 8
 
-B<faspaste> -j 'GACT' data.fas data2.fas
+B<faspaste> -j 'NNNN' data.fas data2.fas
     
 =back
 
