@@ -424,7 +424,7 @@ B<fastr> -s 'A-Z' 'a-z' t/data/P450.fas
 
 =back
 
-Delete all bars "|" in Genbank IDs: 
+Delete all bars "|" in GenBank IDs: 
 
 =over 8
 

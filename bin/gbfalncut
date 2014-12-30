@@ -12,7 +12,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "Extract sites from alignments based on reg-ex matching on features in an annotated genbank file.\n";
+$DESC    = "Extract sites from alignments based on reg-ex matching on features in an annotated GenBank file.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -64,7 +64,7 @@ GetOptions('help|h'         		 => \$help,
  		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-pod2usage("$0: Requires three arguments: $NAME [options] alignment-file genbank-file \'perl-reg-exp\'. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 3));
+pod2usage("$0: Requires three arguments: $NAME [options] alignment-file GenBank-file \'perl-reg-exp\'. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV != 3));
 
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
@@ -83,7 +83,7 @@ my $saln = FAST::Bio::AlignIO->new( -file =>  $aln_file_nm)->next_aln();
 my $rearg = shift @ARGV;
 my $re = ($insensitive ? qr/$rearg/i : qr/$rearg/);
 
-die "Genbank sequence ID not found in alignment\n" unless ( $saln->each_seq_with_id($gb->id()) ); 
+die "GenBank sequence ID not found in alignment\n" unless ( $saln->each_seq_with_id($gb->id()) ); 
 
 # ## PROCESS INTERSECTION RESTRICTION FEATURE ARG IF FOUND
 # if ($intersect_match) {
@@ -177,7 +177,7 @@ __END__
 
 =head1 NAME
 
-B<gbfalncut> - cut sites from alignments by regex-matching on features in an annotated genbank file
+B<gbfalncut> - cut sites from alignments by regex-matching on features in an annotated GenBank file
 
 =head1 SYNOPSIS
 
@@ -186,9 +186,9 @@ B<gbfalncut> [OPTIONS] ALIGNMENT-FILE GENBANK-FILE PERL-REGEX
 =head1 DESCRIPTION
 
 B<gbfalncut> extracts sites from alignments that correspond to one or
-more features annotated on a sequence in a genbank file. The alignment
+more features annotated on a sequence in a GenBank file. The alignment
 must contain exactly one sequence with the same identifier as the
-sequence in the genbank file. By default all features in the genbank
+sequence in the GenBank file. By default all features in the GenBank
 file are searched for a qualifier "/note" whose value matches the perl
 regex given as the third argument. By default all features are
 searched, but the search may be restricted to features with a specific

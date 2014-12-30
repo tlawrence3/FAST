@@ -341,7 +341,7 @@ each sequence record on input.
 
 The one mandatory argument to B<fascut> is a sequence of indices or
 ranges separated by commas (,). The ranges may be specified in
-Perl-style (or Genbank coordinate style) as in "from..to", in
+Perl-style (or GenBank coordinate style) as in "from..to", in
 R/Octave-style as in "from:to" or UNIX B<cut>-style as in
 "from-to". If the index bounds of a simple range are missing, "from"
 defaults to "1" and "to" defaults to "-1". An optional ":by" suffix

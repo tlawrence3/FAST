@@ -158,7 +158,7 @@ B<gbf2fas> - extract subsequences for potentially split features from GenBank fi
 
 =head1 SYNOPSIS
 
-B<gbf2fas> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...] < genbank-file"
+B<gbf2fas> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...] < GenBank-file"
 
 =head1 DESCRIPTION
 
