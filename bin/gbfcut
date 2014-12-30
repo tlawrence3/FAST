@@ -46,8 +46,8 @@ GetOptions('help|h'         		 => \$help,
 	   'log'                         => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'tag|t=s'                     => \$tag_match,
-	   'insensitive|i'               => \$insensitive,
+	   'qualifier|q=s'                     => \$tag_match,
+	   'case-insensitive|i'          => \$insensitive,
 	   'location|l'                  => \$location,
 	   'primary|p=s'                 => \$primary,
 	   
@@ -192,16 +192,16 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-t [tag1][=^][perl-regex1]+[tag2][=^][perl-regex2]>,
-      B<--tag [tag1][=^][perl-regex1]+[tag2][=^][perl-regex2]>
+=item B<-q [q1][=^][perl-regex1]+[q2][=^][perl-regex2]>,
+      B<--qualifier [q1][=^][perl-regex1]+[q2][=^][perl-regex2]>
 
-Filter only features that have all specified tags: tag1, tag2, etc
-and, for each tag, at least one value that either matches (=) or no value that matches (^)
+Filter only features that have all specified qualifiers: q1, q2, etc
+and, for each qualifier, at least one value that either matches (=) or no value that matches (^)
 their specific perl-regexes: perl-regex1, perl-regex2, etc.
-Examples of tags: 'product', 'note', 'gene', 'db_xref'
+Examples of qualifiers: 'product', 'note', 'gene', 'db_xref'
 
 =item B<-i>,
-      B<--insensitive>
+      B<--case-insensitive>
 
 Enable case-insensitive matching of tags.
 
