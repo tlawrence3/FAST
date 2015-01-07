@@ -128,23 +128,33 @@ by default.
 If we are interested in the codon usage of our gene, we can edit the
 last command-line (by typing =up-arrow= on most UNIX shells) and
 replace =fasxl= with =fascodon= at the end of our pipeline. =fascodon=
-outputs a space-delimited table indicating the normalized counts of
-each codon with information on starts and stops. With the following
+reprints the input sequence with the counts of each codon with 
+information on starts and stops appended to the identifier. With the following
 code, we can see that the most frequently used codon in this example
-is =AAT= (encoding an Asparagine)
+is =AAT= (encoding an Arginine)
 
 #+BEGIN_SRC shell
 fascut 186512..186853 t/data/chr01.fsa | fasrc | fascodon
 #+END_SRC 
 
-*** Computing base composition with =fascomp=
-
-=fascomp= will return the base/protein composition of a sequence. If
-we are interested in the normalized base composition of the first
-chromosome, we can run the following:
+Appending the =-t= option to the command will give the codon frequencies
+for both the input sequence and the reverse complement in a verbose
+table format as follows 
 
 #+BEGIN_SRC shell
-fascomp -n t/data/chr01.fsa
+fascut 186512..186853 t/data/chr01.fsa | fasrc | fascodon -t
+#+END_SRC
+
+
+*** Computing base composition with =fascomp=
+
+=fascomp= will return the base/protein composition of a sequence
+as an addition to the identifier. If
+we are interested in the normalized (option =-n=) base composition of the first
+chromosome in a clean table format (option =-t=), we can run the following:
+
+#+BEGIN_SRC shell
+fascomp -nt t/data/chr01.fsa
 #+END_SRC
 
 ** Example 2: Reformatting, selecting and transforming alignments in FAST
@@ -163,16 +173,23 @@ fasconvert -i clustalw -f t/data/P450.clustalw2.aln
 #+END_SRC
 
 The previous command automatically saves its output to an output file
-saves output to the same basename and an extension of =.fas=. The
-=faswc= utility will append sequence lengths to the sequence
-descriptions. To look at the length of all sequences, use the
+of the same basename and an extension of =.fas= in the same
+directory of the original file. The
+=faswc= utility will count the total number of sequences and 
+total number of nucleotides in a fasta file
+To look at the length of all sequences, use the
 following code.
 
 #+BEGIN_SRC shell
-faswc t/data/P450.clustalw2.fas | head -1
+faswc t/data/P450.clustalw2.fas
 #+END_SRC
 
-which outputs =length:557= to =STDOUT=.
+which outputs  
+
+=9      5013 t/data/P450.clustalw2.fas=
+=9      5013 total=
+
+to  =STDOUT=.
 
 *** Selecting sequences with =fasgrep=
 
@@ -183,14 +200,14 @@ out sequences that match a Perl regular expression. By default,
 =fasgrep= attempts to match sequence identifiers:
 
 #+BEGIN_SRC shell
-fasgrep "86475799" P450.fas
+fasgrep "86475799" t/data/P450.fas
 #+END_SRC
 
 We can retrieve the aligned version of this sequence as it has the
 same identifier
 
 #+BEGIN_SRC shell
-fasgrep "86475799" P450.clustalw2.fas
+fasgrep "86475799" t/data/P450.clustalw2.fas
 #+END_SRC
 
 *** Reformatting gap characters with =fastr=
@@ -200,24 +217,24 @@ the requirements of a bioinformatic program. For example, to reformat
 gap characters in a fasta-format alignment from "-" to ".".
 
 #+BEGIN_SRC shell
-fastr -s "-" "." P450.clustalw2.fas
+fastr -s "-" "." t/data/P450.clustalw2.fas
 #+END_SRC 
 
-*** Degapping sites with =alndegap=
+*** Degapping sites with =fastr= ## THIS HAS COMPLETELY CHANGED. IS THERE ANOTHER FUNCTION TO DO THIS IF ALNDEGAP IS NO LONGER AN OPTION
 
-=alndegap= allows for editing of alignments based on their gap
+=fastr= also allows for editing of alignments based on their gap
 profile. To remove sites with at least one gap in all sequences, we
 can do the following:
 
 #+BEGIN_SRC shell
-alndegap -a P450clustalw2.clustalw.fas
+fastr --degap t/data/P450.clustalw2.fas
 #+END_SRC
 
 We can then determine the length of the alignment by looking at the
 first identifier for your output after running the following:
 
 #+BEGIN_SRC shell
-alndegap -a P450clustalw2.clustalw.fas | faswc | head -1 | cut -f2 -d" "
+fastr --degap t/data/P450.clustalw2.fas | faslen | head -1 | cut -f2 -d" "
 #+END_SRC
 
 And if we are interested in retaining only unique sequences, 
