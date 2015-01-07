@@ -187,6 +187,7 @@ faswc t/data/P450.clustalw2.fas
 which outputs  
 
 =9      5013 t/data/P450.clustalw2.fas=
+
 =9      5013 total=
 
 to  =STDOUT=.
@@ -220,21 +221,22 @@ gap characters in a fasta-format alignment from "-" to ".".
 fastr -s "-" "." t/data/P450.clustalw2.fas
 #+END_SRC 
 
-*** Degapping sites with =fastr= ## THIS HAS COMPLETELY CHANGED. IS THERE ANOTHER FUNCTION TO DO THIS IF ALNDEGAP IS NO LONGER AN OPTION
+*** Degapping sites with =alncut= 
 
-=fastr= also allows for editing of alignments based on their gap
-profile. To remove sites with at least one gap in all sequences, we
+=alncut= also allows for editing of alignments based on their gap
+profile. This utility is useful in many applications, including 
+selecting gap-free sites for input into phylogenetic softwares.
+To remove sites with at least one gap in all sequences, we
 can do the following:
 
 #+BEGIN_SRC shell
-fastr --degap t/data/P450.clustalw2.fas
+alncut -g t/data/P450.clustalw2.fas
 #+END_SRC
 
-We can then determine the length of the alignment by looking at the
-first identifier for your output after running the following:
+We can then determine the length of the alignment by executing:
 
 #+BEGIN_SRC shell
-fastr --degap t/data/P450.clustalw2.fas | faslen | head -1 | cut -f2 -d" "
+alncut -g t/data/P450.clustalw2.fas | faslen | head -1 
 #+END_SRC
 
 And if we are interested in retaining only unique sequences, 
@@ -242,7 +244,7 @@ And if we are interested in retaining only unique sequences,
 one, appending all of the identifiers to one large identifier. 
 
 #+BEGIN_SRC shell
-alndegap -a P450clustalw2.clustalw.fas | faslen | fasuniq
+alncut -g t/data/P450.clustalw2.fas | faslen | fasuniq
 #+END_SRC
 
 ** Example 3: partitioning files based on ncbi taxonomy
@@ -293,10 +295,10 @@ delimiter using the handy =fastr= tool. Arbitrarily, we will chose
 the double quote character for our description delimiter.
 
 #+BEGIN_SRC shell
-fastr -d "[]" "\"" P450.fas
+fastr -d "[]" "\"" t/data/P450.fas
 #+END_SRC
 
-Now in standard out, we will see fasta file-formatted text with
+Now in standard output, we will see fasta file-formatted text with
 the species name in the description in the sequence tag surrounded
 by quotes. In this file, the beginning of the description is in 
 field one, and the species in field two. We can use this information
@@ -305,14 +307,15 @@ taxonomic "Pooideae" tribe. Assuming that nodes.dmp and names.dmp are
 in the same working directory, we can run the following. 
 
 #+BEGIN_SRC shell
-fastr -d"[]" "\"" P450.fas | fastax -S \" -f 2 nodes.dmp names.dmp "Pooideae"
+fastr -d "[]" "\"" t/data/P450.fas | 
+      fastax -S \" -f 2 t/data/nodes.dmp t/data/names.dmp "Pooideae"
 #+END_SRC
 
 The output of this pipeline should be five sequences, including P450 sequences
 from the /Triticum aestivum/ and /Lolium rigidum/ species (classified as species
 belonging to the /Pooideae/ tribe). 
 
-** Example 5: Retrieve a subset of sequences based on a list of identifiers
+** Example 4: Retrieve a subset of sequences based on a list of identifiers
 
 =fasgrep= is a useful tool for retrieving subsets of sequences from large
 fasta files. Often fasta files will contain an identifier line, and then 
@@ -329,4 +332,28 @@ for i in $(cat ids.txt); do fasgrep $i sequences.fas; done > subset.fas
 #+END_SRC
 
 Now we have a subest of sequences located in /subset.fas/ that correspond
-to the identifiers listed in /ids.txt/.
+to the identifiers listed in /ids.txt/. 
+
+*** Note on searching for identifiers
+Fasgrep works with perl regular expression syntax.It is often beneficial 
+to code the identifiers in /ids.txt/ with some sort of a line or a word 
+anchor. For example, if you are looking for a complete identifier like
+ =sequence_1=
+but have sequences in your file named =sequence_11= and =sequence_12=, 
+
+#+BEGIN_SRC shell
+fasgrep "sequence_1" sequences.fas
+#+END_SRC
+
+will return all three sequences. If
+you'd like to just look for =sequence_1=, adding a line anchor, such as:
+
+#+BEGIN_SRC shell
+fasgrep "sequence_1$" sequences.fas
+#+END_SRC
+
+will return =sequence_1= and skip =sequence_11= and =sequence_12=. This
+only works if =sequence_1= is at the end of your identifier. If you are
+looking for =sequence_1= within a larger identifier, you may need to 
+take extra precautions to not retrieve other names that are more
+specific to the structure of your identifiers.

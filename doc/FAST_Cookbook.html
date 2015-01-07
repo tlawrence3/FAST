@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
 <meta name="title" content="FAST:Fast Analysis of Sequences Toolbox Cookbook"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2015-01-07T10:09-0800"/>
+<meta name="generated" content="2015-01-07T13:40-0800"/>
 <meta name="author" content="Katherine C.H. Amrine \&amp; David H. Ardell"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -148,7 +148,7 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-3-1">2.3.1 Reformatting alignment data with <code>fasconvert</code></a></li>
 <li><a href="#sec-2-3-2">2.3.2 Selecting sequences with <code>fasgrep</code></a></li>
 <li><a href="#sec-2-3-3">2.3.3 Reformatting gap characters with <code>fastr</code></a></li>
-<li><a href="#sec-2-3-4">2.3.4 Degapping sites with <code>fastr</code> ## THIS HAS COMPLETELY CHANGED. IS THERE ANOTHER FUNCTION TO DO THIS IF ALNDEGAP IS NO LONGER AN OPTION</a></li>
+<li><a href="#sec-2-3-4">2.3.4 Degapping sites with <code>alncut</code></a></li>
 </ul>
 </li>
 <li><a href="#sec-2-4">2.4 Example 3: partitioning files based on ncbi taxonomy</a>
@@ -156,7 +156,11 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-4-1">2.4.1 Reformat the description to allow for fastax sorting</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-5">2.5 Example 5: Retrieve a subset of sequences based on a list of identifiers</a></li>
+<li><a href="#sec-2-5">2.5 Example 4: Retrieve a subset of sequences based on a list of identifiers</a>
+<ul>
+<li><a href="#sec-2-5-1">2.5.1 Note on searching for identifiers</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -493,6 +497,8 @@ which outputs
 </p>
 <p>
 <code>9      5013 t/data/P450.clustalw2.fas</code>
+</p>
+<p>
 <code>9      5013 total</code>
 </p>
 <p>
@@ -558,30 +564,31 @@ gap characters in a fasta-format alignment from "-" to ".".
 </div>
 
 <div id="outline-container-2-3-4" class="outline-4">
-<h4 id="sec-2-3-4"><span class="section-number-4">2.3.4</span> Degapping sites with <code>fastr</code> ## THIS HAS COMPLETELY CHANGED. IS THERE ANOTHER FUNCTION TO DO THIS IF ALNDEGAP IS NO LONGER AN OPTION</h4>
+<h4 id="sec-2-3-4"><span class="section-number-4">2.3.4</span> Degapping sites with <code>alncut</code></h4>
 <div class="outline-text-4" id="text-2-3-4">
 
 
 <p>
-<code>fastr</code> also allows for editing of alignments based on their gap
-profile. To remove sites with at least one gap in all sequences, we
+<code>alncut</code> also allows for editing of alignments based on their gap
+profile. This utility is useful in many applications, including 
+selecting gap-free sites for input into phylogenetic softwares.
+To remove sites with at least one gap in all sequences, we
 can do the following:
 </p>
 
 
 
-<pre class="example">fastr --degap t/data/P450.clustalw2.fas
+<pre class="example">alncut -g t/data/P450.clustalw2.fas
 </pre>
 
 
 <p>
-We can then determine the length of the alignment by looking at the
-first identifier for your output after running the following:
+We can then determine the length of the alignment by executing:
 </p>
 
 
 
-<pre class="example">fastr --degap t/data/P450.clustalw2.fas | faslen | head -1 | cut -f2 -d" "
+<pre class="example">alncut -g t/data/P450.clustalw2.fas | faslen | head -1 
 </pre>
 
 
@@ -593,7 +600,7 @@ one, appending all of the identifiers to one large identifier.
 
 
 
-<pre class="example">alndegap -a P450clustalw2.clustalw.fas | faslen | fasuniq
+<pre class="example">alncut -g t/data/P450.clustalw2.fas | faslen | fasuniq
 </pre>
 
 
@@ -664,12 +671,12 @@ the double quote character for our description delimiter.
 
 
 
-<pre class="example">fastr -d "[]" "\"" P450.fas
+<pre class="example">fastr -d "[]" "\"" t/data/P450.fas
 </pre>
 
 
 <p>
-Now in standard out, we will see fasta file-formatted text with
+Now in standard output, we will see fasta file-formatted text with
 the species name in the description in the sequence tag surrounded
 by quotes. In this file, the beginning of the description is in 
 field one, and the species in field two. We can use this information
@@ -680,7 +687,8 @@ in the same working directory, we can run the following.
 
 
 
-<pre class="example">fastr -d"[]" "\"" P450.fas | fastax -S \" -f 2 nodes.dmp names.dmp "Pooideae"
+<pre class="example">fastr -d "[]" "\"" t/data/P450.fas | 
+      fastax -S \" -f 2 t/data/nodes.dmp t/data/names.dmp "Pooideae"
 </pre>
 
 
@@ -695,7 +703,7 @@ belonging to the <i>Pooideae</i> tribe).
 </div>
 
 <div id="outline-container-2-5" class="outline-3">
-<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Example 5: Retrieve a subset of sequences based on a list of identifiers</h3>
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Example 4: Retrieve a subset of sequences based on a list of identifiers</h3>
 <div class="outline-text-3" id="text-2-5">
 
 
@@ -719,14 +727,53 @@ for this subset of sequences as follows:
 
 <p>
 Now we have a subest of sequences located in <i>subset.fas</i> that correspond
-to the identifiers listed in <i>ids.txt</i>.
+to the identifiers listed in <i>ids.txt</i>. 
+</p>
+
+</div>
+
+<div id="outline-container-2-5-1" class="outline-4">
+<h4 id="sec-2-5-1"><span class="section-number-4">2.5.1</span> Note on searching for identifiers</h4>
+<div class="outline-text-4" id="text-2-5-1">
+
+<p>Fasgrep works with perl regular expression syntax.It is often beneficial 
+to code the identifiers in <i>ids.txt</i> with some sort of a line or a word 
+anchor. For example, if you are looking for a complete identifier like
+ <code>sequence_1</code>
+but have sequences in your file named <code>sequence_11</code> and <code>sequence_12</code>, 
+</p>
+
+
+
+<pre class="example">fasgrep "sequence_1" sequences.fas
+</pre>
+
+
+<p>
+will return all three sequences. If
+you'd like to just look for <code>sequence_1</code>, adding a line anchor, such as:
+</p>
+
+
+
+<pre class="example">fasgrep "sequence_1$" sequences.fas
+</pre>
+
+
+<p>
+will return <code>sequence_1</code> and skip <code>sequence_11</code> and <code>sequence_12</code>. This
+only works if <code>sequence_1</code> is at the end of your identifier. If you are
+looking for <code>sequence_1</code> within a larger identifier, you may need to 
+take extra precautions to not retrieve other names that are more
+specific to the structure of your identifiers.
 </p></div>
+</div>
 </div>
 </div>
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2015-01-07T10:09-0800</p>
+<p class="date">Date: 2015-01-07T13:40-0800</p>
 <p class="author">Author: Katherine C.H. Amrine \&amp; David H. Ardell</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
