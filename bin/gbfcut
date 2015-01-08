@@ -56,7 +56,6 @@ GetOptions('help|h'         		 => \$help,
 	   'key|k=s'                     => \$key,
 	   'key-search|K'                => \$key_search,
 	   'verbose'                     => \$verbose,
-	   'tag|t=s'                     => \$tag_match,
 	   'insensitive|i'               => \$insensitive,
 	   'location|l'                  => \$location,
 	   'primary|p=s'                 => \$primary,
@@ -168,11 +167,11 @@ B<gbfcut> - search features from GenBank files with regexes and print correspond
 
 =head1 SYNOPSIS
 
-B<gbfcut> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...] < genbank-file"
+B<gbfcut> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...] < GenBank-file"
 
 =head1 DESCRIPTION
 
-B<gbf2fas> extract subsequences for potentially split features from GenBank file(s) with tag-based filtering
+B<gbfcut> extract subsequences for potentially split features from GenBank file(s) with tag-based filtering
 
 Options specific to B<gbf2fas>:
   B<-t>, B<--tag=<string>>                filter only features that have all specified tags
@@ -192,7 +191,7 @@ Options general to FAST:
 
 =head1 INPUT AND OUTPUT
 
-B<gbf2fas> is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<gbfcut> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT. The FAST utility B<fasconvert> can
@@ -202,16 +201,16 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-t [tag1][=^][perl-regex1]+[tag2][=^][perl-regex2]>,
-      B<--tag [tag1][=^][perl-regex1]+[tag2][=^][perl-regex2]>
+=item B<-q [q1][=^][perl-regex1]+[q2][=^][perl-regex2]>,
+      B<--qualifier [q1][=^][perl-regex1]+[q2][=^][perl-regex2]>
 
-Filter only features that have all specified tags: tag1, tag2, etc
-and, for each tag, at least one value that either matches (=) or no value that matches (^)
+Filter only features that have all specified qualifiers: q1, q2, etc
+and, for each qualifier, at least one value that either matches (=) or no value that matches (^)
 their specific perl-regexes: perl-regex1, perl-regex2, etc.
-Examples of tags: 'product', 'note', 'gene', 'db_xref'
+Examples of qualifiers: 'product', 'note', 'gene', 'db_xref'
 
 =item B<-i>,
-      B<--insensitive>
+      B<--case-insensitive>
 
 Enable case-insensitive matching of tags.
 

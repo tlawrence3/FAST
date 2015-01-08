@@ -12,7 +12,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "Extract sites from alignments based on regex matching on features in an annotated genbank file.\n";
+$DESC    = "Extract sites from alignments based on reg-ex matching on features in an annotated GenBank file.\n";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -67,7 +67,7 @@ pod2usage(-verbose => 2) if $man;
 
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: Expects at least three arguments: genbank-file \'perl-reg-exp\' alignment-file. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 3));
+pod2usage("$NAME: Expects at least three arguments: GenBank-file \'perl-reg-exp\' alignment-file. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 3));
 pod2usage("$NAME: Expects two arguments with input on STDIN: genbank-file \'perl-reg-exp\'. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 2);
 
 
@@ -120,12 +120,12 @@ while ($IN or @ARGV) {
 	$timesseen++;
 	$gbseq = $sob;
       }
-      die "$NAME: genbank sequence ID not found in alignment\n" if ($timesseen == 0); 
-      die "$NAME: genbank sequence ID found more than once in alignment\n" if ($timesseen > 1); 
+      die "$NAME: GenBank sequence ID not found in alignment\n" if ($timesseen == 0); 
+      die "$NAME: GenBank sequence ID found more than once in alignment\n" if ($timesseen > 1); 
       my $gbseqseq = $gbseq->seq();
       my $gapchar = $saln->gap_char();
       $gbseqseq =~ s/$gapchar//g;
-      die "$NAME: genbank sequence length is different in alignment\n" unless ( length( $gbseqseq ) == $gb->length );       
+      die "$NAME: GenBank sequence length is different in alignment\n" unless ( length( $gbseqseq ) == $gb->length );       
 
       ## SEARCH FEATURES
       foreach my $feat ( $gb->top_SeqFeatures() ) {
@@ -211,7 +211,7 @@ __END__
 
 =head1 NAME
 
-B<gbfalncut> - cut sites from alignments by regex-matching on features in an annotated genbank file
+B<gbfalncut> - cut sites from alignments by regex-matching on features in an annotated GenBank file
 
 =head1 SYNOPSIS
 
@@ -220,9 +220,9 @@ B<gbfalncut> [OPTIONS] ALIGNMENT-FILE GENBANK-FILE PERL-REGEX
 =head1 DESCRIPTION
 
 B<gbfalncut> extracts sites from alignments that correspond to one or
-more features annotated on a sequence in a genbank file. The alignment
+more features annotated on a sequence in a GenBank file. The alignment
 must contain exactly one sequence with the same identifier as the
-sequence in the genbank file. By default all features in the genbank
+sequence in the GenBank file. By default all features in the GenBank
 file are searched for a qualifier "/note" whose value matches the perl
 regex given as the third argument. By default all features are
 searched, but the search may be restricted to features with a specific

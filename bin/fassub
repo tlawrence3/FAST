@@ -46,12 +46,12 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-     'format=s'                    => \$format,
-     'global|g'                    => \$global,
-     'insensitive|i'               => \$insensitive,
-     'sequence|s'                  => \$sequence,
-     'description|d'               => \$description,
-     'fastq|q'                     => sub{$format = 'fastq';},
+	   'format=s'                    => \$format,
+	   'global|g'                    => \$global,
+	   'insensitive|i'               => \$insensitive,
+	   'sequence|s'                  => \$sequence,
+	   'description|d'               => \$description,
+	   'fastq|q'                     => sub{$format = 'fastq';},
 	  ) 
 
   or pod2usage(2);
@@ -75,8 +75,6 @@ if ($insensitive) {
 else {
   $re = qr/$re_string/;
 }
-
-my $decoy = "Stylo";
 
 my ($selector,$type);
 if ($sequence) {
@@ -268,7 +266,7 @@ Reverse genus and species in t/data/P450.fas:
 
 =over 8
 
-B<fassub> -d '\[(\w+) (\w+)\]' '[$2 $1]' t/data/P450.fas>
+B<fassub> -d '\[(\w+) (\w+)\]' '[$2 $1]' t/data/P450.fas
 
 =back
 

@@ -1,6 +1,4 @@
 #!/usr/bin/perl -w
-use Clone qw(clone);
-use List::Util qw(min max);
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
@@ -22,8 +20,10 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
+my $def_split_field_regex  = $FAST::DEF_SPLIT_REGEX; # ' '
+my $def_split_other_regex  = ''; 
 my $def_field_join         = $FAST::DEF_JOIN_STRING; # " "
-my $def_other_join         = '';
+my $def_other_join         = ''; 
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -33,9 +33,8 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $descdelim            = $def_field_join;
 my $serial               = undef; # -s
-my $seqdelims            = undef; # -j
+my $join                 = undef; # -j
 my $repeat               = undef;
 my $i;
 
@@ -50,11 +49,12 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'd|delimiters=s'              => \$descdelim,
+	   'description|d'               => \$description,
+	   'identifier|i'                => \$identifier,
 	   'serial|s'                    => \$serial,
-	   'j|join=s'                    => \$seqdelims,
-     'fastq|q'                     => sub {$format = 'fastq';},
-     'repeat|r'                    => \$repeat,
+	   'join|j=s'                    => \$join,
+	   'fastq|q'                     => sub {$format = 'fastq';},
+	   'repeat|r'                    => \$repeat,
 	  ) 
   or exit(1);
 
@@ -63,21 +63,45 @@ pod2usage(-verbose => 2) if $man;
 
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!$fromSTDIN and !(@ARGV));
-pod2usage("$NAME: -q and -j are incompatible options. Try \"perldoc $NAME\"") if ($format eq 'fastq' and $seqdelims);
+pod2usage("$NAME: expects at least one input filename or glob unless reading standard input. Try \"perldoc $NAME\"") if (!$fromSTDIN and !(@ARGV));
+pod2usage("$NAME: fastq format requires -d or -i option. Try \"perldoc $NAME\"") unless ($format eq 'fastq' and ($description or $identifier));
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
-my @delims = undef;
-my @descdelims = undef;
+my ($selector,$type);
+if ($description) {
+  $selector = "desc";
+  $type = "description";
+  unless (defined $split_on_regex) {
+    $split_on_regex = $def_split_field_regex;
+  }
+}
+elsif ($identifier) {
+  $selector = "id";
+  $type = "identifier";
+  unless (defined $split_on_regex) {
+    $split_on_regex = $def_split_other_regex;
+  }
+}
+else {
+  $selector = "seq";
+  $type = "sequence";
+  unless (defined $split_on_regex) {
+    $split_on_regex = $def_split_other_regex;
+  }
+}
+my $split_re = qr/$split_on_regex/;
 
+
+my @delims;
 if ($seqdelims) {
   @delims = split //, $seqdelims;
+  $descdelim =~ s/\\t/\t/g;
 } else {
   @delims = ();
 }
 
 if ($descdelim) {
-  $descdelim =~ s/\\t/\t/g;
+  
   @descdelims = split //, $descdelim;
 } else {
   @descdelims = ();
@@ -93,12 +117,12 @@ my $outputseq = undef;
 my @outputqual = undef;
 
 unless (@ARGV and !$fromSTDIN) {
-    push @ARGV , q/-/;
+  push @ARGV , q/-/;
 }
 
 while (@ARGV) {
   my $file = shift (@ARGV);
-
+  
   if ($file eq '-') {
     unless ($fromSTDIN) {
       warn "$NAME: Could not find any input on STDIN. Skipping.\n";
@@ -121,83 +145,83 @@ while (@ARGV) {
 my @seq_track = undef;
 my $undef_tracker;
 Paste: {
-do {
-  undef $outputseq;
-  undef @outputqual;
-  my $delimpos = 0;
-  my $delim = undef;
-  my $descdelimpos = 0;
-  $descdelim = undef;
-  $i = 0;
-  $undef_tracker = 0;
-  
-  foreach my $seqio (@seqs) {
-    my $seq = undef;
-    unless ($seqio) {
-      next;
-    }
-
-    if ($repeat){
-      $seq = $seqio->next_seq();
-      if (!$seq){
-        $seq = clone($seq_track[$i]);
-        $undef_tracker++;
-        last Paste if ($undef_tracker == scalar(@seqs));
-      }
-      else{
-        $seq_track[$i] = clone($seq);
-      }
-    }
-    else {$seq = $seqio->next_seq();}
+  do {
+    undef $outputseq;
+    undef @outputqual;
+    my $delimpos = 0;
+    my $delim = undef;
+    my $descdelimpos = 0;
+    $descdelim = undef;
+    $i = 0;
+    $undef_tracker = 0;
     
-    do {
-      unless ($seq) {
-        next;
+    foreach my $seqio (@seqs) {
+      my $seq = undef;
+      unless ($seqio) {
+	next;
       }
-
-      unless($outputseq) {
-	$outputseq = $seq;
-      } 
-      else {
-        $delim = $delims[$delimpos];
-        $delimpos += 1;
-	
-        if ($delimpos >= $maxdelim) {
-          $delimpos = 0;
-        }
-	
-        $descdelim = $descdelims[$descdelimpos];
-        $descdelimpos += 1;
-	
-        if ($descdelimpos >= $maxdescdelim) {
-          $descdelimpos = 0;
-        }
-	
-	if ($descdelim) {
-          $outputseq->desc(join $descdelim, $outputseq->desc(), $seq->desc());
+      
+      if ($repeat){
+	$seq = $seqio->next_seq();
+	if (!$seq){
+	  $seq = clone($seq_track[$i]);
+	  $undef_tracker++;
+	  last Paste if ($undef_tracker == scalar(@seqs));
+	}
+	else{
+	  $seq_track[$i] = clone($seq);
+	}
+      }
+      else {$seq = $seqio->next_seq();}
+      
+      do {
+	unless ($seq) {
+	  next;
 	}
 	
-        $outputseq->seq(join $delim ? $delim : $def_other_join, $outputseq->seq(), $seq->seq());
-        if ($format eq 'fastq'){
-          @outputqual = split ' ', $outputseq->qual_text();
-          push @outputqual, split ' ', $seq->qual_text();
-          $outputseq->qual(\@outputqual);
-        }
+	unless($outputseq) {
+	  $outputseq = $seq;
+	} 
+	else {
+	  $delim = $delims[$delimpos];
+	  $delimpos += 1;
+	  
+	  if ($delimpos >= $maxdelim) {
+	    $delimpos = 0;
+	  }
+	  
+	  $descdelim = $descdelims[$descdelimpos];
+	  $descdelimpos += 1;
+	  
+	  if ($descdelimpos >= $maxdescdelim) {
+	    $descdelimpos = 0;
+	  }
+	  
+	  if ($descdelim) {
+	    $outputseq->desc(join $descdelim, $outputseq->desc(), $seq->desc());
+	  }
+	
+	  $outputseq->seq(join $delim ? $delim : $def_other_join, $outputseq->seq(), $seq->seq());
+	  if ($format eq 'fastq'){
+	    @outputqual = split ' ', $outputseq->qual_text();
+	    push @outputqual, split ' ', $seq->qual_text();
+	    $outputseq->qual(\@outputqual);
+	  }
+	}
+      } while ($serial and $seq = $seqio->next_seq());
+      
+      if ($serial) {
+	last;
       }
-    } while ($serial and $seq = $seqio->next_seq());
-
-    if ($serial) {
-      last;
+      $i++;
+      
     }
-   $i++;
-
-  }
-  
-  if ($outputseq) {
-    print $OUT $outputseq;
-  }
-
-} while ($outputseq);
+    
+    if ($outputseq) {
+      print $OUT $outputseq;
+    }
+    
+  } while ($outputseq);
 }
 
 __END__
