@@ -35,7 +35,6 @@ my $join                 = undef; # -j
 my $repeat               = undef;
 my $description          = undef;
 my $identifier           = undef;
-my $recipient            = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -53,11 +52,6 @@ GetOptions('help|h'         		 => \$help,
 	   'join|j=s'                    => \$join,
 	   'fastq|q'                     => sub {$format = 'fastq';},
 	   'repeat|r'                    => \$repeat,
-	   'recipient|R=i'               => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --recipient or -R option takes an integer argument >= 1 or less than the number of arguments" 
-						    unless ($val > 0 and $val <= scalar (@ARGV)); 
-						  $recipient = $val;
-						},
 	  ) 
   or exit(1);
 
@@ -152,19 +146,12 @@ while (1) {
       $seq[$i] = $repseq[$i];
     }
     else {
-      $leftseqi++ unless ($seqs_on_input);
       $seq[$i] = 0;
+      $leftseqi++ unless ($seqs_on_input);
     }
   }
-  my $leftseq;
-  unless ($recipient) {
-    $leftseq = $seq[$leftseqi];
-  }
-  else {
-    $leftseq = $seq[($recipient - 1)];
-  }
   last unless ($seqs_on_input); 
-  last if ($recipient and not $seq[($recipient - 1)]);
+  my $leftseq = $seq[$leftseqi];
 
   my $outseq;
   #initialize output sequence from recipient sequence
@@ -185,6 +172,7 @@ while (1) {
     }
   }
 
+  my @data = ();
   my @newdata = ();
   my @newquals = ();
   my $pastequals = ( $selector eq "seq" and $format eq 'fastq');
@@ -223,27 +211,20 @@ B<faspaste> processes sequence or alignment data from one or more
 input sources, one sequence record per source at a time, and
 concatenates data for the sequence records across input sources. By
 default, sequences are concatenated; optionally descriptions or
-identifiers may be concatenated instead. 
+identifiers may be concatenated. The first argument to B<faspaste>
+designates "recipient" sequence records; output sequence records will
+resemble sequence records from this input source except for the
+concatenated data.
 
-The order of input sources to B<faspaste> is determined by the
-argument list to B<faspaste>, which may be file pathnames or "-"
-indicating the standard input stream. If a file pathname or "-" is
-repeated in the argument list, sequence records from that input source
-will be concatenated repeatedly in the output sequence record.
+The order of input sources to B<faspaste> is given by the argument
+list to B<faspaste>, which may be file pathnames or "-" indicating the
+standard input stream. If a file pathname or "-" is repeated in the
+argument list, the sequence record from that input source will be
+concatenated repeatedly in the output sequence record.
 
 When sequence records are exhausted for any input source, that source
-will be treated as an endless source of empty records. With the B<-r>
-or B<--repeat> option, the last record from an empty source is used
-repeatedly as needed. By default, records from the first input source
-are "recipient" sequence records as templates to receive the
-concatenated data for output. By default, if the first (leftmost)
-named input source is exhausted of records, the second-left-most input
-source is used as a template to receive output data, and so
-on. Alternatively, with the B<-R> or B<--recipient> option, the nth
-named input stream may be optionally designated to always receive data
-(one-based indexing is used, so the first argument designates the
-first input stream. Output ceases when this stream of records becomes
-exhausted.
+will be treated as an endless source of empty records. Optionally, the
+last record on that source will be repeated.
 
 By default, sequences and identifiers are concatenated with the empty
 string, and descriptions are concatenated with a single space
@@ -254,7 +235,6 @@ Options specific to B<faspaste>:
   B<-i>, B<--identifier>                  paste identifiers
   B<-d>, B<--description>                 paste descriptions
   B<-r>, B<--repeat>                      repeat data from last record for empty sources
-  B<-R>, B<--recipient>=<int>             use records from input stream <int> as output template
   B<-j>, B<--join>=<string>         concatenate data using <string>
 
 Options general to FAST:
@@ -404,7 +384,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Lawrence et al. (2015). FAST: FAST Analysis of
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
 Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
 
 =cut

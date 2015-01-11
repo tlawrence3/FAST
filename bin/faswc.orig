@@ -8,7 +8,7 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 $VERSION = $FAST::VERSION; 
-$DESC    = "annotate sequence lengths to descriptions";
+$DESC    = "tally sequences and sequence characters";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
 $COMMAND = join " ",$NAME,@ARGV;
@@ -19,7 +19,7 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_join_string = $FAST::DEF_JOIN_STRING;
+my $def_join_string = "";
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -29,7 +29,8 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-my $table                = undef;        # -t
+my $sequences_only       = undef;        # -s
+my $characters_only      = undef;        # -c 
 my $join                 = $def_join_string; # -j
 
 GetOptions('help|h'         		 => \$help, 
@@ -43,10 +44,10 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'table|t'                     => \$table,
-	   'join|j=s'                    => \$join,
-           'fastq|q'                     => sub {$format = 'fastq';},
-     ) 
+	   'sequences|s'                 => \$sequences_only,
+	   'characters|c'                => \$characters_only,
+           'fastq|q'                     => sub { $format = 'fastq'; },
+	  ) 
   or exit(1);
 		  
 $format = lc ($format);
@@ -55,10 +56,9 @@ pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input is from STDIN.\n") if ((-t STDIN) && (@ARGV == 0));
-pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $NAME -h for help.\n") if (!(-t STDIN) && (@ARGV != 0));
+pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $NAME -h for help.\n")      if (!(-t STDIN) && (@ARGV != 0));
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
-
+&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 my $IN;
@@ -70,10 +70,6 @@ unless (@ARGV) {
 	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
     }
 }
-
-if ($join eq '\t'){
-  $join = "\t";
-} 
 
 my $numseqs;
 my $numchars;
@@ -100,58 +96,67 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
-      my $length = $seq->length();
-      if ($table) {
-	my $id = $seq->id();
-	print join $join,$id,$length;
-	print "\n";
+      my $length;
+      unless ($characters_only) {
+	$numseqs++;
+	$numseqsfile++;
       }
-      else {
-	my $olddesc = $seq->desc();
-	$seq->desc(join $join,$olddesc,"length:$length");     
-	print $OUT $seq;
+      unless ($sequences_only) {
+	$length = $seq->length();
+	$numchars += $length;
+	$numcharsfile += $length;
       }
+    }
+    if ($file) {
+      print join $join,
+	( (!$characters_only) ? sprintf("%10d",$numseqsfile) : ""),
+	  ( (!$sequences_only ) ? sprintf("%10d",$numcharsfile) : ""),
+	    " $file\n";
     }
     undef $IN;
   }
 }
 
+print join $join,
+  ( (!$characters_only) ? sprintf("%10d",$numseqs) : ""),
+  ( (!$sequences_only ) ? sprintf("%10d",$numchars) : ""),
+  " total\n";
+
 __END__
 
 =head1 NAME
 
-B<faslen> -- annotate sequence lengths to descriptions
+B<faswc> - tally sequences and sequence characters
 
 =head1 SYNOPSIS
 
-B<faslen> [MULTIFASTA-FILE...]
+B<faswc> [OPTION]... [MULTIFASTA-FILE...]
 
 =head1 DESCRIPTION
 
-B<faslen> takes sequence or alignment data on input, computes sequence
-lengths, and annotates sequence record descriptions with their lengths
-in the format "length:<value>."  All sequence characters get counted,
-including gap characters. Identifiers and lengths may optionally be
-printed in a table to STDOUT.
+B<faswc> takes sequence or alignment data on input and outputs tallies
+of sequences and/or sequence characters directly to STDOUT (in analogy
+to B<wc>). If a list of files are given as arguments to B<faswc>,
+tallies are calculated by file as well as in total. If input is over
+STDIN, only totals are output.
 
-Options specific to B<faslen>:
-  B<-t>, B<--table>                   print lengths with ids in a table
-  B<-j>, B<--join>=<string>           use <string> to join data 
+Options specific to B<faswc>:
+  -B<s>, B<--sequences>                   tally sequences only
+  -B<c>, B<--characters>                  tally characters only
 
 Options general to FAST:
-  B<-h>, B<--help>                    print a brief help message
-  B<--man>             	       print full documentation
-  B<--version>                     print version
-  B<-l>, B<--log>                     create/append to logfile	
-  B<-L>, B<--logname>=<string>        use logfile name <string>
-  B<-C>, B<--comment>=<string>        save comment <string> to log
-  B<--format>=<format>             use alternative format for input  
-  B<--moltype>=<[dna|rna|protein]> specify input sequence type
-  B<-q>, B<--fastq>                   use fastq format as input and output
-
+  -B<h>, B<--help>                  	 print a brief help message
+  B<--man>             	           print full documentation
+  B<--version>                         print version
+  B<-l>, B<--log>                         create/append to logfile	
+  -B<L>, B<--logname>=<string>            use logfile name <string>
+  -B<C>, B<--comment>=<string>            save comment <string> to log
+  B<--format>=<format>                 use alternative format for input  
+  B<--moltype>=<[dna|rna|protein]>     specify input sequence type
+  B<-q>, B<--fastq>                       use fastq format as input and output
 =head1 INPUT AND OUTPUT
 
-B<faslen> is part of FAST, the FAST Analysis of Sequences Toolbox, based
+B<faswc> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
 STDIN. Output occurs to STDOUT.  
@@ -160,17 +165,16 @@ STDIN. Output occurs to STDOUT.
 
 =over 8
 
-=item B<-t>,
-      B<--table>
 
-Output data in a table to standard output. By default, length data is
-annotated into descriptions.
+=item B<-s>, 
+      B<--sequences>
 
-=item B<-j>,
-      B<--join=[string]>
+Output tallies of sequences only by file and/or in total.
 
-Use [string] to append length data in descriptions. Use with argument
-"\t" to indicate a tab-character.
+=item B<-c>, 
+      B<--characters>
+
+Output tallies of sequence characters only by file and/or in total.
 
 =item B<-h>,
       B<--help>
@@ -204,7 +208,7 @@ Include comment [string] in logfile. No comment is saved by default.
 
 =item B<--format=[format]> 		  
 
-Use alternative format for input. See man page for "B<faslen>" for
+Use alternative format for input. See man page for "faslen" for
 allowed formats. This is for convenience; the FAST tools are designed
 to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
@@ -219,41 +223,17 @@ processing data).
 =item B<-q>
       B<--fastq>
 
-use fastq format as input and output.
+Use fastq format as input and output.
 
 =back
 
 =head1 EXAMPLES
 
-Print length of all sequences:
+Count the number of sequences in data1.fas and data2.fas and the total:
 
-=over 8
+=over 8  
 
-B<faslen> sequences.fas > measured.fas
-
-=back
-
-Print tab-delimited table of lengths:
-
-=over 8
-
-B<faslen> -tj "\t" sequences.fas
-
-=back
-
-Filtering sequences to have length >= 300:
-
-=over 8
-
-B<faslen> sequences.fas | B<fasfilter> -t length 300.. 
-
-=back
-
-Sorting sequences by length:
-
-=over 8
-
-B<faswc> sequences.fas | B<fassort> -t length
+B<faswc> -s data1.fas data2.fas
 
 =back
 
@@ -273,7 +253,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Lawrence et al. (2015). FAST: FAST Analysis of
-Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
+Sequences Toolbox. Bioinformatics> and Bioperl I<Stajich et al.>.
 
 =cut

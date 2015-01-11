@@ -36,6 +36,7 @@ my $qualifier            = $def_qualifier; # -q
 my $key                  = undef; # -k
 my $key_search           = undef; # -K
 my $verbose              = undef;
+
 my $context              = undef;
 
 GetOptions('help|h'         		 => \$help, 
@@ -55,9 +56,10 @@ GetOptions('help|h'         		 => \$help,
 	   'key|k=s'                     => \$key,
 	   'key-search|K'                => \$key_search,
 	   'verbose'                     => \$verbose,
+	   'insensitive|i'               => \$insensitive,
 	   'location|l'                  => \$location,
 	   'primary|p=s'                 => \$primary,
-	   'context|c=i'                 => \$context,
+	   
 	  ) 
   or pod2usage(2);
 
@@ -76,22 +78,22 @@ my @op = ();
 my @tag_regex = ();
 
 
-# if ($qualifier) { 
-#   foreach my $tvp (split /\+/,$tag_match) {
-#     unless ($tvp =~ /[=\^]/) {
-#       carp "Bad format in -t option";
-#       die;
-#     }
-#     my ($tag,$op,$tag_regex) = split /([=\^])/,$tvp;
-#     unless ($tag and $op and $tag_regex) {
-#       carp "Bad format in -t option";
-#       die;
-#     }
-#     push @tag,$tag; 
-#     push @op,($op eq "=" ? 1 : 0);
-#     push @tag_regex,($insensitive ? qr/$tag_regex/i : qr/$tag_regex/);
-#   }
-# }
+if ($tag_match) { 
+  foreach my $tvp (split /\+/,$tag_match) {
+    unless ($tvp =~ /[=\^]/) {
+      carp "Bad format in -t option";
+      die;
+    }
+    my ($tag,$op,$tag_regex) = split /([=\^])/,$tvp;
+    unless ($tag and $op and $tag_regex) {
+      carp "Bad format in -t option";
+      die;
+    }
+    push @tag,$tag; 
+    push @op,($op eq "=" ? 1 : 0);
+    push @tag_regex,($insensitive ? qr/$tag_regex/i : qr/$tag_regex/);
+  }
+}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
@@ -161,7 +163,7 @@ __END__
 
 =head1 NAME
 
-B<gbfcut> - search features from GenBank files with regexes and print corresponding sequences
+B<gbfcut> - search features from GenBank files with regexes and print corresponding sequences.g
 
 =head1 SYNOPSIS
 
@@ -171,7 +173,7 @@ B<gbfcut> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...] 
 
 B<gbfcut> extract subsequences for potentially split features from GenBank file(s) with tag-based filtering
 
-Options specific to B<gbfcut>:
+Options specific to B<gbf2fas>:
   B<-t>, B<--tag=<string>>                filter only features that have all specified tags
   B<-i>, B<--case-insensitive>            case-insensitive pattern matching for tag-value regexes with -t option
   B<-l>, B<--location>                    print genomic location strings in the sequence descriptions
@@ -320,7 +322,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Lawrence et al. (2015). FAST: FAST Analysis of
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
 Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
 
 =cut

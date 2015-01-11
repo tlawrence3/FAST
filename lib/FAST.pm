@@ -44,16 +44,93 @@ Version 1.00
 
 =head1 SYNOPSIS
 
-The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX utilities
-(for example fasgrep, fascut, fashead and fastr) for sequence bioinformatics
-modeled after the UNIX textutils (such as grep, cut, head, tr, etc). FAST
-workflows are designed for "inline" (serial) processing of flatfile
-biological sequence record databases per-sequence, rather than per-line,
-through UNIX pipelines. The default data exchange format is multifasta
-(specifically, a restriction of BioPerl FastA format). FAST is designed for
-learnability, interoperability, interface consistency, rapid prototyping,
-fine-tuned control, and reproducibility. FAST tools expose the power of Perl
-and BioPerl to users in an easy-to-learn command-line paradigm. 
+The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX
+utilities (for example fasgrep, fascut, fashead and fastr) that
+extends the UNIX toolbox paradigm to bioinformatic sequence
+records. Modeled after the UNIX textutils (such as grep, cut, head,
+tr, etc), FAST workflows are designed for "inline" (serial) processing
+of flatfile biological sequence record databases per-sequence, rather
+than per-line, through UNIX pipelines. The default data exchange
+format is multifasta (specifically, a restriction of BioPerl FastA
+format). FASTQ format is supported. FAST is designed for learnability,
+interoperability, interface consistency, rapid prototyping, fine-tuned
+control, and reproducibility. FAST tools expose the power of Perl and
+BioPerl to users in an easy-to-learn command-line paradigm.
+
+=head1 UTILITIES
+
+FAST 1.0 contains the following utilities. Each has its own man page.
+
+=over 4
+
+=item B<alncut>     
+select sites based on site variation and gap-content
+
+=item B<alnpi>      
+calculate molecular population genetic statistics 
+
+=item B<fascodon>   
+tally/annotate codon usage
+
+=item B<fascomp>    
+tally/annotate monomer frequencies
+
+=item B<fasconvert> 
+convert sequences to or from from fasta format
+
+=item B<fascut>     
+select/reorder sequence records based on index lists/ranges
+
+=item B<fasfilter>  
+filter sequence records based on numerical values
+
+=item B<fasgrep>    
+filter sequence records based on perl regular expressions
+
+=item B<fashead>    
+filter leading sequence records
+
+=item B<faslen>     
+annotate sequence lengths
+
+=item B<faspaste>   
+concatenate sequence records
+
+=item B<fasrc>      
+reverse complement nucleotide sequences and alignments
+
+=item B<fassort>    
+sort sequence records
+
+=item B<fassub>     
+transform sequence records using regex-based substitutions
+
+=item B<fastail>    
+filter trailing sequence records
+
+=item B<fastax>     
+filter sequence records based on NCBI taxonomy IDs or names
+
+=item B<fastaxsort> 
+sort sequence records based on NCBI taxonomy IDs or names
+
+=item B<fastr>      
+transform sequence records by character, degap, strict
+
+=item B<fasuniq>    
+remove duplicate sequence records from sorted data
+
+=item B<faswc>      
+tally sequences and characters
+
+=item B<fasxl>      
+translate gapped and ungapped sequences and alignments
+
+=item B<gbfalncut>  
+select sites by regex matching of features in a GenBank file
+
+=item B<gbfcut>     
+print sequences by regex matching to features in a GenBank file
 
 =head1 AUTHORS
 
