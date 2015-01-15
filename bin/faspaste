@@ -40,7 +40,7 @@ my $recipient            = undef;
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						  die "$NAME: --moltype or -m option argument must be \"dna\", \"rna\" or \"protein\"" 
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
@@ -301,6 +301,11 @@ Use <string> to concatenate data. Use "\t" to indicate a tab-character.
 
 If a source contains less sequences than the longest source the last entry of the 
 shorter source is repeated.
+
+=item B<-R int>,
+      B<--recipient=int>
+
+Use input source #<int> as template to receive concatenated data. 
 
 =item B<-h>,
       B<--help>

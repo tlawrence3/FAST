@@ -42,7 +42,7 @@ my $join                 = $def_join_string; # -j
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						  die "$NAME: --moltype or -m option argument must be \"dna\", \"rna\" or \"protein\"" 
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
@@ -50,7 +50,7 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'records|n=i'                   => sub{  my (undef,$val) = @_; 
+	   'records|number|n=i'                   => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --records or -n option expects a positive integer argument\n" 
 						    unless $val > 0;
 						  $n = $val;
@@ -222,7 +222,7 @@ specified, of the standard input. B<fastail> by default prints the
 last 10 sequence records.
 
 Options specific to B<fastail>:
-  B<-n>, B<--records>=<integer>           the number of sequence records to print
+  B<-n>, B<--number>=<integer>           the number of sequence records to print
   B<-a>, B<--annotate>                    annotate sequence records with source filename in descriptions
   B<-j>, B<--join>=<string>               use <string> to join annotation in descriptions
 

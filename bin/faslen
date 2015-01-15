@@ -35,7 +35,7 @@ my $join                 = $def_join_string; # -j
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						  die "$NAME: --moltype or -m option argument must be \"dna\", \"rna\" or \"protein\"\n" 
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},

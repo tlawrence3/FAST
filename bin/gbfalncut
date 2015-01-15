@@ -38,7 +38,6 @@ my $negate               = undef; # -v
 my $qualifier            = $def_qualifier; # -q
 #my $intersect_match      = undef; # -x
 my $key                  = undef; # -k
-my $key_search           = undef; # -K
 my $verbose              = undef;
 
 GetOptions('help|h'         		 => \$help, 
@@ -56,8 +55,7 @@ GetOptions('help|h'         		 => \$help,
 	   'negate|v'                    => \$negate,
 	   'qualifier|q=s'               => \$qualifier,
 #	   'intersect|x=s'               => \$intersect_match,
-	   'key|k=s'                     => \$key,
-	   'key-search|K'                => \$key_search,
+	   'key|k'                       => \$key,
 	   'verbose'                     => \$verbose,
 	  ) 
   or pod2usage(2);
@@ -130,15 +128,14 @@ while ($IN or @ARGV) {
       ## SEARCH FEATURES
       foreach my $feat ( $gb->top_SeqFeatures() ) {
 	$feat->location->coordinate_policy($narrow_policy);
-	if ($key_search) { 
-	  my $key = $feat->primary_tag();
-	  if ($key =~ $re) {
+	if ($key) { 
+	  my $primary = $feat->primary_tag();
+	  if ($primary =~ $re) {
 	    print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring(),".\n" if ($verbose);
 	    &push_sites($saln,$feat,\@colslice);
 	  }
 	  next;
 	}
-	next if ($key and $feat->primary_tag() ne $key); # "key" is NCBI nomenclature
 	if ($feat->has_tag($qualifier)) { # "qualifier" is NCBI nomenclature
 	  foreach $value ( $feat->each_tag_value($qualifier) ) {
 	    if ($value =~ $re) {
@@ -241,7 +238,6 @@ Options specific to B<gbfalncut>:
                                      default qualifier is "note" (as in /note="intron")          
   B<-k>, B<--key>=<string>         restrict search to features with keys <string>. 
   B<-K>, B<--key-search>           regex match directly on feature keys
-  B<-x>, B<--intersect>=<string>   filter hitting sites against 
   B<--verbose>                  produce verbose output              
 
 Options general to FAST:
@@ -279,11 +275,6 @@ expression argument.
 
 =item B<-q>=<string>,
       B<--qualifier>=<string>
-
-
-=item B<-x>=<regex>,
-      B<--intersect>=<regex>
-
 
 
 =item B<-k>=<string>,
@@ -380,7 +371,7 @@ Introduction and cookbook for FAST
 
 =head1 CITING
 
-If you use FAST, please cite I<Lawrence et al. (2015). FAST: FAST Analysis of
+If you use FAST, please cite I<Lawrence et al. (2014). FAST: FAST Analysis of
 Sequences Toolbox.> and Bioperl I<Stajich et al.>. 
 
 =cut

@@ -20,7 +20,8 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_qualifier = 'note';
+my $def_join_string =  $FAST::DEF_JOIN_STRING;
+
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -32,11 +33,11 @@ my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $insensitive          = undef; # -i
 my $negate               = undef; # -v
-my $qualifier            = $def_qualifier; # -q
+my $qualifier            = undef; # -q 
 my $key                  = undef; # -k
-my $key_search           = undef; # -K
 my $verbose              = undef;
 my $context              = undef;
+my $join                 = $def_join_string; # -j
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -51,47 +52,45 @@ GetOptions('help|h'         		 => \$help,
 	   'comment|C=s'                 => \$comment,
 	   'case-insensitive|i'          => \$insensitive,
 	   'negate|v'                    => \$negate,
-	   'qualifier|q=s'               => \$qualifier,
+	   ## @ allows for multiple use of the -q option
+	   'qualifier|q=s@'              => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --qualifier or -q option argument must contain either \"=\" or \"^\", try perldoc $NAME" 
+						    unless $val =~ /[=\^]/; 
+						  push @$qualifier,$val;
+						},
 	   'key|k=s'                     => \$key,
-	   'key-search|K'                => \$key_search,
-	   'verbose'                     => \$verbose,
-	   'location|l'                  => \$location,
-	   'primary|p=s'                 => \$primary,
 	   'context|c=i'                 => \$context,
+	   'join|j=s'                    => \$join,
 	  ) 
   or pod2usage(2);
 
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
 
+$join = "\t" if ($join eq '\t');
+
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: Requires at least one argument when taking input from terminal. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 1));
-pod2usage("$NAME: Requires at least one argument. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 0);
+pod2usage("$NAME: Requires at least one argument unless connected to standard input. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV < 1);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
-my @tag = ();
+my @qua = ();
 my @op = ();
-my @tag_regex = ();
+my @qua_regex = ();
 
 
-# if ($qualifier) { 
-#   foreach my $tvp (split /\+/,$tag_match) {
-#     unless ($tvp =~ /[=\^]/) {
-#       carp "Bad format in -t option";
-#       die;
-#     }
-#     my ($tag,$op,$tag_regex) = split /([=\^])/,$tvp;
-#     unless ($tag and $op and $tag_regex) {
-#       carp "Bad format in -t option";
-#       die;
-#     }
-#     push @tag,$tag; 
-#     push @op,($op eq "=" ? 1 : 0);
-#     push @tag_regex,($insensitive ? qr/$tag_regex/i : qr/$tag_regex/);
-#   }
-# }
+if ($qualifier) { 
+  foreach my $qvp (@$qualifier) {
+    my ($qua,$op,$qua_regex) = split /([=\^])/,$qvp;
+    unless ($qua and $op and $qua_regex) {
+      die "$NAME: Bad format in -q option argument $qvp\n";
+    }
+    push @qua,$qua; 
+    push @op,($op eq "=" ? 1 : 0);
+    push @qua_regex,($insensitive ? qr/$qua_regex/i : qr/$qua_regex/);
+  }
+}
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => 'fasta');
 my $IN;
@@ -99,8 +98,6 @@ unless (@ARGV) {
     $IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => 'genbank');
 }
 
-my $featseq = undef;
-my $id = undef;
 while ($IN or @ARGV) {
   if (@ARGV) {
     my $file = shift (@ARGV);
@@ -112,44 +109,52 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seqobj = $IN->next_seq()) {
-    FEAT: foreach my $feat ( $primary ? 
-			     (grep { $_->primary_tag =~ /$primary/i } $seqobj->get_SeqFeatures() ) :
-			     ($seqobj->get_SeqFeatures())
-			   )  {
-	foreach my $i (0..$#tag) {
-	  next FEAT unless (
-			    (
-			     ($feat->has_tag($tag[$i]) and $op[$i] and grep {/$tag_regex[$i]/} $feat->get_tag_values($tag[$i]))
-			     or
-			     ($feat->has_tag($tag[$i]) and not $op[$i] and not grep {/$tag_regex[$i]/} $feat->get_tag_values($tag[$i]))
-			    )
-			   );
-	}
-	## my $loc_string  = $feat->location->to_FTstring;
-	## $loc_string =~ s/omplement//;
-	## HANDLE CONTEXT
-	## 12-1-14 $context is never defined so this code doesn't do anything
-	##if ($context != 0  and $feat->start > $feat->end) {
-	##  $feat->start($feat->start + $context);
-	##  $feat->end  ($feat->end   - $context);
-	##}
-	##elsif ($context != 0) {
-	##  $feat->start($feat->start - $context);
-	##  $feat->end  ($feat->end   + $context);
-	##}
-	
-	$featseq = $feat->spliced_seq;
-	## SET DISPLAY ID TO RETURN ALL TAG INFORMATION; THIS CAN BE OPTIONALLY RESTRICTED
-	## $id = join "_", grep {/geneid/i} $feat->get_tagset_values($feat->get_all_tags());
-	## $id ||= join "_", grep {/gi/i} $feat->get_tagset_values($feat->get_all_tags());
-	## $id ||= join "_", $feat->get_tagset_values("gene");
-	## $id ||= join "_", $feat->get_tagset_values("product");
-	## $id ||= $loc_string;
-	## $featseq->display_id($id);
-	$featseq->desc(join " ",(map {join "=",$_,(join "","\"",(join ";",grep {!/geneid/i} $feat->get_tagset_values($_)),"\"")} $feat->get_all_tags()),($location ? "location=\"$loc_string\"" : '')); 
-	
-	print $OUT $featseq;
+      my @features;
+      if ($key) {
+	@features = grep { $_->primary_tag =~ /$key/i } $seqobj->get_SeqFeatures();
       }
+      else {
+	@features = $seqobj->get_SeqFeatures();
+      }
+      FEAT: foreach my $feat (@features) {
+	  foreach my $i (0..$#qua) {
+	    next FEAT unless (
+			      (
+			       ($feat->has_tag($qua[$i]) and $op[$i] and grep {/$qua_regex[$i]/} $feat->get_tag_values($qua[$i]))
+			       or
+			       ($feat->has_tag($qua[$i]) and not $op[$i] and not grep {/$qua_regex[$i]/} $feat->get_tag_values($qua[$i]))
+			      )
+			     );
+	  }
+	  
+	  if ($context and $context != 0  and $feat->start > $feat->end) {
+	    $feat->start($feat->start + $context);
+	    $feat->end  ($feat->end   - $context);
+	  }
+	  elsif ($context and $context != 0) {
+	    $feat->start($feat->start - $context);
+	    $feat->end  ($feat->end   + $context);
+	  }
+	  
+	  my $featseq = $feat->spliced_seq;
+	  my $id = $featseq->id();
+	  $id =~ s/_spliced_feat//;
+	  $featseq->id($id);
+
+	  my @data;
+	  push @data, (sprintf "key:%s",$feat->primary_tag());
+	  push @data, (sprintf "location:%s",$feat->location->to_FTstring());
+	  push @data, (sprintf "context:%s", $context) if ($context);
+	  foreach my $tag ($feat->get_all_tags()){
+	    foreach my $val ($feat->get_tagset_values($tag)){
+	      push @data, (sprintf "%s:\"%s\"",$tag,$val); 
+	    }
+	  }
+	  my $data = join $join,@data;
+	  $featseq->desc($data);
+	  
+	  print $OUT $featseq;
+	}
     }
     undef $IN;
   }
@@ -161,21 +166,32 @@ __END__
 
 =head1 NAME
 
-B<gbfcut> - search features from GenBank files with regexes and print corresponding sequences
+B<gbfcut> - search features from GenBank files and print corresponding sequences
 
 =head1 SYNOPSIS
 
-B<gbfcut> [OPTIONS]... [-t <tag1>[=^]<perl-regex1>+<tag2>[=^]<perl-regex2>+...] < GenBank-file"
+B<gbfcut> [OPTIONS]... [GENBANK-FILE]...
 
 =head1 DESCRIPTION
 
-B<gbfcut> extract subsequences for potentially split features from GenBank file(s) with tag-based filtering
+B<gbfcut> takes GenBank-sequence input and outputs subsequences that
+correspond to features annotated on all input sequences in Multi-Fasta
+format. Both simple and more complex split features are
+supported. Optionally, B<gbfcut> may be directed to only output
+sequences corresponding to features with one or more qualifiers, the
+values of match specific perl regular expressions
+(regexes). Alternatively, features may be filtered by regular
+expression matching against particular keys.  By default all features
+are printed.
 
 Options specific to B<gbfcut>:
-  B<-t>, B<--tag=<string>>                filter only features that have all specified tags
-  B<-i>, B<--case-insensitive>            case-insensitive pattern matching for tag-value regexes with -t option
-  B<-l>, B<--location>                    print genomic location strings in the sequence descriptions
-  B<-p>, B<--primary=<string>>           filter only features with primary tags matching given perl-regex
+  B<-q>, B<--qualifier=<string>>          search features for qualifer values by regular expressions
+  B<-i>, B<--insensitive>                 case-insensitive pattern matching for regex matching 
+  B<-k>, B<--key>=<string>                restrict search to features whose keys match regex <string>. 
+  B<-a>, B<--annotate>                    annotate output records with feature metadata in descriptions
+  B<-j>, B<--join>=<string>               use <string> to join annotation in descriptions
+  B<-l>, B<--location>                    print genomic location strings in annotations
+  B<
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message

@@ -47,8 +47,8 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-	   'records|n=i'                   => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --records or -n option expects a positive integer argument\n" 
+	   'records|number|n=i'                   => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --number or -n option expects a positive integer argument\n" 
 						    unless $val > 0;
 						  $n = $val;
 					       },
@@ -132,7 +132,7 @@ specified, of the standard input. B<fashead> by default prints the
 first 10 sequence records.
 
 Options specific to B<fashead>:
-  B<-n>, B<--records>=<integer>           the number of sequence records to print
+  B<-n>, B<--number>=<integer>           the number of sequence records to print
   B<-a>, B<--annotate>                    annotate sequence records with source filename in descriptions
   B<-j>, B<--join>=<string>               use <string> to join annotation in descriptions
 
@@ -161,6 +161,7 @@ reformat other formats to and from multifasta.
 
 =item B<-n [integer]>,
       B<--records=[integer]>
+      B<--number=[integer]>
 
 The number of sequence records to print. Must be a positive
 integer. Defaults to 10.

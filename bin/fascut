@@ -38,12 +38,13 @@ my $identifier           = undef;               # -i
 my $description          = undef;               # -d
 my $field                = undef;               # -f
 my $split_on_regex       = undef;               # -S 
+my $annotate             = undef;               # -a
 my $join                 = undef;               # -j
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\" or \"protein\"" 
+						  die "$NAME: --moltype or -m option argument must be \"dna\", \"rna\" or \"protein\"" 
 						    unless $val =~ /dna|rna|protein/i; 
 						  $moltype = $val;
 						},
@@ -56,6 +57,7 @@ GetOptions('help|h'         		 => \$help,
 	   'field|f'                     => \$field,
 	   'split-on-regex|S=s'          => \$split_on_regex,
 	   'join|j=s'                    => \$join,
+	   'annotate|a'                  => \$annotate,
            'fastq|q'                     => sub{$format = 'fastq';},
 	  ) 
   or exit(1);
@@ -298,6 +300,7 @@ while ($IN or @ARGV) {
       }
       $newseq->$selector($newdata);
       if ($selector eq 'seq' && $format eq 'fastq') {$newseq->qual(\@newqual);} 
+
       print $OUT $newseq;
     }
     undef $IN;

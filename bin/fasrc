@@ -40,7 +40,7 @@ GetOptions('help|h'         		   => \$help,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
 	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option must be either \"dna\", \"rna\"" 
+						  die "$NAME: --moltype or -m option argument must be \"dna\", \"rna\"" 
 						    unless $val =~ /dna|rna/i; 
 						  $moltype = $val;
 						},
