@@ -1,6 +1,7 @@
-* Pre-release tasks:
-** change all --case-insensitive options and docs to --insensitive
-
 * Utilities to Write:
 ** fasrand
+** alnrand
 ** fasnl
+** fasgo
+** fasgosort
+

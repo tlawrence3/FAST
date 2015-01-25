@@ -3,6 +3,7 @@
 
 %\setcitestyle{square}
 \usepackage{url,lineno}
+\usepackage[english]{babel}
 \linenumbers
 
 \copyrightyear{}
@@ -12,16 +13,15 @@
 \def\DOI{} \def\articleType{Methods}
 \def\keyFont{\fontsize{8}{11}\helveticabold }
 \def\firstAuthorLast{Lawrence {et~al.}} %use et al only if is more than 1 author
-\def\Authors{Travis J. Lawrence\,$^{1}$, Dana L. Carper\,$^{1}$, Kyle
-  T. Kauffman\,$^{2}$, Katherine C.H. Amrine\,$^{1,3}$, Raymond S. Lee\,$^{4}$, Claudia
+\def\Authors{Travis J. Lawrence\,$^{1}$,  Kyle  T. Kauffman\,$^{2}$, Katherine C.H. Amrine\,$^{1,3}$, Dana L. Carper\,$^{1}$,  Raymond S. Lee\,$^{4}$, Claudia
   J. Canales\,$^{4}$ and David H. Ardell\,$^{1,2*}$}
 \def\Address{
 $^{1}$Quantitative and Systems Biology, University of California, Merced, CA, USA \\
-$^{2}$Molecular and Cell Biology Unit, University of California, Merced, CA, USA \\
+$^{2}$Molecular Cell Biology Unit, University of California, Merced, CA, USA \\
 $^{3}$Dept. of Viticulture and Enology, University of California, Davis, CA, USA \\
 $^{4}$School of Engineering, University of California, Merced, CA, USA}
 \def\corrAuthor{David H. Ardell}
-\def\corrAddress{Molecular and Cell Biology, School of Natural Sciences, University of California, Merced, 5200 North Lake Road, Merced, CA , 95343, USA}
+\def\corrAddress{Molecular Cell Biology Unit, School of Natural Sciences, University of California, Merced, 5200 North Lake Road, Merced, CA , 95343, USA}
 \def\corrEmail{dardell@ucmerced.edu}
 
 \begin{document}
@@ -38,29 +38,29 @@ $^{4}$School of Engineering, University of California, Merced, CA, USA}
 
 \begin{abstract}
   FAST (Fast Analysis of Sequences Toolbox) provides a set of
-  relatively simple yet powerful command-line tools to filter,
-  transform, annotate and analyze biological sequence data. Modeled
-  after the GNU (GNU's Not UNIX) Textutils such as {\tt grep}, {\tt
-    cut}, and {\tt tr}, FAST tools such as {\tt fasgrep}, {\tt
-    fascut}, and {\tt fastr} are designed for rapid prototyping of
-  concise, production-scale reproducible bioinformatic workflows in a
-  generic idiom with no programming required.  Interface consistency
-  and conformity with GNU, Matlab, Perl, BioPerl, R and GenBank
-  conventions are key to making FAST easy and rewarding to learn. FAST
-  is also portable, easy to install, and secure, given its BioPerl and
-  Perl foundations. The default data exchange format in FAST is
-  MultiFastA (specifically, a restriction of BioPerl FastA format),
-  while Sanger and Illumina 1.8+ FASTQ formatted files are also
-  compatible.  FAST automates numerical, textual and taxonomic
-  selection and filtering of sequence records, coordinate and
-  annotation-based sequence extractions, and statistics including molecular biological
-  statistics including composition and codon usage, and molecular
-  population genetic statistics. FAST promotes reproducibility by
-  reducing the need for manual data interventions and making it easier
-  to document complex biological data processing. The command-line
-  basis of FAST makes it easier to interactively investigate and
-  control biological data at the speed of thought and brings the power
-  of Perl and BioPerl to nonprogrammers. \tiny \keyFont{
+  relatively simple yet powerful open source command-line tools to
+  filter, transform, annotate and analyze biological sequence
+  data. Modeled after the GNU (GNU's Not UNIX) Textutils such as {\tt
+    grep}, {\tt cut}, and {\tt tr}, FAST tools such as {\tt fasgrep},
+  {\tt fascut}, and {\tt fastr} are designed for rapid prototyping and
+  easy documentation of powerful automated sequence bioinformatic
+  workflows in a generic idiom with no programming required.  FAST is
+  intended to answer the urgent call for greater reproducibility in
+  bioinformatics.  Interface consistency and conformity with GNU,
+  Matlab, Perl, BioPerl, R and GenBank conventions are key to making
+  FAST easy and rewarding to learn. Built on foundations of Perl and
+  BioPerl, FAST is portable, easy to install, and secure, with stable
+  releases posted to CPAN and development on Github. The default data
+  exchange format in FAST is Multi-FastA (specifically, a restriction
+  of BioPerl FastA format).  Sanger and Illumina 1.8+ FASTQ formatted
+  files are also supported.  FAST automates numerical, textual and
+  taxonomic searching and sorting of sequence records, coordinate and
+  annotation-based sequence extraction, and analytics such as
+  composition, codon usage, and molecular population genetic
+  statistics.  The command-line basis of FAST makes it easier to
+  interactively investigate and control biological data at the speed
+  of thought, and brings the power of Perl and BioPerl to
+  nonprogrammers. \tiny \keyFont{
   \section{Keywords:} Unix philosophy, MultiFASTA, pipeline,
   bioinformatic workflow, open source, BioPerl, regular expression,
   NCBI Taxonomy}
@@ -68,79 +68,144 @@ $^{4}$School of Engineering, University of California, Merced, CA, USA}
 
 \section{Introduction}
 
-Next Generation Sequencing (NGS) technology makes gigabyte- and
-terabyte-scale biological sequence datasets commonplace.  Non-free
-bioinformatic applications for basic sequence manipulation are often
-monolithic with Graphical User Interfaces (GUIs)~\citep{Smith1994,
-  Rampp2006, Librado01062009}.  Detailed documentation of
-bioinformatic workflows, towards their ultimate reproducibility, often goes missing along scientific service chains
+Non-free bioinformatic software for basic sequence manipulation is
+often implemented as monolithic applications with Graphical User
+Interfaces (GUIs)~\citep{Smith1994, Rampp2006,
+  Librado01062009,gouy2010seaview}.  Unfortunately, this software
+paradigm can be difficult for users to effectively scale to larger
+datasets and more complex analytics.  Indeed, today's Next Generation
+Sequencing (NGS) technology makes gigabyte- and terabyte-scale
+biological sequence datasets commonplace.  Detailed documentation of
+bioinformatic workflows for such datasets is not well-supported by
+such monolitic applications. And it is precisely with today's
+high-throughput datasets that documentation, transparency and
+reproducibility of bioinformatic and biostatistical workflows is most
+important.
 
-consistently and uniformly required for
-publication. These trends fly in the face of calls for greater
-reproducibility in modern biological research. Recent calls for
-adequate documentation of bioinformatic and biostatistical workflows
-and open source code sharing upon publication in bioinformatics
-reproducible research and and biostatistics were motivated in part to
-combat fraudulent research in
-biomedicine~\citep{Peng01072009}. Open-source software in science
-facilitates crowd-sourced verification, correction and extension of
-code-based analysis~\citep{barnes2010publish}, and reuse of software
-and data to make discoveries using public
-data~\citep{Peng02122011}. The absence of adequate documentation for
-analysis of high-dimensional data can obscure errors in processing
-with profound potential ethical and financial
-consequences~\citep{BaggerlyCoombes2009,hutson2010data,Baggerly01052011,Huang01072013}. In
-one analysis, only 2 of eighteen published microarray gene-expression
-analyses were completely reproducible in part because of proprietary
-closed-source software~\citep{Ioannidis:2008cr}. Analytical errors are
-a major source of retractions in the scientific
+Wider recognition of the importance of reproducibility in modern
+biological and biomedical research has been motivated in part by a few
+very high-profile cases of scientific fraud, but is much more
+generally justified as crucial to maintaining public trust in the
+value of its investments in the complex and expensive high-dimensional
+analysis of complex biological
+systems~\citep{BaggerlyCoombes2009,hutson2010data,Baggerly01052011,Huang01072013}.
+In one analysis, only 2 of eighteen published microarray
+gene-expression analyses were completely reproducible, in part because
+key analysis steps were made with proprietary closed-source
+software~\citep{Ioannidis:2008cr}. Analytical errors are a major
+source of retractions in the scientific
 literature~\citep{Casadevall01092014}. Peer-review of scientific
 software is generally not yet required for publication but seen as
-necessary for integrity of the scientific enterprise across fields and
-requiring more computational training for all
+vital for integrity of the scientific enterprise across fields, with
+calls for deepened computational training and literacy for all
 scientists~\citep{Morin13042012,Joppa17052013}. Publication and
 documentation of bioinformatics workflows simplifies post-publication
-validation of research findings and may help reduce the temptation to
-fish for significance and encourage more objectivity in data analysis
-and interpretation~\citep{Boulesteix01022010}
+validation of research findings, may help reduce the temptation to
+fish for significance, encouraging more objectivity in data analysis
+and interpretation~\citep{Boulesteix01022010}. These developments have
+led to calls for adequate documentation of bioinformatic and
+biostatistical workflows and open source sharing of code upon
+publication~\citep{Peng01072009}, which facilitate crowd-sourced
+verification, correction and extension of code-based
+analyses~\citep{barnes2010publish,Morin13042012}, and reuse of
+software and data to make discoveries using public
+data~\citep{Peng02122011}.
 
 To reduce human error and increase reproducibility in the management
 and documentable processing of biological data, it is desirable to
 create self-documenting automated bioinformatic workflows --- scripts
-and other literate programming that encode scientific workflows for
-machine processing of biological data. Web-based open-source workflow
-suites such as Galaxy~\citep{galaxy14}, Taverna~\citep{CPE:CPE993} and
+and other literate programming~\citep{knuth1984literate} that encode
+scientific workflows for machine processing of biological
+data. Web-based open-source workflow suites such as
+Galaxy~\citep{galaxy14}, Taverna~\citep{CPE:CPE993} and
 BioExtract~\citep{Lushbough01072011} facilitate this, but an even more
-rapid and time-tested development platform for rapid prototyping of reproducible
-workflows is the UNIX command-line, specifically UNIX pipelines.
+rapid and time-tested development platform for rapid prototyping of
+reproducible workflows is the UNIX command-line, specifically UNIX
+pipelines.
 
-The FAST utilities are modeled after the standard Unix
-toolkit\citep{Peek2001} and follow the Unix philosophy to ``do one
-thing and do it well'' \citep{Stutz2000}.
-
-
-Command-line utilities for bioinformatics such as the EMBOSS
-package~\citep{Rice2000} or the scripts that come with
+In this tradition we present FAST: Fast Analysis Sequences Toolbox,
+modeled after the standard Unix toolkit~\citep{Peek2001}. The FAST
+tools follow the Unix philosophy to ``do one thing and do it well''
+and ``write programs to work
+together.''~\citep{Stutz2000}. Command-line utilities for
+bioinformatics such as the EMBOSS package~\citep{Rice2000}, the FASTX
+tools~\citep{fastx} or the scripts that come with
 BioPerl~\citep{Stajich2002} typically offer suites of tools with
 simple, well-defined functions that lend themselves to scripting, but
-are not necessarily designed according to the UNIX toolbox philosophy specifically to interoperate through
-composition.
+are not necessarily designed according to the UNIX toolbox philosophy
+specifically to interoperate through composition. Similarly, FaBox is
+a free and open online server with functions that overlap with FAST
+tools, but is not designed for serial composition. On the other hand,
+the UNIX toolbox model has been applied before in bioinformatics for
+the processing of NMR data~\citep{delaglio1995nmrpipe}.
 
- They are written in Perl
-using BioPerl packages \citep{Stajich2002}. This makes FAST utilities
-easy to adopt if you are familiar with the Unix toolbox and allows
-fast sequence analysis even on large datasets. Extensive
-documentation has been developed for each utility along with useful
-error messages following the recommendations of \citep{Seemann2013} to
-increase usability. Lastly, FAST is open source, which makes it
-available to anyone free of cost. This is in line with the call to
-make science more assessable, open, and reproducible by other
-scientists and the public \citep{Groves2012}.
+The FAST tools are written in Perl using BioPerl packages
+\citep{Stajich2002}. This makes FAST utilities easy to adopt if you
+are familiar with the Unix toolbox and allows fast sequence analysis
+even on large datasets. Extensive documentation has been developed for
+each utility along with useful error messages following the
+recommendations of \citep{Seemann2013} to increase usability. Lastly,
+FAST is open source, which makes it available to anyone free of
+cost. This is in line with the call to make science more accessible,
+open, and reproducible by other scientists and the
+public~\citep{Groves2012}.
 
 \section{Design}
 
 An overview of Version 1.0 of the FAST project is shown in
-Figure~\ref{fig:01}. Descriptions of the function of utilities along
+Figure~\ref{fig:01}. FAST uses the universally recognized FastA
+format~\citep{lipman1985rapid} as its default format for input and
+output, enabling FAST utilities to be composed in series. For FAST,
+"fasta format" means what is conventionally called "multi-fasta"
+format of sequence or alignment data, largely as implementated in
+BioPerl in the module {\tt Bio::SeqIO::fasta}~\citep{Stajich2002}.
+
+In the FAST implementation of FastA format, multiple sequence records
+may appear in a single file or input stream. Sequence data may contain
+gap characters. The logical elements of a sequence record are its {\it
+  identifier}, {\it description} and {\it sequence}. The identifier
+(indicated with {\tt id} in the example below) and description {\tt
+  desc} together make the {\it identifier line} of a sequence record,
+which must begin with the sequence record start symbol {\tt >} on a
+single line. The description begins after the first block of
+white-space on this line (indicated with {\tt <space>}). The {\it
+  sequence} of a record appears immediately after its identifier line
+and may continue over multiple lines until the next record starts.
+
+In FAST, the description may be broken into multiple {\it fields} with
+user-defined {\it delimiters} (indicated by {\tt <delim>}. FAST uses
+one-based indexing of fields as indicated in this example:
+
+\begin{verbatim}
+>seq1-id<space>seq1-desc-field1<delim>seq1-desc-field2<delim>...
+seq1-sequence
+seq1-sequence
+...
+seq1-sequence
+>seq2-id<space>seq2-desc-field1<delim>seq2-desc-field2<delim>...
+seq2-sequence
+seq2-sequence
+...
+seq2-sequence
+\end{verbatim}
+
+FAST may be thought of as compatible with zero-based indexing of
+fields if the sequence identifier is thought as the zero$^{th}$ field
+of the identifier line. One-based indexing of description fields is
+consistent with the convention of one-based indexing of sequence data
+coordinates and makes all indexing consistent and uniform in FAST.
+
+The UNIX textutils paradigm allows convenient processing of
+plain-textfiles as flatfile databases for a range of complex queries,
+transformations and analytics, with one data record per line.  FAST
+extends this paradigm in multiple ways. Although FAST utilities
+operate by sequence record rather than by line, FAST can search, sort,
+transform and analyze data records based on elements in descriptions
+as if they were fields in flatfile databases. Queries, search and sort
+keys, and more may not only directed against ordered fields by index,
+but against inconsistently ordered, but tagged fields.
+
+Descriptions of the function of utilities along
 with GNU Textutil analogs are given in Table~\ref{tab:01}.
 
 \begin{table}[!t]
@@ -149,7 +214,8 @@ with GNU Textutil analogs are given in Table~\ref{tab:01}.
 
 \processtable{ }
 {\begin{tabular}{llll}\toprule
-    Tool  & Function  & Textutil analog & Default field processed  \\\midrule
+    Tool  & Function  & Textutil analog & Default element processed  \\
+\midrule
     {\tt fasgrep} & regex selection of records & {\tt grep} & identifiers\\
     {\tt fasfilter} & numerical selection of records &  & identifiers \\
     {\tt fastax} & taxonomic selection of records &  & descriptions \\
@@ -170,36 +236,28 @@ with GNU Textutil analogs are given in Table~\ref{tab:01}.
     {\tt fasxl} & annotate biological translations &  & descriptions \\
     {\tt fasrc} & annotate reverse complements &  & descriptions \\
     {\tt fasconvert} & convert format of records &  &  \\
-    {\tt gbfgrep} & select feature neighborhoods by context & {\tt grep}  & features \\
-    {\tt gbf2fas} & emit sequences by regex matching on features  & {\tt grep}  & features\\
+    {\tt gbfcut} & emit sequences by regex matching on features  & {\tt grep}  & features\\
     {\tt alnpi} & molecular population genetic statistics &  &  \\
     {\tt faswc} & tally sequences and characters & {\tt wc} & sequences \\
 \end{tabular}}{}
 \end{table}
 
-FAST is split into three categories selection, transformation, and
-annotation and analysis. The selection category contains utilities
-designed to select sequences and sites from alignments based on
-several different criteria. For example fasgrep selects sequences by
-matching a regular expression to the ID, description, or sequence. The
-transformation utilities are used to modify the ID, description,
-sequence, or order of sequences using several criteria. For example,
-fastaxsort sorts sequences within a multifasta file based on NCBI
-taxonomy \citep{Benson2009, Sayers2009}. The annotation and analysis
-category contains utilities to calculate sequence composition, codon
-usage, sequence length, and basic population genetic
-statistics. Additionally these utilities can also append the results
-of the analysis to the sequence description, which then can be used as
-selection and sorting criteria by the utilities in the selection
-category.
+FAST utilities may be categorized as for selection, transformation,
+and annotation and analysis. Utilities in the selection category
+select sequences and alignment sites based on several different
+criteria. For example {\tt fasgrep} selects sequences by matching a regular
+expression to the ID, description, or sequence. The transformation
+utilities are used to modify the ID, description, sequence, or order
+of sequences using several criteria. For example, fastaxsort sorts
+sequences within a multifasta file based on NCBI taxonomy
+\citep{Benson2009, Sayers2009}. The annotation and analysis category
+contains utilities to calculate sequence composition, codon usage,
+sequence length, and basic population genetic statistics. Additionally
+these utilities can also append the results of the analysis to the
+sequence description, which then can be used as selection and sorting
+criteria by the utilities in the selection category.
 
-Learnability of the FAST tools is helped by making interface
-components such as specific options, consistent with the standard UNIX
-tools and across the FAST suite. Learning one FAST tool generally
-helps the user anticipate how to use others. In addition,
-specification of numerical ranges, regular expressions and other
-useful parameters follows standard Perl and UNIX conventions, all with
-the intent of making the tools fast and easy to learn.
+Expanded descriptions of each tool are provided below.
 
 \section{Implementation Details and Benchmarking}
 
@@ -207,23 +265,18 @@ All FAST utilities can process files or input on what is called the
 ``standard input'' stream. They all by default out to the ``standard
 output'' stream which may be connected to the ``standard input'' of
 another utility by a UNIX ``pipe.'' It is this latter facility that
-eases serial processing of data. Since most FAST utilities process
-sequences inline, they should mostly linear runtime complexity in
-number of sequences. Two exceptions to inline processing in FAST
-utilities concern {\tt fassort } and {\tt fastail} which both require
-some paging of data into temporrary files. However, some preliminary
-benchmarking suggests that {\tt fassort} runtimes also scale linearly in
-sequence number (fig~\ref{fig:02}). Benchmarking was performed using
-the Benchmark v1.15 perl module on a MacBook Pro ??Ghz Intel
-i7, 8 Gb of RAM. The average CPU time of 100 iterations to complete
-the analysis of six datasets consisting of 25,000, 250,000, or
-1,000,000 100bp sequences (fig 2A) and 10,000, 100,000, or 1,000,000 1,000bp sequences (fig 2B) were used to estimate performance.  
-
-FAST is compatible with the zero-based indexing if the sequence
-identifier is thought as the zero$^{th}$ field of the identifier
-line. This field must exist in Data selection in FAST is
-one-based as is conventional BioPerl coordinates and bioinformatics
-generally.
+eases serial processing of data in FAST. FAST utilities process
+sequences inline and therefore have linear runtime complexity in
+number of sequences. Exceptions are {\tt fassort } and {\tt fastail}
+which both require some paging of data into temporary
+files. Benchmarking suggests that {\tt fassort} runtimes also scale
+linearly in sequence number (fig~\ref{fig:02}). Benchmarking was
+performed using the Benchmark v1.15 perl module on a MacBook Pro 2.5
+Ghz Intel i7, with 8 Gb of RAM. The average CPU time of 100 iterations
+to complete the analysis of six datasets consisting of 25,000,
+250,000, or 1,000,000 100bp sequences (fig 2A) and 10,000, 100,000, or
+1,000,000 1,000bp sequences (fig 2B) were used to estimate
+performance.
 
 FAST supports automated logging to ease the reproducibility of
 workflows. The BioPerl backend of FAST was version 1.6.901 downloaded in January,
@@ -233,6 +286,51 @@ I/O, the SeqIO components were updated to version 1.6.923 on
 June 4, 2014 and the Root components were updated on July 10, 2014 (github commit 50f87e9a4d). 
 Some customizations of the BioPerl code-base were introduced, primarily 
 to enable the translation of sequences containing gaps. 
+
+In what follows we provide detailed design and implementation notes
+for each tool.
+
+\subsection{fasgrep}
+
+\subsection{fasfilter}
+ 
+\subsection{fastax}
+
+\subsection{fascut}
+
+\subsection{fasuniq}
+
+\subsection{fassort}
+    
+\subsection{fastaxsort} 
+    
+\subsection{faspaste}
+
+\subsection{fastr} 
+
+\subsection{fassub}
+
+\subsection{fascomp}
+
+\subsection{fascodon}
+
+\subsection{fasxl}
+
+\subsection{fasconvert}
+   
+\subsection{gbfcut} 
+
+\subsection{alncut}
+
+\subsection{gbfalncut}
+    
+
+\subsection{alnpi}
+    
+This utility outputs the molecular population genetic statistics cited
+in Table~\ref{tab:pgstats}. It can output the 
+
+\subsection{faswc}
 
 \section{Installation and Usage Examples}
 
@@ -291,8 +389,12 @@ sequences and sites, respectively.
 
 \section*{Availability}
 
-FAST is available through the Comprehensive Perl Archive Network
-(CPAN) at \url{http://search.cpan.org/~dhard/FAST}
+Stable versions of FAST are released through the Comprehensive Perl
+Archive Network (CPAN) at
+\url{http://search.cpan.org/~dhard/}. Development of FAST is through
+its GitHub at \url{https://github.com/tlawrence3/FAST}. For latest
+news on the FAST project please check the Ardell Lab homepage at
+\url{http://compbio.ucmerced.edu/ardell/software/FAST/}.
 
 \section*{Disclosure/Conflict-of-Interest Statement}
 
@@ -332,7 +434,7 @@ Award from UC Merced's second Chancellor Sung-Mo Kang.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=4.5in]{FAST_v7}% This is a *.jpg file
+\includegraphics[width=4.5in]{FAST_v8}% This is a *.jpg file
 \end{center}
  \textbf{\refstepcounter{figure}\label{fig:01} Figure
    \arabic{figure}.}{ FAST version 1.0 with data and workflow

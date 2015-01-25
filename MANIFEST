@@ -1,5 +1,4 @@
 bin/alncut
-bin/alndegap
 bin/alnpi
 bin/fascodon
 bin/fascomp
@@ -26,10 +25,8 @@ Changes
 doc/FAST_Cookbook.html
 doc/FAST_Cookbook.org
 doc/FAST_Cookbook.pdf
-doc/FAST_Cookbook.tex
 doc/org2html
 doc/org2pdf
-FAST-1.0.tar.gz
 lib/FAST.pm
 lib/FAST/Bio/Align/AlignI.pm
 lib/FAST/Bio/AlignIO.pm
@@ -329,7 +326,6 @@ lib/FAST/Bio/Tree/Tree.pm
 lib/FAST/Bio/Tree/TreeFunctionsI.pm
 lib/FAST/Bio/Tree/TreeI.pm
 lib/FAST/Bio/UnivAln.pm
-lib/FAST/Bio/WebAgent.pm
 lib/Pod/Usage.pm
 Makefile.PL
 MANIFEST			This list of files
@@ -396,6 +392,3 @@ t/lib/Test/Cmd.pm
 t/lib/Test/Cmd/Common.pm
 t/manifest.t
 t/pod.t
-tmp
-TODO_notez.txt
-x.log

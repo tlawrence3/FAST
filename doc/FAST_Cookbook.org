@@ -6,8 +6,6 @@
 #+LATEX_HEADER: \usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}
 #+STARTUP: align
 
-* Recipes
-
 * Tutorials
 
 ** Prelude 
@@ -64,6 +62,7 @@ or alternatively:
 #+BEGIN_SRC shell
 perldoc faswc
 #+END_SRC
+
 
 ** Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome
 
@@ -157,6 +156,7 @@ chromosome in a clean table format (option =-t=), we can run the following:
 fascomp -nt t/data/chr01.fsa
 #+END_SRC
 
+
 ** Example 2: Reformatting, selecting and transforming alignments in FAST
 
 *** Reformatting alignment data with =fasconvert=
@@ -247,7 +247,7 @@ one, appending all of the identifiers to one large identifier.
 alncut -g t/data/P450.clustalw2.fas | faslen | fasuniq
 #+END_SRC
 
-** Example 3: partitioning files based on ncbi taxonomy
+** Example 3: partitioning files based on NCBI taxonomy
 
 The =fastax= tool is a powerful tool when one wants to partition
 data based on their taxonomic affiliations. We can partition large
