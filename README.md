@@ -1,15 +1,63 @@
 FAST --- Fast Analysis of Sequences Toolbox
 ==============
-The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX utilities
-(for example fasgrep, fascut, fashead and fastr) for sequence bioinformatics
-modeled after the UNIX textutils (such as grep, cut, head, tr, etc). FAST
-workflows are designed for "inline" (serial) processing of flatfile
-biological sequence record databases per-sequence, rather than per-line,
-through UNIX pipelines. The default data exchange format is multifasta
-(specifically, a restriction of BioPerl FastA format). FAST is designed for
-learnability, interoperability, interface consistency, rapid prototyping,
-fine-tuned control, and reproducibility. FAST tools expose the power of Perl
-and BioPerl to users in an easy-to-learn command-line paradigm.
+The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX tools
+(for example fasgrep, fascut, fashead and fastr) for sequence
+bioinformatics modeled after the UNIX textutils (such as grep, cut,
+head, tr, etc). FAST workflows are designed for "inline" (serial)
+processing of flatfile biological sequence record databases
+per-sequence, rather than per-line, through UNIX pipelines. The
+default data exchange format is multifasta (specifically, a
+restriction of BioPerl FastA format). FAST is designed for
+learnability, interoperability, interface consistency, rapid
+prototyping, fine-tuned control, and reproducibility. FAST tools
+expose the power of Perl and BioPerl to users in an easy-to-learn
+command-line paradigm.
+
+UTILITIES
+----------
+
+FAST 1.0 contains the following utilities. Each has its own man
+page. FAST utilities may be classifed as for annotation, selection,
+transformation, and analysis.
+
+#### Annotation ####
+| Program | Description |
+| ----------- | ----------- |
+| faslen     | annotate sequence lengths |
+| fascodon   | tally/annotate codon usage |
+| fascomp    | tally/annotate monomer frequencies |
+| fasxl      | translate gapped and ungapped sequences and alignments |
+| fasrc      | reverse complement nucleotide sequences and alignments |
+
+#### Selection ####
+| Program | Description |
+| ----------- | ----------- |
+| fasgrep    | select sequence records by perl regular expressions |
+| fasfilter  | select sequence records by numerical values |
+| fastax     | select sequence records by NCBI taxonomy IDs or names |
+| fascut     | select/reorder sequence record data by position |
+| fasuniq    | remove duplicate sequence records from sorted data |
+| fashead    | select leading sequence records |
+| fastail    | select trailing sequence records |
+| alncut     | select sites based on variation and gap-content |
+| gbfcut     | select sequences by regex match on features in a GenBank file |
+| gbfalncut  | select sites by regex match on features in a GenBank file |
+
+#### Transformation ####
+| Program | Description |
+| ----------- | ----------- |
+| fasconvert | convert sequences to or from from fasta format |
+| fassort    | sort sequence records |
+| fastaxsort | sort sequence records by NCBI taxonomy IDs or names |
+| faspaste   | concatenate sequence records |
+| fastr      | transform sequence records by character, degap |
+| fassub     | transform sequence records by regex-based substitutions |
+
+#### Analysis ####
+| Program | Description |
+| ----------- | ----------- |
+| faswc      | tally sequences and characters |
+| alnpi      | calculate molecular population genetic statistics|
 
 INSTALLATION
 --------------
@@ -49,7 +97,7 @@ http://search.cpan.org/dist/FAST/
 
 CITING
 --------------
-If you use FAST please, cite the FAST project (Lawrence et al. 2014) and
+If you use FAST please, cite the FAST project (Lawrence et al. 2015) and
 Bioperl (Stajich et al. 2005).
 
 VERSION AND CHANGES
@@ -58,11 +106,13 @@ VERSION AND CHANGES
 
 LICENSE AND COPYRIGHT
 --------------
-Copyright (C) 2014 David H. Ardell
+Copyright (C) 2015 David H. Ardell
+
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a
 copy of the full license at:
-L<http://www.perlfoundation.org/artistic_license_2_0>
+http://www.perlfoundation.org/artistic_license_2_0
+
 Any use, modification, and distribution of the Standard or Modified
 Versions is governed by this Artistic License. By using, modifying or
 distributing the Package, you accept this license. Do not use, modify,
