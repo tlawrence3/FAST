@@ -535,7 +535,7 @@ calculated by default include:
 
 =item 7. Number of gap-free sites (L_gf)
 
-=item 8. Number of segregating sites (S)
+=item 8. Number of gap-free segregating sites (S)
 
 =item 9. Fraction of gap-free segregating sites (s)
 
@@ -545,7 +545,7 @@ calculated by default include:
 
 =item 12. Standard Error of Th_w_ps assuming free recombination (SE_Thwps_LE)
 
-=item 13. Nucleotide Diversity (pi, Nei and Li 1979)     
+=item 13. Nucleotide Diversity in gap-free sites (pi, Nei and Li 1979)     
 
 =item 14. Standard Error of pi assuming no recombination (SE_pi_LD)  
 

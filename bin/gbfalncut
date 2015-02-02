@@ -129,8 +129,7 @@ while ($IN or @ARGV) {
       foreach my $feat ( $gb->top_SeqFeatures() ) {
 	$feat->location->coordinate_policy($narrow_policy);
 	if ($key) { 
-	  my $primary = $feat->primary_tag();
-	  if ($primary =~ $re) {
+	  if ($feat->primary_tag() =~ $re) {
 	    print STDERR "Matched ",$feat->primary_tag()," at ",$feat->location->to_FTstring(),".\n" if ($verbose);
 	    &push_sites($saln,$feat,\@colslice);
 	  }
@@ -236,8 +235,7 @@ Options specific to B<gbfalncut>:
   B<-v>, B<--negate>               cut sites that don't belong to a feature
   B<-q>, B<--qualifier>=<string>   match on values of qualifier <string> 
                                      default qualifier is "note" (as in /note="intron")          
-  B<-k>, B<--key>=<string>         restrict search to features with keys <string>. 
-  B<-K>, B<--key-search>           regex match directly on feature keys
+  B<-k>, B<--key>                  regex match directly on feature keys
   B<--verbose>                  produce verbose output              
 
 Options general to FAST:

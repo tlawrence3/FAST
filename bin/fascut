@@ -333,43 +333,49 @@ B<fascut> [OPTION]... [INDEX-SET] [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION 
 
-B<fascut> takes biological sequence records on input, and outputs the
-transformation of each record under index-based "slicing" (selection
-and reordering) of its sequence, identifier or description data. By
-default, B<fascut> slices sequence data by character. Indices are
-specified by the first argument as a comma-separated list of ranges
-and indices. Arbitrary repetition of indices is allowed within the
-list range argument. B<fascut> outputs the concatenation of slices for
-each sequence record on input.
+B<fascut> takes biological sequence records on input, and on output,
+transforms one component (e.g. sequence, description or identifier) of
+each record as the concatenation of index- and range-based selections
+of input data. Data is indexed by character or optionally by field. By
+default, B<fascut> operates character-wise on sequence data. The
+sequence of data selections is specified in the first argument as a
+comma-separated list of ranges. A range is either a single index
+integer or a range of integers, with reversals and variable step sizes
+allowed. Arbitrary repetition of indices is allowed across ranges in
+the range-list. B<fascut> outputs the concatenation of the ordered
+data selections specified by each range.
 
 The one mandatory argument to B<fascut> is a sequence of indices or
 ranges separated by commas (,). The ranges may be specified in
-Perl-style (or Genbank coordinate style) as in "from..to", in
-R/Octave-style as in "from:to" or UNIX B<cut>-style as in
-"from-to". If the index bounds of a simple range are missing, "from"
-defaults to "1" and "to" defaults to "-1". An optional ":by" suffix
-specifies an integer step-increment.
+Perl-style (or Genbank coordinate style)llike "from..to", in
+R/Octave-style like "from:to" or UNIX B<cut>-style as in "from-to". If
+the index bounds of a simple range are missing, "from" defaults to "1"
+and "to" defaults to "-1". An optional ":by" suffix specifies a
+non-zero integer step-increment, which may be positive or
+negative. Negative step-increments imply a reversal of input data.
 
-B<One-based indexing> applies when B<fascut> cuts sequences (or
-optionally identifiers or descriptions) by character (like B<cut
--c>). B<fascut -f> cuts descriptions by field, after the descriptions
-are split by strings of white-space or user-defined regex. Field
-indexing in B<fascut> is also one-based.
+B<One-based indexing> applies consistently in B<fascut> whether
+indexing data by character (like B<cut -c>) or by field. B<fascut -f>
+cuts descriptions by field, after descriptions are split by strings of
+white-space, or optionally a user-defined Perl regex. Negative
+indices, starting with -1, count backwards from last characters and
+fields. 
 
-Negative indices count backwards from last characters and fields. If
-the first range begins with a negative index, you will need to
-terminate option processing with "--" before the range-string
-argument.  After converting negative indices to positive indices for
-any given sequence on input, B<fascut> expects every "from" index to
-be less than its respective "to" index for every range unless a
-negative "by" parameter is given, in which case "from" is expected to
-be greater than "to". If any of this is violated for a given range and
+After converting negative indices to positive indices for any given
+sequence on input, B<fascut> expects the "from" parameter to be less
+than its respective "to" parameter for every range unless a negative
+"by" parameter is given, in which case "from" is expected to be
+greater than "to". If any of this is violated for a given range and
 sequence, then that range will be skipped for that sequence. If after
 conversions, "from" is negative, it defaults to "1". If "to" is
 greater than a sequence length, it defaults to "-1".  However, if
 strict-mode (-s) is enabled, then both types of bad range
 specifications will abort processing of a sequence record with no
 output for that sequence except a warning.
+
+When the range-list argument starts with a negative index integer, you
+will need to terminate option processing with "--" before supplying
+the range-string argument to B<fascut>.
 
 Options specific to B<fascut>:
   -B<i>, B<--identifier>                  cuts identifiers (by character)

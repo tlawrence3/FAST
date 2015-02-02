@@ -4,7 +4,13 @@ use warnings FATAL => 'all';
 use Test::More tests => 7;
 use Test::Script::Run;
 
+
 my $test_file = 't/data/fastr_test.fas';
+
+#>gi|00000000|dbj|00000000.0| fasstr
+#AAAUAUUUGGAG-
+#>gi|00000000|dbj|00000000.0| tesst
+#NAAAUAUUUGGAGZ
 
 open( my $test1, "<", $test_file ) || die "Can't open $test_file"; 
 my @output = <$test1>;

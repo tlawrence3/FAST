@@ -96,14 +96,14 @@ pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: with --strict or --iupac, no other options except --ambig, --fastq, --moltype, --log etc are allowed.\n")      
+pod2usage("$NAME: with --strict or --iupac, no other options except --ambig, --fastq, or FAST generic options are allowed.\n")      
   if ( ($iupac_or_strict) &&  ($delete_or_squash || $complement || $description || $sequence || $no_replace || $degap));  
-pod2usage("$NAME: with --degap, no other options except --fastq, --moltype, --log etc allowed.\n")      
+pod2usage("$NAME: with --degap, no other options except --fastq, or FAST generic options allowed.\n")      
   if ( ($degap) &&  ($iupac_or_strict || $delete_or_squash || $complement || $description || $sequence || $no_replace ));  
-pod2usage("$NAME: expects exactly two arguments unless --no-replace/-n if input on STDIN.\n")        if (!(-t STDIN) && !($iupac_or_strict || $degap) && !($no_replace) && @ARGV != 2);
-pod2usage("$NAME: expects at least three arguments unless --no-replace/-n if input from file\n")     if ( (-t STDIN) && !($iupac_or_strict || $degap) && !($no_replace) && @ARGV  < 3);
-pod2usage("$NAME: expects exactly one arguments with --no-replace/-n if input on STDIN.\n")          if (!(-t STDIN) && !($iupac_or_strict || $degap) &&  ($no_replace) && @ARGV != 1);
-pod2usage("$NAME: expects at least two arguments with --no-replace/-n if input from file\n")         if ( (-t STDIN) && !($iupac_or_strict || $degap) &&  ($no_replace) && @ARGV  < 2);
+pod2usage("$NAME: expects 2 arguments, 1 with --no-replace/-n, if input on STDIN.\n")        if (!(-t STDIN) && !($iupac_or_strict || $degap) && !($no_replace) && @ARGV != 2);
+pod2usage("$NAME: expects >= 3 arguments, 2 with --no-replace/-n, if input from file\n")     if ( (-t STDIN) && !($iupac_or_strict || $degap) && !($no_replace) && @ARGV  < 3);
+pod2usage("$NAME: expects 1 argument with --no-replace/-n if input on STDIN.\n")          if (!(-t STDIN) && !($iupac_or_strict || $degap) &&  ($no_replace) && @ARGV != 1);
+pod2usage("$NAME: expects >= 2 arguments with --no-replace/-n if input from file\n")         if ( (-t STDIN) && !($iupac_or_strict || $degap) &&  ($no_replace) && @ARGV  < 2);
 pod2usage("$NAME: with --strict, --iupac or --degap expects zero arguments if input on STDIN.\n")          if (!(-t STDIN) &&  ($iupac_or_strict || $degap) && @ARGV  > 0);
 pod2usage("$NAME: with --strict, --iupac or --degap expects at least one argument if input from file.\n")  if ( (-t STDIN) &&  ($iupac_or_strict || $degap) && @ARGV == 0);
 
@@ -233,18 +233,18 @@ and faciliates character transliterations on identifiers (by default),
 sequences or descriptions using the Perl B<tr///> character
 transliteration operator. This faciliates character remapping, case
 changes, character deletions, degapping, squashing of repeated
-characters, and more. Special modes B<--strict> and B<--iupac>
+characters, and more. Special modes B<--strict>, B<--iupac>, and B<--degap> automatically direct transliterations on 
 facilitate enforcement of sequence alphabets, and remapping illegal
 characters to 'N' or 'X' or a user-defined character.
 
 Options specific to B<fastr>:
-  B<-s>, B<--sequences>         transliterate sequences
+  B<-s>, B<--sequence>         transliterate sequences
   B<-d>, B<--description>       transliterate descriptions  
   B<-D>, B<--delete>            delete found characters not replaced
   B<-S>, B<--squash>            squash duplicate replaced characters 
   B<-n>, B<--no-replace>        squash/delete characters in searchlist 
   B<-c>, B<--complement>        complement searchlist as a character set
-  B<--strict>                map ambiguous/invalid nongap chars
+  B<--strict>                map ambiguous/invalid nongap chars in sequences
   B<--iupac>                 map invalid nongap chars (to N/X by default)
   B<-N>, B<-X>, B<--ambig>=<char>  map ambig/invalid chars to <char>
   B<--degap>                 delete gap characters '-' 
