@@ -404,9 +404,12 @@ BioPerl, ultimately from NCBI Entrez, are supported.
     
 {\tt alnpi} outputs molecular population genetic statistics cited in
 Table~\ref{tab:pgstats} for each alignment on input. It can output a
-set of statistics for each alignment on input in plain text or \LaTeX~format. {\tt alnpi} also supports sliding window and pairwise analysis
-of input data. 
-
+set of statistics for each alignment on input in plain text or
+\LaTeX~format. {\tt alnpi} also supports sliding window and pairwise
+analysis of input data. This code computed the sliding window analyses
+published in~\citep{Ardell03}. All of the code for these calculations has
+been reviewed and compared against calculations produced from
+DNASP~\citep{Librado01062009} as described previously~\citep{Ardell12082004}.
 
 \begin{table}[!t]
 \textbf{\refstepcounter{table}\label{tab:pgstats} Table \arabic{table}.}{
@@ -525,7 +528,8 @@ manuscript and agree to be accountable for its contents.
 
 \section*{Acknowledgement}
 We acknowledge Christopher Clark for help in establishing a git
-repository for FAST. D.H.A. gratefully acknowledges Professors Laura
+repository for FAST and Peter Becich for contributing some testing of
+the installer. D.H.A. gratefully acknowledges Professors Laura
 Landweber, Siv Andersson and Leif Kirsebom in whose laboratories the
 FAST tools were first developed as well as the Linnaeus Centre for
 Bioinformatics at Uppsala University.
