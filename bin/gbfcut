@@ -191,7 +191,6 @@ Options specific to B<gbfcut>:
   B<-a>, B<--annotate>                    annotate output records with feature metadata in descriptions
   B<-j>, B<--join>=<string>               use <string> to join annotation in descriptions
   B<-l>, B<--location>                    print genomic location strings in annotations
-  B<
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message

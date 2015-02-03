@@ -132,6 +132,8 @@ select sites by regex matching of features in a GenBank file
 =item B<gbfcut>     
 print sequences by regex matching to features in a GenBank file
 
+=back
+
 =head1 AUTHORS
 
 David H. Ardell, C<< <dhard at cpan.org> >>
