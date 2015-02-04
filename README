@@ -1,18 +1,19 @@
 FAST --- Fast Analysis of Sequences Toolbox
 Version 1.0
 
-The Fast Analysis of Sequences Toolbox (FAST) is a set of UNIX tools
-(for example fasgrep, fascut, fashead and fastr) for sequence
-bioinformatics modeled after the UNIX textutils (such as grep, cut,
-head, tr, etc). FAST workflows are designed for "inline" (serial)
-processing of flatfile biological sequence record databases
-per-sequence, rather than per-line, through UNIX pipelines. The
-default data exchange format is multifasta (specifically, a
-restriction of BioPerl FastA format). FAST is designed for
-learnability, interoperability, interface consistency, rapid
-prototyping, fine-tuned control, and reproducibility. FAST tools
-expose the power of Perl and BioPerl to users in an easy-to-learn
-command-line paradigm.
+The Fast Analysis of Sequences Toolbox (FAST) is a set of Unix tools (for
+example fasgrep, fascut, fashead and fastr) for sequence bioinformatics
+modeled after the UNIX textutils (such as grep, cut, head, tr, etc). FAST
+workflows are designed for "inline" (serial) processing of flatfile
+biological sequence record databases per-sequence, rather than per-line,
+through Unix command pipelines. The default data exchange format is
+multifasta (specifically, a restriction of BioPerl FastA format). FAST is
+designed for learnability, interoperability, interface consistency, rapid
+prototyping, fine-tuned control, and reproducibility. FAST tools expose the
+power of Perl and BioPerl to users in an easy-to-learn command-line
+paradigm.
+
+You do not need to know Perl or BioPerl to use FAST.
 
 UTILITIES
 
@@ -55,6 +56,28 @@ analysis
 faswc      -- tally sequences and characters
 alnpi      -- calculate molecular population genetic statistics 
 
+PREREQUISITES
+FAST has been successfully installed using dmake in Strawberry Perl for
+windows. Apple computer users can install FAST from the terminal in
+Applciations/Utilities.
+
+FAST has some Perl dependencies. The easiest way to install FAST with its
+dependencies will be this command from a Unix like system:
+
+perl -MCPAN -e 'install FAST'
+
+You can also follow INSTALLATION instructions below, but you may need to
+first run these commands to install FAST dependencies:
+
+perl -MPCAN -e 'install Sort::Key'
+perl -MCPAN -e 'install Devel::Size'
+perl -MCPAN -e 'install Sort::MergeSort'
+perl -MCPAN -e 'install File::Temp'
+perl -MCPAN -e 'install Storable'
+perl -MCPAN -e 'install List::Gen'	      	       
+perl -MCPAN -e 'install Bit::Vector'
+perl -MCPAN -e 'install Test::More'
+perl -MCPAN -e 'install Test::Script::Run'
 
 INSTALLATION
 

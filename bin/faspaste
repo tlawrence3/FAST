@@ -139,7 +139,7 @@ die "$NAME: no valid input stream or file was found.\n" unless (@seqios);
 my @repseq = ();
 while (1) {
   my @seq = ();
-  my $leftseqi = 0;
+  my $leftseqi = ($recipient ? ($recipient - 1)  : 0);
   my $seqs_on_input = 0;
   ## load sequences if available
   ## Identify leftmost recipient sequence
@@ -152,19 +152,12 @@ while (1) {
       $seq[$i] = $repseq[$i];
     }
     else {
-      $leftseqi++ unless ($seqs_on_input);
       $seq[$i] = 0;
     }
   }
-  my $leftseq;
-  unless ($recipient) {
-    $leftseq = $seq[$leftseqi];
-  }
-  else {
-    $leftseq = $seq[($recipient - 1)];
-  }
   last unless ($seqs_on_input); 
-  last if ($recipient and not $seq[($recipient - 1)]);
+  my $leftseq = $seq[$leftseqi];
+  last unless $leftseq;
 
   my $outseq;
   #initialize output sequence from recipient sequence
@@ -219,43 +212,51 @@ B<faspaste> [OPTION]... [MULTIFASTA-FILE]...
 
 =head1 DESCRIPTION
 
-B<faspaste> processes sequence or alignment data from one or more
-input sources, one sequence record per source at a time, and
-concatenates data for the sequence records across input sources. By
-default, sequences are concatenated; optionally descriptions or
-identifiers may be concatenated instead. 
+B<faspaste> processes sequence record data from one or more input
+sources in parallel, concatenating data one-at-a-time across
+correspoding records from each source. B<faspaste> concatenates only
+one record component at a time; by default, sequences. Optionally
+descriptions or identifiers may be concatenated instead.
 
 The order of input sources to B<faspaste> is determined by the
 argument list to B<faspaste>, which may be file pathnames or "-"
 indicating the standard input stream. If a file pathname or "-" is
 repeated in the argument list, sequence records from that input source
-will be concatenated repeatedly in the output sequence record.
+will be concatenated repeatedly in the output sequence
+record. 
+
+The default output of B<faspaste> are the records from the first input
+source with components replaced by the concatenated data. Optionally,
+any of the input streams may be designated as the "recipient" of
+concatenated data.
 
 When sequence records are exhausted for any input source, that source
-will be treated as an endless source of empty records. With the B<-r>
-or B<--repeat> option, the last record from an empty source is used
-repeatedly as needed. By default, records from the first input source
-are "recipient" sequence records as templates to receive the
-concatenated data for output. By default, if the first (leftmost)
-named input source is exhausted of records, the second-left-most input
-source is used as a template to receive output data, and so
-on. Alternatively, with the B<-R> or B<--recipient> option, the nth
-named input stream may be optionally designated to always receive data
-(one-based indexing is used, so the first argument designates the
-first input stream. Output ceases when this stream of records becomes
-exhausted.
+will be treated as an endless source of empty records. When the
+"recipient" input source is exhausted of data, the program
+terminates. With the B<-r> or B<--repeat> option, the last record from
+an empty source is used repeatedly as needed. By default, records from
+the first input source are "recipient" sequence records as templates
+to receive the concatenated data for output. By default, if the first
+(leftmost) named input source is exhausted of records, the
+second-left-most input source is used as a template to receive output
+data, and so on. Alternatively, with the B<-R> or B<--recipient>
+option, the nth named input stream may be optionally designated to
+always receive data (one-based indexing is used, so the first argument
+designates the first input stream. Output ceases when this stream of
+records becomes exhausted.
 
 By default, sequences and identifiers are concatenated with the empty
 string, and descriptions are concatenated with a single space
-character. This may be changed with the use of the B<-j> option.
+character.Other delimiters for joining data may be specified with the
+B<-j> option.
 
 
 Options specific to B<faspaste>:
   B<-i>, B<--identifier>                  paste identifiers
   B<-d>, B<--description>                 paste descriptions
   B<-r>, B<--repeat>                      repeat data from last record for empty sources
-  B<-R>, B<--recipient>=<int>             use records from input stream <int> as output template
-  B<-j>, B<--join>=<string>         concatenate data using <string>
+  B<-R>, B<--recipient>=<int>             use records from input stream <int> (one-based) as output template
+  B<-j>, B<--join>=<string>               concatenate data using <string>
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
@@ -299,13 +300,14 @@ Use <string> to concatenate data. Use "\t" to indicate a tab-character.
 =item B<-r>,
       B<--repeat>
 
-If a source contains less sequences than the longest source the last entry of the 
-shorter source is repeated.
+Once records are exhausted from any source, repeat the last entry from
+that source in subsequent operations.
 
 =item B<-R int>,
       B<--recipient=int>
 
-Use input source #<int> as template to receive concatenated data. 
+Use input source #<int> as template to receive concatenated
+data. One-based indexing is used, with input source 1 as default.
 
 =item B<-h>,
       B<--help>
@@ -361,36 +363,20 @@ B<faspaste> data.fas data2.fas
 
 =back
 
-Join descriptions with a space and sequences with no delimiter from two files:
+Join both descriptions and sequences
     
 =over 8
 
-B<faspaste> -d data.fas data2.fas
+B<faspaste> data.fas data2.fas | B<faspaste> -d - data2.fas
 
 =back
 
-Join descriptions with a delimiter and sequences with no delimiter from two files:
-    
-=over 8
-
-B<faspaste> --delimiter '\t' data.fas data2.fas
-
-=back
-
-Join sequences with a delimiter from two files: 
+Paste the first sequence repeatedly to every other sequence in a file
 
 =over 8
 
-B<faspaste> -j 'NNNN' data.fas data2.fas
-    
-=back
+B<fashead> -n 1 t/data/fasxl_test4.fas | B<faspaste> -r - t/data/fasxl_test4.fas
 
-Join all the sequences in a file into one sequence: 
-
-=over 8
-
-B<faspaste> -s data.fas
-    
 =back
 
 =head1 SEE ALSO

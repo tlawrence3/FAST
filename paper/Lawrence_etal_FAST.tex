@@ -43,32 +43,29 @@
   FAST (FAST Analysis of Sequences Toolbox), built on BioPerl,
   provides simple, powerful open source command-line tools to filter,
   transform, annotate and analyze biological sequence data. Modeled
-  after the GNU (GNU's Not UNIX) Textutils such as {\tt grep}, {\tt
+  after the GNU (GNU's Not Unix) Textutils such as {\tt grep}, {\tt
     cut}, and {\tt tr}, FAST tools such as {\tt fasgrep}, {\tt
     fascut}, and {\tt fastr} are designed for rapid prototyping of
   expressive bioinformatic workflows in a compact and generic command
-  vocabulary.  FAST is intended to bring the analytic power of Perl
-  and BioPerl to non-programmers and extend the UNIX tools paradigm to
-  popular bioinformatics data formats. Compact combinatorial encoding
-  of data workflows with FAST can facilitate better documentation and
-  reproducibility of bioinformatic protocols, supporting better
-  transparency in big biological data science. Interface
-  self-consistency and conformity with conventions of GNU, Matlab,
-  Perl, BioPerl, R and GenBank, help make FAST easy to learn.  FAST
-  automates numerical, text-based, sequence-based and taxonomic
-  searching, sorting, selection and transformation of sequence records
-  and alignment sites based on indices, ranges, tags and feature
-  annotations, analytics for composition and codon usage.  Automated
-  content- and feature-based extraction of sites and support for
-  molecular population genetic statistics makes FAST useful for
-  molecular evolutionary analysis. FAST is portable, easy to install,
-  and secure, with stable releases posted to CPAN and development on
-  Github. The default data exchange format in FAST is Multi-FastA
-  (specifically, a restriction of BioPerl FastA format).  Sanger and
-  Illumina 1.8+ FASTQ formatted files are also supported. The
-  command-line basis of FAST makes it easier for non-programmer
-  biologists to interactively investigate and control biological data
-  at the speed of thought.\tiny \keyFont{
+  vocabulary.  Compact combinatorial encoding of data workflows with FAST
+  commands can facilitate better documentation and reproducibility of
+  bioinformatic protocols, supporting better transparency in big
+  biological data science. Interface self-consistency and conformity
+  with conventions of GNU, Matlab, Perl, BioPerl, R and GenBank, help
+  make FAST easy to learn.  FAST automates numerical, text-based,
+  sequence-based and taxonomic searching, sorting, selection and
+  transformation of sequence records and alignment sites based on
+  indices, ranges, tags and feature annotations, and analytics for
+  composition and codon usage.  Automated content- and feature-based
+  extraction of sites and support for molecular population genetic
+  statistics makes FAST useful for molecular evolutionary
+  analysis. FAST is portable, easy to install, and secure, with stable
+  releases posted to CPAN and development on Github. The default data
+  exchange format in FAST is Multi-FastA (specifically, a restriction
+  of BioPerl FastA format).  Sanger and Illumina 1.8+ FASTQ formatted
+  files are also supported. The command-line basis of FAST makes it
+  easier for non-programmer biologists to interactively investigate
+  and control biological data at the speed of thought.\tiny \keyFont{
   \section{Keywords:} Unix philosophy, MultiFASTA, pipeline,
   bioinformatic workflow, open source, BioPerl, regular expression,
   NCBI Taxonomy}
@@ -79,12 +76,12 @@
 Bioinformatic software for non-programmers is traditionally
 implemented for user convenience in monolithic applications with
 Graphical User Interfaces (GUIs)~\citep{Smith1994, Rampp2006,
-  Librado01062009,gouy2010seaview}.  However, today, the monolithic
-application paradigm can be easily outscaled by big biological data,
-particularly Next Generation Sequencing (NGS) data at gigabyte and
-terabyte-scale.  Better empowerment of non-programmers for
-genome-scale analytics has been achieved through web-based genome
-browser
+  Librado01062009,Waterhouse01052009,gouy2010seaview}.  However,
+today, the monolithic application paradigm can be easily outscaled by
+big biological data, particularly Next Generation Sequencing (NGS)
+data at gigabyte and terabyte-scale.  Better empowerment of
+non-programmers for genome-scale analytics has been achieved through
+web-based genome browser
 interfaces~\citep{Cunningham28012015,Rosenbloom28012015,Markowitz01012014}. On
 the other hand, for smaller datasets, sequence and alignment editor
 applications encourage manual manipulation of data, which is
@@ -136,25 +133,26 @@ provides non-programmers greater bioinformatic power and more direct,
 real-time access to their biological data for interactive and
 reproducible exploration, control, and analysis. Closer inspection of
 data and interactive construction and control of data flows makes it
-so much easier to rapidly prototype error-free workflows and better
-avoid errors that can completely confound downstream analyses.  The
+so much easier to rapidly prototype error-free workflows. Nipping
+errors in the bug  that can completely confound downstream analyses.  The
 time-tested paradigm in scientific computing for rapid prototyping of
-reproducible data workflows is the UNIX command-line.
+reproducible data workflows is the Unix command-line.
 
 In this tradition we present FAST: FAST Analysis Sequences Toolbox,
 modeled after the standard Unix toolkit~\citep{Peek2001}, now called
-Coreutils. The FAST tools follow the Unix philosophy to ``do one thing
+Coreutils. FAST is written in Perl and BioPerl, but its users don't
+need to know Perl, only Unix. The FAST tools follow the Unix philosophy to ``do one thing
 and do it well'' and ``write programs to work
 together.''~\citep{Stutz2000}. Command-line utilities for
 bioinformatics such as the EMBOSS package~\citep{Rice2000}, the FASTX
 tools~\citep{fastx} or the scripts that come with
 BioPerl~\citep{Stajich2002} typically offer suites of tools with
 simple, well-defined functions that lend themselves to scripting, but
-are not necessarily designed according to the UNIX toolbox philosophy
+are not necessarily designed according to the Unix toolbox philosophy
 specifically to interoperate through serial composition. Similarly,
 FaBox is a free and open online server with functions that overlap
 with FAST tools, but is not designed for serial composition. On the
-other hand, the UNIX toolbox model has been used before in more or
+other hand, the Unix toolbox model has been used before in more or
 less more specialized bioinformatics applications such as the popular
 SAMTools suite~\citep{Li15082009} and in the processing of NMR
 data~\citep{delaglio1995nmrpipe}.
@@ -172,7 +170,7 @@ public~\citep{Groves2012}.
 
 \section{Design}
 
-The UNIX textutils paradigm allows users to treat plain-text files as
+The Unix textutils paradigm allows users to treat plain-text files as
 databases in which {\it records} correspond to single lines containing
 {\it fields} separated by {\it delimiters} such as commas, tabs, or
 strings of white-space characters.  FAST extends this paradigm to
@@ -182,12 +180,12 @@ analytics. The textutils model is generalized exactly by FAST because
 it models sequence record {\it descriptions} as an ordered
 collection of fields (see below).
 
-Another design feature of UNIX tools that also characterizes the FAST
+Another design feature of Unix tools that also characterizes the FAST
 tools is their ability to accept input not only from one or more files
 but also from what is called {\it standard input}, a data-stream
-supported by the UNIX shell, and to output analogously to {\it
+supported by the Unix shell, and to output analogously to {\it
   standard output}. It is this facility that allows FAST tools to be
-serially composed in UNIX {\it pipelines} that compactly represent an
+serially composed in Unix {\it pipelines} that compactly represent an
 infinite variety of expressive bioinformatic workflows. The serial
 composability of FAST tools is represented in the overview of the
 project shown in Figure~\ref{fig:01}.  FAST utilities may be
@@ -301,7 +299,7 @@ data paging, {\tt fassort} runtimes scale linearly with input size
 (fig~\ref{fig:02}).
 
 The BioPerl backend of FAST 1.0 is version 1.6.901 downloaded in
-January, 2012. Bio::SeqIO components were updated to version 1.6.923
+January, 2012. {\tt Bio::SeqIO} components were updated to version 1.6.923
 on June 4, 2014 and some Bio::Root components were updated on July 10,
 2014 (github commit 50f87e9a4d).  We introduced a small number of
 customizations to the BioPerl code-base, primarily to
@@ -340,7 +338,7 @@ in sequence records allowing repetition, reordering, variable steps,
 and reversals.  A sequence of selection indices and index-ranges are
 specified conventionally by comma-separated lists of integers and
 integer ranges in Perl-style or Genbank coordinate style (``from..to")
-in R/Octave-style (``from:to") or UNIX {\tt cut}-style
+in R/Octave-style (``from:to") or Unix {\tt cut}-style
 (``from-to"). Negative indices count backwards from last characters and
 fields. {\tt fascut} outputs the concatenation of data selections for
 each sequence record.  Variable step-sizes in index ranges
@@ -369,7 +367,7 @@ written to temporary files and merged with {\tt Sort::MergeSort}.
 \subsection{fasuniq}
 
 With {\tt fasuniq} the user may remove records that are duplicates
-with respect to a specified component or field. Like their UNIX
+with respect to a specified component or field. Like their Unix
 Coreutil analogs, {\tt fasuniq} only compares subsequent records on
 input, usually requiring that its input is sorted first by {\tt fassort}.
 
