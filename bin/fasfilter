@@ -134,7 +134,7 @@ elsif ($field and $field < 0) {
 
 my $valf;
 if ($tag) {
-  $valf = sub { my $s = shift; my $re = qr/$tag[:=](\S+)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return;} };
+  $valf = sub { my $s = shift; my $re = qr/$tag[:=](-?\d+|([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?)/p; my $r = $s->desc(); if ($r =~ $re){ return $1;} else {return;} };
 }
 elsif ($regex) {
   my $m = 'id'; 

@@ -45,27 +45,28 @@
   transform, annotate and analyze biological sequence data. Modeled
   after the GNU (GNU's Not Unix) Textutils such as {\tt grep}, {\tt
     cut}, and {\tt tr}, FAST tools such as {\tt fasgrep}, {\tt
-    fascut}, and {\tt fastr} are designed for rapid prototyping of
+    fascut}, and {\tt fastr} make it easy to rapidly prototype
   expressive bioinformatic workflows in a compact and generic command
-  vocabulary.  Compact combinatorial encoding of data workflows with FAST
-  commands can facilitate better documentation and reproducibility of
-  bioinformatic protocols, supporting better transparency in big
-  biological data science. Interface self-consistency and conformity
-  with conventions of GNU, Matlab, Perl, BioPerl, R and GenBank, help
-  make FAST easy to learn.  FAST automates numerical, text-based,
-  sequence-based and taxonomic searching, sorting, selection and
-  transformation of sequence records and alignment sites based on
-  indices, ranges, tags and feature annotations, and analytics for
-  composition and codon usage.  Automated content- and feature-based
-  extraction of sites and support for molecular population genetic
-  statistics makes FAST useful for molecular evolutionary
-  analysis. FAST is portable, easy to install, and secure, with stable
-  releases posted to CPAN and development on Github. The default data
-  exchange format in FAST is Multi-FastA (specifically, a restriction
-  of BioPerl FastA format).  Sanger and Illumina 1.8+ FASTQ formatted
-  files are also supported. The command-line basis of FAST makes it
-  easier for non-programmer biologists to interactively investigate
-  and control biological data at the speed of thought.\tiny \keyFont{
+  vocabulary.  Compact combinatorial encoding of data workflows with
+  FAST commands can facilitate better documentation and
+  reproducibility of bioinformatic protocols, supporting better
+  transparency in big biological data science. Interface
+  self-consistency and conformity with conventions of GNU, Matlab,
+  Perl, BioPerl, R and GenBank, help make FAST easy to learn.  FAST
+  automates numerical, text-based, sequence-based and taxonomic
+  searching, sorting, selection and transformation of sequence records
+  and alignment sites based on indices, ranges, tags and feature
+  annotations, and analytics for composition and codon usage.
+  Automated content- and feature-based extraction of sites and support
+  for molecular population genetic statistics makes FAST useful for
+  molecular evolutionary analysis. FAST is portable, easy to install,
+  and secure, with stable releases posted to CPAN and development on
+  Github. The default data exchange format in FAST is Multi-FastA
+  (specifically, a restriction of BioPerl FastA format).  Sanger and
+  Illumina 1.8+ FASTQ formatted files are also supported. The
+  command-line basis of FAST makes it easier for non-programmer
+  biologists to interactively investigate and control biological data
+  at the speed of thought.\tiny \keyFont{
   \section{Keywords:} Unix philosophy, MultiFASTA, pipeline,
   bioinformatic workflow, open source, BioPerl, regular expression,
   NCBI Taxonomy}
@@ -357,6 +358,18 @@ Allows annotation-based sequence-extraction from GenBank format
 sequence files, useful for extracting all sequences that correspond to
 sets of genes or other annotated features in genome data.
 
+\subsection{gbfalncut} 
+This utility automates the selection of sites from alignments that
+correspond to one or more features annotated on one of the sequences
+in a separate GenBank record. This workflow supports the
+reproducibility of results not only because it eliminates the need for manual entry of
+coordinates and because it exactly embodies a useful bioinformatic
+query in terms of known and reproducible quantities from public data
+and sequence records.
+
+ and allows user to
+query for sites using the biological vocabulary of sequence features.
+
 \subsection{fassort}
 
 Our implementation of {\tt fassort} handles numerical and textual
@@ -424,12 +437,12 @@ Number of sequences & $n$ & \\
 Number of alleles/distinct sequences & $k$ & \\
 Number of segregating sites & $S$ & \\
 Fraction of segregating sites & $s$ & \\
-Average number of pairwise differences & Pi & \citep{NeiLi79} \\
+Average number of pairwise differences &  & \citep{NeiLi79} \\
 Nucleotide Diversity & $\pi$ &  \citep{NeiLi79} \\
 Watterson estimator & $\theta_W$ & \citep{watterson1975number} \\
 Expected number of alleles & $E(K)$ & \citep{ewens1972sampling} \\
 Tajima's D & $D$ & \citep{Tajima89c} \\
-Fu and Li's F & $D*$ & \citep{FuLi93b} \\
+Fu and Li's D* & $D*$ & \citep{FuLi93b} \\
 Fu and Li's F* & $F*$ & \citep{FuLi93b,SimonsenEtAl95} \\
 Fu and Li's Eta S & $\eta_S$ &  \citep{FuLi93b} \\
 Fu and Li's Eta & $\eta$ &  \citep{FuLi93b} \\

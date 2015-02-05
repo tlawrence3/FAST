@@ -228,7 +228,7 @@ while ($IN or @ARGV) {
 	
       }
       if ($table){
-	my $id = $seq->id . $seq->desc();
+	my $id = $seq->id ;# . $seq->desc();
 	&print_output($id,$startcount,$count);
       }
       else{
@@ -315,7 +315,7 @@ sub print_output {
 	  $$count{$codon} ||= 0;
 	  $$startcount{$codon} ||= 0;
 	  if ($table){
-	    printf("%s %s %s %5.3f %5.3f %10u %10u\n",$seqid,$geneticcode->translate($codon),$codon,$rscu{$codon},$startrscu{$codon},$$count{$codon},$$startcount{$codon});
+	    printf("%s %s %10u %10u %${width}.${precision}f %${width}.${precision}f %s\n",$geneticcode->translate($codon),$codon,$$count{$codon},$$startcount{$codon},$rscu{$codon},$startrscu{$codon},$seqid);
 	  }
 	  else{ #annotate
 	    if ($rscu) {
@@ -335,15 +335,15 @@ sub print_output {
 }
   
   sub print_end_totals {    
-    printf "::--------------------------------------------------\n";
-    printf ":1                %10u %10u            | unambiguous codons at tail (middle+end) and at start\n",$middlecodons,$startcodons;
-    printf ":2                %10u %10u %10u | ambiguous   codons in middle, at start, and at end\n",$ambiguous_middle,$ambiguous_start,$ambiguous_stop;
-    printf "::                                                 | (ambiguous codons are skipped)\n";
-    printf ":3                %10u %10u            | stop        codons in middle and at start\n",$stop_at_middle,$stop_at_start;
-    printf ":4                                      %10u | stop        codons at end (included in line 1)\n",$stopcodons;
-    printf ":4                                      %10u | sense       codons at end (included in line 1)\n",$nonstop;
-    printf "::--------------------------------------------------\n";
-    printf ":5 %-10u of %-10lu sequences had a length non-modulo 3 and were skipped.\n",$bad_length,$numseqs;
+    printf "::--------------------------------------\n";
+    printf ":1    %10u %10u            | unambiguous codons at tail (middle+end) and at start\n",$middlecodons,$startcodons;
+    printf ":2    %10u %10u %10u | ambiguous   codons in middle, at start, and at end\n",$ambiguous_middle,$ambiguous_start,$ambiguous_stop;
+    printf "::                                     | (ambiguous codons are skipped)\n";
+    printf ":3    %10u %10u            | stop        codons in middle and at start\n",$stop_at_middle,$stop_at_start;
+    printf ":4                          %10u | stop        codons at end (included in line 1)\n",$stopcodons;
+    printf ":4                          %10u | sense       codons at end (included in line 1)\n",$nonstop;
+    printf "::--------------------------------------\n";
+    printf ":5    %10u of %-10u            sequences had a length non-modulo 3 and were skipped.\n",$bad_length,$numseqs;
   }
     
     

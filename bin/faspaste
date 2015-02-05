@@ -379,6 +379,16 @@ B<fashead> -n 1 t/data/fasxl_test4.fas | B<faspaste> -r - t/data/fasxl_test4.fas
 
 =back
 
+Paste the first sequence of one file repeatedly to every other
+sequence in another file, with output identifiers and descriptions
+taken from the second file.
+
+=over 8
+
+B<fashead> -n 1 t/data/fasxl_test3.fas | B<faspaste> -r -R 2 - t/data/fasxl_test4.fas
+
+=back
+
 =head1 SEE ALSO
 
 =over 8

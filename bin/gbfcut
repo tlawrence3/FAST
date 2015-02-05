@@ -32,10 +32,10 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $insensitive          = undef; # -i
-my $negate               = undef; # -v
+# my $negate               = undef; # -v
 my $qualifier            = undef; # -q 
 my $key                  = undef; # -k
-my $verbose              = undef;
+# my $verbose              = undef;
 my $context              = undef;
 my $join                 = $def_join_string; # -j
 
@@ -51,7 +51,7 @@ GetOptions('help|h'         		 => \$help,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
 	   'case-insensitive|i'          => \$insensitive,
-	   'negate|v'                    => \$negate,
+#	   'negate|v'                    => \$negate,
 	   ## @ allows for multiple use of the -q option
 	   'qualifier|q=s@'              => sub{  my (undef,$val) = @_; 
 						  die "$NAME: --qualifier or -q option argument must contain either \"=\" or \"^\", try perldoc $NAME" 
@@ -59,7 +59,11 @@ GetOptions('help|h'         		 => \$help,
 						  push @$qualifier,$val;
 						},
 	   'key|k=s'                     => \$key,
-	   'context|c=i'                 => \$context,
+	   'context|c=i'                 => sub{  my (undef,$val) = @_; 
+						  die "$NAME: --context or -c option argument must be a positive integer. try perldoc $NAME" 
+						    unless ($val > 0); 
+						  $context = $val;
+						},
 	   'join|j=s'                    => \$join,
 	  ) 
   or pod2usage(2);
@@ -71,7 +75,8 @@ $join = "\t" if ($join eq '\t');
 
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: Requires at least one argument unless connected to standard input. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV < 1);
+pod2usage("$NAME: Requires at least one argument unless connected to standard input. Try \"perldoc $NAME\"") if (!$fromSTDIN && @ARGV < 1);
+pod2usage("$NAME: Requires zero arguments if connected to standard input. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV > 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
@@ -127,13 +132,13 @@ while ($IN or @ARGV) {
 			     );
 	  }
 	  
-	  if ($context and $context != 0  and $feat->start > $feat->end) {
-	    $feat->start($feat->start + $context);
-	    $feat->end  ($feat->end   - $context);
+	  if ($context and $feat->start > $feat->end) {
+	    $feat->start(($feat->start + $context > $seqobj->length ? $seqobj->length : $feat->start + $context));
+	    $feat->end  (($feat->end - $context < 0 ? 1 : $feat->end   - $context));
 	  }
-	  elsif ($context and $context != 0) {
-	    $feat->start($feat->start - $context);
-	    $feat->end  ($feat->end   + $context);
+	  elsif ($context ) {
+	    $feat->start(($feat->start - $context < 0 ? 1 : $feat->start   - $context));
+	    $feat->end  (($feat->end + $context > $seqobj->length ? $seqobj->length : $feat->end + $context));
 	  }
 	  
 	  my $featseq = $feat->spliced_seq;
@@ -185,12 +190,11 @@ expression matching against particular keys.  By default all features
 are printed.
 
 Options specific to B<gbfcut>:
-  B<-q>, B<--qualifier=<string>>          search features for qualifer values by regular expressions
-  B<-i>, B<--insensitive>                 case-insensitive pattern matching for regex matching 
+  B<-q>, B<--qualifier>=<string>          search features for qualifer values by regular expressions
+  B<-i>, B<--insensitive>                 case-insensitive pattern matching for qualifier regex matching 
   B<-k>, B<--key>=<string>                restrict search to features whose keys match regex <string>. 
-  B<-a>, B<--annotate>                    annotate output records with feature metadata in descriptions
-  B<-j>, B<--join>=<string>               use <string> to join annotation in descriptions
-  B<-l>, B<--location>                    print genomic location strings in annotations
+  B<-j>, B<--join>=<string>               use <string> to join feature annotations in descriptions
+  B<-c>, B<--context>=<int>               include <int> positions of sequence context for each sequence output
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
@@ -214,30 +218,40 @@ reformat other formats to and from multifasta.
 
 =over 8
 
-=item B<-q [q1][=^][perl-regex1]+[q2][=^][perl-regex2]>,
-      B<--qualifier [q1][=^][perl-regex1]+[q2][=^][perl-regex2]>
+=item B<-q> <qualifier>[=^]<perl-regex>,
+      B<--qualifier> [qualifier][=^]<perl-regex>
 
-Filter only features that have all specified qualifiers: q1, q2, etc
-and, for each qualifier, at least one value that either matches (=) or no value that matches (^)
-their specific perl-regexes: perl-regex1, perl-regex2, etc.
-Examples of qualifiers: 'product', 'note', 'gene', 'db_xref'
+Filter only features that have a specified qualifier and for each
+qualifier, at least one value that either matches (=) or no value that
+matches (^) their corresponding perl-regexes. Examples of qualifiers:
+'product', 'note', 'gene', 'db_xref'. Multiple qualifier options are
+allowed; features will be printed for which all qualifier expressions
+are true.
 
 =item B<-i>,
       B<--case-insensitive>
 
-Enable case-insensitive matching of tags.
+Enable case-insensitive matching of qualifiers.
 
-=item B<-l>,
-      B<--location>
+=item B<-k> <string>,
+      B<--key>=<string>
 
-Append genomic location strings in the outputted sequence descriptions.
+Filter only features with keys that match perl-regex
+<string>. Matching is done case-insensitively.  Examples of
+key-matching regexes (called "primary-tags" in BioPerl): 'CDS', 'RNA',
+'CDS|RNA' 'UTR' This regex is always matched case-insensitively.
 
-=item B<-p>,
-      B<--primary>
+=item B<-c> <int>,
+      B<--context>=<int>
 
-Filter only features with primary tags matching given perl-regex. 
-Ex: 'CDS', 'RNA', 'CDS|RNA'
-This regex is always matched case-insensitively.
+Include <int> positions of sequence context for each sequence record
+extracted.
+
+=item B<-j> <string>,
+      B<--join>=<string>
+
+Use <string> as delimiter to concatenate annotation data in output
+sequence record descriptions.
 
 =item B<-h>,
       B<--help>
@@ -291,7 +305,7 @@ Output the 5' and 3' UTR sequences:
 
 =over 8
 
-B<gbf2fas> -p UTR > data.dna.gb
+B<gbfcut> -p UTR t/data/AF194338.1.gb
 
 =back
 
@@ -299,7 +313,7 @@ Output all sequences under the feature "exon" and add location labels:
 
 =over 8
 
-B<gbf2fas> -lp exon > data.dna.gb
+B<gbfcut> -lp exon t/data/AF194338.1.gb
 
 =back
 
@@ -307,7 +321,7 @@ Output all feature sequences with an "organism" tag set to "Stylonychia lemnae":
 
 =over 8
 
-B<gbf2fas> -t "organism=Stylonychia lemnae" > data.dna.gb
+B<gbfcut> -q organism="Stylonychia lemnae" t/data/AF194338.1.gb
 
 
 =back
