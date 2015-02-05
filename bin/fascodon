@@ -42,6 +42,7 @@ my $fastq                = undef;
 my $width                = undef;
 my $precision            = 3;
 my $rscu                 = undef;
+my $summary              = undef;
 
 GetOptions('help|h'         		 => \$help, 
 	   'man'            		 => \$man,
@@ -63,6 +64,7 @@ GetOptions('help|h'         		 => \$help,
            'amino-order|o:s'             => \$amino_order, #optional option argument. If not given, "ARNDCQEGHILKMFPSTWYV*"
            'code|c=i'                    => \$code,
            'table|t'                     => \$table,
+	   'summary|s'                   => \$summary,
 	   'join|j=s'                    => \$join,
 	   'width|w=i'                   => \$width,
 	   'precision|p=i'               => \$precision,
@@ -77,13 +79,6 @@ $join = "\t" if ($join eq '\t');
 	  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
-pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input from STDIN.\n") if (!($fromSTDIN) && (@ARGV == 0));
-pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
-
-&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
-
-my $geneticcode = FAST::Bio::Tools::CodonTable->new(-id => $code);
 
 if ($codes) {
   my $tables = FAST::Bio::Tools::CodonTable->tables;
@@ -94,6 +89,16 @@ if ($codes) {
   }
   die;
 }
+
+my $fromSTDIN = ((-t STDIN) ? false : true);
+pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input from STDIN.\n") if (!($fromSTDIN) && (@ARGV == 0));
+pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
+
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
+
+my $geneticcode = FAST::Bio::Tools::CodonTable->new(-id => $code);
+
+
 
 my @append_seqs;
 
@@ -138,6 +143,9 @@ unless (@ARGV) {
   }
 }
 
+if ($table) {
+  printf ":          USAGE     STARTS %${width}s %${width}s\n","RSCU","S-RSCU";
+}
 while ($IN or @ARGV) {
   if (@ARGV) {
     my $file = shift (@ARGV);
@@ -229,7 +237,7 @@ while ($IN or @ARGV) {
       }
       if ($table){
 	my $id = $seq->id ;# . $seq->desc();
-	&print_output($id,$startcount,$count);
+	&print_output($id,$startcount,$count) unless ($summary);
       }
       else{
 	my $old_desc = $seq->desc();
@@ -292,7 +300,7 @@ sub print_output {
 	$$count{$codon} ||= 0;
 	$$startcount{$codon} ||= 0;
 	if ($table){
-	  printf("%s %s %s %5.3f %5.3f %10u %10u\n",$seqid,$geneticcode->translate($codon),$codon,$rscu{$codon},$startrscu{$codon},$$count{$codon},$$startcount{$codon});
+	    printf("%s %s %10u %10u %${width}.${precision}f %${width}.${precision}f %s\n",$geneticcode->translate($codon),$codon,$$count{$codon},$$startcount{$codon},$rscu{$codon},$startrscu{$codon},$seqid);
 	}
 	else{ #annotate
 	  if ($rscu) {
@@ -374,6 +382,7 @@ Options specific to B<fascodon>:
   B<-p>, B<--precision>=<int>        print RSCU with <int> digits after the decimal point 
   B<-w>, B<--width>=<int>            print frequencies in fields of width <int>
   B<-t>, B<--table>                  table-mode, outputs codon frequency table to STDOUT 
+  B<-s>, B<--summary>                in table-mode, only output summaries for all data
   B<-b>, B<--base-order>=<string>    use base-order <string> to enumerate codons
                                      default order is "TCAG"              
   B<-o>, B<--amino-order>:<string>   enumerate codons by amino acids they encode
