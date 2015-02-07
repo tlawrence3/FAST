@@ -5,7 +5,6 @@ use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
 use File::Basename;
-use Devel::Size qw/ total_size /;
 use File::Temp qw/ tempfile /;
 use Storable qw/ store_fd /;
 use strict;
@@ -69,6 +68,9 @@ GetOptions('help|h'         		 => \$help,
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 
+#Sequence Length = 542 nt; Size = 1746 bytes; 3.22 bytes/nt
+$memory_limit = $memory_limit / 3.22; #convert memory to # of nt/aa
+
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
 pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN) && !(@ARGV));
@@ -113,6 +115,7 @@ while ($IN or @ARGV) {
     my $stored_seqs = 0;
 
     while (my $seq = $IN->next_seq()) {
+      my $seqlength = 0;
       if ($append_file_name) {
 	  my $annotation = join "","file:", (fileparse($file))[0];
 	  $seq->desc(join $join, $seq->desc(), $annotation); 
@@ -125,8 +128,8 @@ while ($IN or @ARGV) {
 	shift @seq_list;
 	push @seq_list, $seq;
       }
-
-      if (total_size(\@seq_list) > $memory_limit) {
+  $seqlength += $seq->length();    
+  if ($seqlength > $memory_limit) {
 	my $seq_num = @seq_list;
 	my ($fh, $filename) = tempfile();
 	push @files, $filename;

@@ -24,7 +24,6 @@ WriteMakefile(
 				},
 	      PREREQ_PM => {
 			    'Sort::Key' => 0,
-			    'Devel::Size' => 0,
 			    'Sort::MergeSort' => 0,
 			    'File::Temp' => 0,
 			    'Storable'   => 0,
