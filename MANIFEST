@@ -25,6 +25,7 @@ Changes
 doc/FAST_Cookbook.html
 doc/FAST_Cookbook.org
 doc/FAST_Cookbook.pdf
+doc/FAST_Cookbook.tex
 doc/org2html
 doc/org2pdf
 lib/FAST.pm
@@ -326,6 +327,16 @@ lib/FAST/Bio/Tree/Tree.pm
 lib/FAST/Bio/Tree/TreeFunctionsI.pm
 lib/FAST/Bio/Tree/TreeI.pm
 lib/FAST/Bio/UnivAln.pm
+lib/FAST/Bio/WebAgent.pm
+lib/FAST/List/Gen.pm
+lib/FAST/List/Gen/Benchmark.pm
+lib/FAST/List/Gen/Cookbook.pm
+lib/FAST/List/Gen/Haskell.pm
+lib/FAST/List/Gen/Lazy.pm
+lib/FAST/List/Gen/Lazy/Builtins.pm
+lib/FAST/List/Gen/Lazy/Ops.pm
+lib/FAST/List/Gen/Perl6.pm
+lib/FAST/List/Generator.pm
 lib/Pod/Usage.pm
 Makefile.PL
 MANIFEST			This list of files
@@ -361,6 +372,7 @@ t/data/fasxl_test2.fas
 t/data/fasxl_test3.fas
 t/data/fasxl_test4.fas
 t/data/fasxl_test5.fas
+t/data/flybase_fasta_100_cds.fas
 t/data/gbfcut_test.fas
 t/data/P450.clustalw2.aln
 t/data/P450.clustalw2.fas

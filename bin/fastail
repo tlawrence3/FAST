@@ -93,6 +93,7 @@ unless (@ARGV) {
 my $file = undef;
 my $seq_count = 0;
 my @seq_list;
+my $seqlength = 0;
 
 while ($IN or @ARGV) {
   if (@ARGV) {
@@ -115,7 +116,6 @@ while ($IN or @ARGV) {
     my $stored_seqs = 0;
 
     while (my $seq = $IN->next_seq()) {
-      my $seqlength = 0;
       if ($append_file_name) {
 	  my $annotation = join "","file:", (fileparse($file))[0];
 	  $seq->desc(join $join, $seq->desc(), $annotation); 
@@ -128,8 +128,8 @@ while ($IN or @ARGV) {
 	shift @seq_list;
 	push @seq_list, $seq;
       }
-  $seqlength += $seq->length();    
-  if ($seqlength > $memory_limit) {
+      $seqlength += $seq->length();    
+      if ($seqlength > $memory_limit) {
 	my $seq_num = @seq_list;
 	my ($fh, $filename) = tempfile();
 	push @files, $filename;

@@ -173,6 +173,7 @@ unless (@ARGV) {
 }
 
 my $seqs = [];
+my $seqlength = 0;
 my $merge;
 my @fnames = ();
 while ($IN or @ARGV) {
@@ -190,10 +191,9 @@ while ($IN or @ARGV) {
     }
   }
   if ($IN) { 
-    my $seqlength = 0;
     while (my $seq = $IN->next_seq()) {
-      my $key = &$keyf($seq);
       $seqlength += $seq->length();
+      my $key = &$keyf($seq);
       push @$seqs, [$key,$seq];
       if ($seqlength > $memory_limit) {
         $seqlength = 0;
