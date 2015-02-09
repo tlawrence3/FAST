@@ -341,6 +341,7 @@ lib/Pod/Usage.pm
 Makefile.PL
 MANIFEST			This list of files
 README
+INSTALL
 README.md
 t/00-load.t
 t/00.load.t
@@ -387,7 +388,6 @@ t/fasfilter.t
 t/fasgrep.t
 t/fashead.t
 t/faslen.t
-t/faspaste.t
 t/fasrc.t
 t/fassort.t
 t/fassub.t
@@ -399,7 +399,6 @@ t/fastr.t
 t/fasuniq.t
 t/faswc.t
 t/fasxl.t
-t/gbfcut.t
 t/lib/Test/Cmd.pm
 t/lib/Test/Cmd/Common.pm
 t/manifest.t
