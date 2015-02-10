@@ -20,3 +20,4 @@ FAST-*.tar.gz
 HOWTO
 *~
 *.orig
+*.save

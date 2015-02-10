@@ -19,8 +19,7 @@ WriteMakefile(
 				     'ExtUtils::MakeMaker' => 0,
 				    },
 	      BUILD_REQUIRES => {
-				 'Test::More' => 0,
-				 'Test::Script::Run' => 0,
+	      		     	'Test::More' => 0,
 				},
 	      PREREQ_PM => {
                             'Pod::Usage' => 0, 
