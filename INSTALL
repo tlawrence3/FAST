@@ -8,19 +8,24 @@ FAST has some Perl dependencies. Once posted to CPAN, the easiest way
 to install FAST with its dependencies will be by executing this
 command:
 
-	perl -MCPAN -e 'install FAST'
+	(sudo) perl -MCPAN -e 'install FAST'
 
-You can also follow INSTALLATION instructions below, but you may need to
-first run these commands to install FAST dependencies:
+This command may require root priviliges on your system to run, in
+which case they may be prepended with "sudo". This caveat is indicated
+by enclosing "sudo" with parentheses as in "(sudo)" You can also
+follow INSTALLATION instructions below, but you may need to first run
+these commands to install FAST dependencies:
 
-      	perl -MPCAN -e 'install Sort::Key'
-	perl -MCPAN -e 'install Sort::MergeSort'
-	perl -MCPAN -e 'install Bit::Vector'
-	perl -MCPAN -e 'install Test::Script::Run'
+      	(sudo) perl -MPCAN -e 'install Sort::Key'
+	(sudo) perl -MCPAN -e 'install Sort::MergeSort'
+	(sudo) perl -MCPAN -e 'install Bit::Vector'
+	(sudo) perl -MCPAN -e 'install Pod::Usage'
 
-These commands may require root priviliges on your system to run, in which
-case they may be prepended with "sudo" for example. Below, this caveat is
-indicated by enclosing "sudo" with parentheses as in "(sudo)"
+In addition, you can run some tests, but these tests may fail on
+Windows-based Perl installations. If you want to run the tests, do
+also:
+
+	(sudo) perl -MCPAN -e 'install Test::Script::Run'
 
 INSTALLATION
 
@@ -31,6 +36,9 @@ following:
 	make
 	make test
 	(sudo) make install
+
+You may skip the "make test" step, and you probably should skip this
+step on Windows installations.
 
 By default, the executables and man-pages usually install in the same
 area of your file systems as the perl executable. To see where your

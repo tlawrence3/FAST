@@ -109,7 +109,6 @@ lib/FAST/Bio/LocationI.pm
 lib/FAST/Bio/MyPrimarySeqI.pm
 lib/FAST/Bio/MySeqI.pm
 lib/FAST/Bio/MySeqUtils.pm
-lib/FAST/Bio/Nexml/Factory.pm
 lib/FAST/Bio/Ontology/DocumentRegistry.pm
 lib/FAST/Bio/Ontology/OBOEngine.pm
 lib/FAST/Bio/Ontology/Ontology.pm
@@ -337,7 +336,6 @@ lib/FAST/List/Gen/Lazy/Builtins.pm
 lib/FAST/List/Gen/Lazy/Ops.pm
 lib/FAST/List/Gen/Perl6.pm
 lib/FAST/List/Generator.pm
-lib/Pod/Usage.pm
 Makefile.PL
 MANIFEST			This list of files
 README

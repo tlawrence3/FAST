@@ -134,10 +134,10 @@ provides non-programmers greater bioinformatic power and more direct,
 real-time access to their biological data for interactive and
 reproducible exploration, control, and analysis. Closer inspection of
 data and interactive construction and control of data flows makes it
-so much easier to rapidly prototype error-free workflows. Nipping
-errors in the bug  that can completely confound downstream analyses.  The
-time-tested paradigm in scientific computing for rapid prototyping of
-reproducible data workflows is the Unix command-line.
+so much easier to rapidly prototype error-free workflows, nipping
+errors in the bud that can completely confound downstream analyses.
+In scientific computing, the time-tested paradigm for rapid prototyping
+of reproducible data workflows is the Unix command-line.
 
 In this tradition we present FAST: FAST Analysis Sequences Toolbox,
 modeled after the standard Unix toolkit~\citep{Peek2001}, now called
@@ -164,22 +164,22 @@ are familiar with the Unix toolbox and allows fast sequence analysis
 even on large datasets. Extensive documentation has been developed for
 each FAST utility along with useful error messages following
 recommended practice~\citep{Seemann2013}. FAST is free and open
-source, available to anyone for re-use, verification and
-extension. This is in line with the call to make science generally
+source; its code is freely available to anyone to re-use, verify and
+extend. FAST is intended to help make scientific resources generally
 more accessible, open, and reproducible by other scientists and the
 public~\citep{Groves2012}.
 
 \section{Design}
 
-The Unix textutils paradigm allows users to treat plain-text files as
-databases in which {\it records} correspond to single lines containing
-{\it fields} separated by {\it delimiters} such as commas, tabs, or
-strings of white-space characters.  FAST extends this paradigm to
-biological sequence data, allowing users to treat collections of files
-of sequence data as databases for complex queries, transformations and
-analytics. The textutils model is generalized exactly by FAST because
-it models sequence record {\it descriptions} as an ordered
-collection of fields (see below).
+The Unix Textutils paradigm allows users to treat plain-text files and
+data streams as databases in which {\it records} correspond to single
+lines containing {\it fields} separated by {\it delimiters} such as
+commas, tabs, or strings of white-space characters.  FAST extends this
+paradigm to biological sequence data, allowing users to treat
+collections files and streams of sequence records as databases for
+complex queries, transformations and analytics. The Textutils model is
+generalized exactly by FAST because it models sequence record {\it
+  descriptions} as an ordered collection of fields (see below).
 
 Another design feature of Unix tools that also characterizes the FAST
 tools is their ability to accept input not only from one or more files
@@ -234,8 +234,8 @@ is shown in Table~\ref{tab:01}.
 
 The default data exchange format for FAST tools is the universally
 recognized FastA format~\citep{lipman1985rapid}. While no universal
-standard exists for this format, for FAST, "FastA format" means what
-is conventionally called "multi-fasta" format of sequence or alignment
+standard exists for this format, for FAST, ``FastA format" means what
+is conventionally called ``multi-fasta" format of sequence or alignment
 data, largely as implementated in BioPerl in the module {\tt
   Bio::SeqIO::fasta}~\citep{Stajich2002}.
 
@@ -361,14 +361,13 @@ sets of genes or other annotated features in genome data.
 \subsection{gbfalncut} 
 This utility automates the selection of sites from alignments that
 correspond to one or more features annotated on one of the sequences
-in a separate GenBank record. This workflow supports the
-reproducibility of results not only because it eliminates the need for manual entry of
-coordinates and because it exactly embodies a useful bioinformatic
+in a separate GenBank record. This workflow eliminates the need for
+manual entry of coordinates and implements a useful bioinformatic
 query in terms of known and reproducible quantities from public data
-and sequence records.
-
- and allows user to
-query for sites using the biological vocabulary of sequence features.
+and sequence records, allowing users to query sites based on
+biological vocabularies of sequence features. Data and command
+examples are provided to reproduce the feature-based analysis of
+polymorphism data in~\citep{Ardell03}.
 
 \subsection{fassort}
 
@@ -380,8 +379,8 @@ written to temporary files and merged with {\tt Sort::MergeSort}.
 \subsection{fasuniq}
 
 With {\tt fasuniq} the user may remove records that are duplicates
-with respect to a specified component or field. Like their Unix
-Coreutil analogs, {\tt fasuniq} only compares subsequent records on
+with respect to a specified component or field. Like its Unix
+Coreutil analog, {\tt fasuniq} only compares subsequent records on
 input, usually requiring that its input is sorted first by {\tt fassort}.
 
 \subsection{fastax and fastaxsort}
@@ -409,10 +408,11 @@ the Perl {\tt s///} substitution operator.
 
 \subsection{fascomp, fasxl and fascodon}
 
-Annotation and analytics of compositions, translations, and codon
-usage frequencies of sequence records (with start and stop codons
-counted distinctly, in the last case). All genetic codes included in
-BioPerl, ultimately from NCBI Entrez, are supported.
+These utilities provide for annotation and analytics of compositions,
+translations, and codon usage frequencies of sequence records (with
+start and stop codons counted distinctly, in the last case). All
+genetic codes included in BioPerl, ultimately from NCBI Entrez, are
+supported.
 
 \subsection{alnpi}
     
@@ -420,10 +420,12 @@ BioPerl, ultimately from NCBI Entrez, are supported.
 Table~\ref{tab:pgstats} for each alignment on input. It can output a
 set of statistics for each alignment on input in plain text or
 \LaTeX~format. {\tt alnpi} also supports sliding window and pairwise
-analysis of input data. This code computed the sliding window analyses
-published in~\citep{Ardell03}. All of the code for these calculations has
-been reviewed and compared against calculations produced from
-DNASP~\citep{Librado01062009} as described previously~\citep{Ardell12082004}.
+analysis of input data. Data and command examples are provided to
+reproduce the tables and sliding window analyses of statistics
+published in~\citep{Ardell03}.  All of the code for these calculations
+has been reviewed and compared against calculations produced from
+DNASP~\citep{Librado01062009} as described
+previously~\citep{Ardell12082004}.
 
 \begin{table}[!t]
 \textbf{\refstepcounter{table}\label{tab:pgstats} Table \arabic{table}.}{
@@ -552,7 +554,9 @@ Bioinformatics at Uppsala University.
 \paragraph{Funding\textcolon} D.H.A. gratefully acknowledges an
 NSF-DBI Postdoctoral Fellowship in Biological Informatics and awards
 from UC Merced's Graduate Research Council and a Chancellor's Award
-from UC Merced's second Chancellor Sung-Mo Kang.
+from UC Merced's second Chancellor Sung-Mo Kang, as well as the
+NSF-funded program in Undergraduate Research in Computational
+Biology at UC Merced (DBI-1040962).
 
 \bibliographystyle{frontiersinSCNS&ENG} % for Science and Engineering articles
 \bibliography{FAST}

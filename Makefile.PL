@@ -23,6 +23,7 @@ WriteMakefile(
 				 'Test::Script::Run' => 0,
 				},
 	      PREREQ_PM => {
+                            'Pod::Usage' => 0, 
 			    'Sort::Key' => 0,
 			    'Sort::MergeSort' => 0,
 			    'Bit::Vector'   => 0

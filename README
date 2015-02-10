@@ -63,25 +63,32 @@ FAST has some Perl dependencies. Once posted to CPAN, the easiest way
 to install FAST with its dependencies will be by executing this
 command:
 
-	perl -MCPAN -e 'install FAST'
+	(sudo) perl -MCPAN -e 'install FAST'
 
 You can also follow INSTALLATION instructions below, but you may need to
 first run these commands to install FAST dependencies:
 
-      	perl -MPCAN -e 'install Sort::Key'
-	perl -MCPAN -e 'install Sort::MergeSort'
-	perl -MCPAN -e 'install Bit::Vector'
-	perl -MCPAN -e 'install Test::More'
-	perl -MCPAN -e 'install Test::Script::Run'
+      	(sudo) perl -MPCAN -e 'install Sort::Key'
+	(sudo) perl -MCPAN -e 'install Sort::MergeSort'
+	(sudo) perl -MCPAN -e 'install Bit::Vector'
+	(sudo) perl -MCPAN -e 'install Pod::Usage'
+
+To complete the optional "make test" step below, try installing also:
+
+	(sudo) perl -MCPAN -e 'install Test::More'
+	(sudo) perl -MCPAN -e 'install Test::Script::Run'
 
 INSTALLATION
 
-To install this module, run the following:
+To install this module, please run the following:
 
 	perl Makefile.PL
 	make
 	make test
 	(sudo) make install
+
+On some Windows systems, "make test" will fail. The "make test" step
+is optional.
 
 If you haven't installed perl-based software on your system before, or
 you are having problems, please see more detailed notes in INSTALL.
