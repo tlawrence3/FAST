@@ -73,11 +73,6 @@ first run these commands to install FAST dependencies:
 	(sudo) perl -MCPAN -e 'install Bit::Vector'
 	(sudo) perl -MCPAN -e 'install Pod::Usage'
 
-To complete the optional "make test" step below, try installing also:
-
-	(sudo) perl -MCPAN -e 'install Test::More'
-	(sudo) perl -MCPAN -e 'install Test::Script::Run'
-
 INSTALLATION
 
 To install this module, please run the following:
@@ -86,9 +81,6 @@ To install this module, please run the following:
 	make
 	make test
 	(sudo) make install
-
-On some Windows systems, "make test" will fail. The "make test" step
-is optional.
 
 If you haven't installed perl-based software on your system before, or
 you are having problems, please see more detailed notes in INSTALL.
