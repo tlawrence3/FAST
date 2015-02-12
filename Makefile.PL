@@ -1,4 +1,4 @@
-use 5.006;
+use 5.10.1;
 use strict;
 use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
@@ -14,7 +14,7 @@ WriteMakefile(
 	      EXE_FILES => [ map { "bin/$_" } @scripts ],
 	      INSTALLMAN3DIR   => 'none',	  	  
 	      
-	      MIN_PERL_VERSION => 5.006,
+	      MIN_PERL_VERSION => 5.10.1,
 	      CONFIGURE_REQUIRES => {
 				     'ExtUtils::MakeMaker' => 0,
 				    },

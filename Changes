@@ -3,3 +3,8 @@ Revision history for FAST
 0.01    Date/time
         First version, released on an unsuspecting world.
 
+1.00    First post to CPAN
+1.01    Disabled much testing for the unfortunate reason of portability issues with Test::Script::Run
+1.02    Removed some libraries that were causing permission problems: one involving Nexml from BioPerl 
+        and the other Pod::Usage -- Pod::Usage listed as a dep for download from CPAN now
+1.03    Added use v5.10.1 in lib/FAST.pm and Makefile.pm because of "use parent" in FAST::Bio::SeqIO 
