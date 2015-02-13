@@ -135,6 +135,8 @@ use FAST::Bio::Ontology::SimpleGOEngine::GraphAdaptor02;
 
 use base qw(FAST::Bio::Root::Root);
 
+our $VERSION = '1.00';
+
 =head2 new
 
  Title   : new

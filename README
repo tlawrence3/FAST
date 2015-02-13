@@ -1,17 +1,18 @@
-FAST --- Fast Analysis of Sequences Toolbox
-Version 1.0
+FAST --- FAST Analysis of Sequences Toolbox
+Version 1.0. February, 2015
 
-The Fast Analysis of Sequences Toolbox (FAST) is a set of Unix tools (for
-example fasgrep, fascut, fashead and fastr) for sequence bioinformatics
-modeled after the UNIX textutils (such as grep, cut, head, tr, etc). FAST
-workflows are designed for "inline" (serial) processing of flatfile
-biological sequence record databases per-sequence, rather than per-line,
-through Unix command pipelines. The default data exchange format is
-multifasta (specifically, a restriction of BioPerl FastA format). FAST is
-designed for learnability, interoperability, interface consistency, rapid
-prototyping, fine-tuned control, and reproducibility. FAST tools expose the
-power of Perl and BioPerl to users in an easy-to-learn command-line
-paradigm.
+INTRODUCTION
+
+The FAST Analysis of Sequences Toolbox (FAST) is a set of Unix tools
+(for example fasgrep, fascut, fashead and fastr) for sequence
+bioinformatics modeled after the Unix textutils (such as grep, cut,
+head, tr, etc). FAST workflows are designed for "inline" (serial)
+processing of flatfile biological sequence record databases
+per-sequence, rather than per-line, through Unix command
+pipelines. The default data exchange format is multifasta
+(specifically, a restriction of BioPerl FastA format). FAST tools
+expose the power of Perl and BioPerl for sequence analysis to
+non-programmers in an easy-to-learn command-line paradigm.
 
 You do not need to know Perl or BioPerl to use FAST.
 
@@ -33,60 +34,66 @@ selection
 ---------
 fasgrep    -- select sequence records by perl regular expressions
 fasfilter  -- select sequence records by numerical values
-fastax     -- select sequence records by NCBI taxonomy IDs or names
-fascut     -- select/reorder sequence record data by position
+fastax     -- select sequence records by NCBI Taxonomy IDs or names
+fascut     -- select/reorder sequence record data by sequential ranges
 fasuniq    -- remove duplicate sequence records from sorted data
 fashead    -- select leading sequence records
 fastail    -- select trailing sequence records
-alncut     -- select sites based on variation and gap-content
-gbfcut     -- select sequences by regex match on features in a GenBank file
-gbfalncut  -- select sites by regex match on features in a GenBank file
+alncut     -- select sites based on variation and gap-content content
+gbfcut     -- select sequences by regex match on GenBank features
+gbfalncut  -- select sites by regex match on GenBank features
 
 transformation
 --------------
 fasconvert -- convert sequences to or from from fasta format
 fassort    -- sort sequence records
-fastaxsort -- sort sequence records by NCBI taxonomy IDs or names
-faspaste   -- concatenate sequence records
-fastr      -- transform sequence records by character, degap
+fastaxsort -- sort sequence records by NCBI Taxonomy IDs or names
+faspaste   -- concatenate sequence record data
+fastr      -- transform sequence records by characters and alphabets
 fassub     -- transform sequence records by regex-based substitutions
 
 analysis
 --------
 faswc      -- tally sequences and characters
-alnpi      -- calculate molecular population genetic statistics 
+alnpi      -- tally molecular population genetic statistics 
 
 PREREQUISITES
-FAST has been successfully installed using dmake in Strawberry Perl for
-windows. Apple computer users can install FAST from the terminal in
-Applciations/Utilities.
 
-FAST has some Perl dependencies. The easiest way to install FAST with its
-dependencies will be this command from a Unix like system:
+FAST has some Perl dependencies. Once posted to CPAN, the easiest way
+to install FAST with its dependencies will be by executing this
+command:
 
-perl -MCPAN -e 'install FAST'
+	(sudo) perl -MCPAN -e 'install FAST'
 
 You can also follow INSTALLATION instructions below, but you may need to
 first run these commands to install FAST dependencies:
 
-perl -MPCAN -e 'install Sort::Key'
-perl -MCPAN -e 'install Devel::Size'
-perl -MCPAN -e 'install Sort::MergeSort'
-perl -MCPAN -e 'install File::Temp'
-perl -MCPAN -e 'install Storable'
-perl -MCPAN -e 'install List::Gen'	      	       
-perl -MCPAN -e 'install Bit::Vector'
-perl -MCPAN -e 'install Test::More'
-perl -MCPAN -e 'install Test::Script::Run'
+      	(sudo) perl -MPCAN -e 'install Sort::Key'
+	(sudo) perl -MCPAN -e 'install Sort::MergeSort'
+	(sudo) perl -MCPAN -e 'install Bit::Vector'
+	(sudo) perl -MCPAN -e 'install Pod::Usage'
 
 INSTALLATION
 
-To install this module, run the following commands:
+To install this module, please run the following:
 
 	perl Makefile.PL
 	make
 	make test
 	(sudo) make install
+
+If you haven't installed perl-based software on your system before, or
+you are having problems, please see more detailed notes in INSTALL.
+
+GETTING STARTED
+
+	perldoc fasgrep
+	man fasgrep
+ 	perldoc FAST
+
+Some usage examples in the man pages refer to data that ships with
+FAST, in the installation package under t/data. Run these examples
+with these data to get started right away using FAST.
 
 DOCUMENTATION
 
@@ -111,8 +118,14 @@ You can also look for information at:
 
 CITING
 
-If you use FAST please, cite the FAST project (Lawrence et al. 2015) and
-Bioperl (Stajich et al. 2005).
+If you use FAST please, cite the FAST project (Lawrence et al. 2015)
+and Bioperl (Stajich et al. 2005). If you publish work that cites data
+provided in this FAST installer, please cite the authors of this data
+accordingly. For example, if you use the tRNAdb-CE data provided in
+this installer, please cite: Abe T, Inokuchi H, Yamada Y, Muto A,
+Iwasaki Y and Ikemura T (2014) tRNADB-CE: tRNA gene database
+well-timed in the era of big sequence data. Front. Genet. 5:114. doi:
+10.3389/fgene.2014.00114
 
 VERSION AND CHANGES
 

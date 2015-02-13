@@ -10,7 +10,7 @@ use FAST;
 use FAST::Bio::SeqIO;
 use strict;
 use Sort::Key qw/ keysort_inplace nkeysort_inplace rkeysort_inplace rnkeysort_inplace / ;
-use Devel::Size qw/ total_size /;
+#use Devel::Size qw/ total_size /;
 use Sort::MergeSort;
 use File::Temp qw/ tempfile /;
 use Storable qw/ store_fd /; 
@@ -93,6 +93,9 @@ GetOptions('help|h'         		 => \$help,
 	  ) 
  or exit(1);
 		  
+#Sequence Length = 542 nt; Size = 1746 bytes; 3.22 bytes/nt
+$memory_limit = $memory_limit / 3.22; #convert memory to # of nt/aa 
+
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
@@ -170,6 +173,7 @@ unless (@ARGV) {
 }
 
 my $seqs = [];
+my $seqlength = 0;
 my $merge;
 my @fnames = ();
 while ($IN or @ARGV) {
@@ -188,9 +192,11 @@ while ($IN or @ARGV) {
   }
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
+      $seqlength += $seq->length();
       my $key = &$keyf($seq);
       push @$seqs, [$key,$seq];
-      if (Devel::Size::total_size($seqs) > $memory_limit) {
+      if ($seqlength > $memory_limit) {
+        $seqlength = 0;
 	$merge = 1;                                     ## PREPARE TO MERGE SORT
 	&$keysort(\@$seqs);                             ## SORT DATA IN MEMORY
 	my ($fh, $filename) = File::Temp::tempfile();   ## OPEN TEMPFILE 

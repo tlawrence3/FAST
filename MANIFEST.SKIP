@@ -21,6 +21,7 @@
 /\.#
 DS_Store
 ^old/
+\.save$
 
 #FAST
 FAST\.\log\.txt

@@ -1,0 +1,77 @@
+PREREQUISITES
+
+FAST has been successfully installed using dmake in Strawberry Perl for
+Windows. Apple computer users can install FAST from the terminal in
+Applciations/Utilities.
+
+FAST has some Perl dependencies. Once posted to CPAN, the easiest way
+to install FAST with its dependencies will be by executing this
+command:
+
+	(sudo) perl -MCPAN -e 'install FAST'
+
+This command may require root priviliges on your system to run, in
+which case they may be prepended with "sudo". This caveat is indicated
+by enclosing "sudo" with parentheses as in "(sudo)" You can also
+follow INSTALLATION instructions below, but you may need to first run
+these commands to install FAST dependencies:
+
+      	(sudo) perl -MPCAN -e 'install Sort::Key'
+	(sudo) perl -MCPAN -e 'install Sort::MergeSort'
+	(sudo) perl -MCPAN -e 'install Bit::Vector'
+	(sudo) perl -MCPAN -e 'install Pod::Usage'
+
+INSTALLATION
+
+If you have root privileges, to install this module system-wide, run the
+following:
+
+	perl Makefile.PL
+	make
+	make test
+	(sudo) make install
+
+
+By default, the executables and man-pages usually install in the same
+area of your file systems as the perl executable. To see where your
+perl is, say:
+
+     	which perl
+
+For convenience, it can be useful to qualify which perl you use to
+install FAST, because if you use a standard location, the executables
+and man-pages may be found automatically after installation.
+
+For instance, one might have better success using these commands:
+
+	/usr/local/bin/perl Makefile.PL
+	make
+	make test
+	(sudo) make install
+
+However, it is important that the dependencies required by FAST (see
+PREEQUISITES above) are installed with the same perl executable as the
+one you use to install FAST, e.g.
+
+    	(sudo) /usr/local/bin/perl -MPCAN -e 'install Sort::Key'
+
+To install FAST in your home directory, or at another location in the
+system, you may also qualify the installation base directory as follows:
+
+	perl Makefile.PL INSTALL_BASE=/mydir/perl
+        make
+        make test
+        (sudo) make install
+
+SYSTEM-SPECIFIC NOTES
+If after successful install of FAST, you are still having trouble
+finding the executables and man pages, you may need to add locations
+to your shell environmental variables PATH and MANPATH, or reset the cache
+of executables in your shell with a command such as 
+
+   	(sudo) rehash
+
+FAST has been successfully installed using dmake in Strawberry Perl for
+Windows. Some Windows Perls may cough on "make test" but install otherwise
+fine. Apple computer users can install FAST from the terminal in
+Applciations/Utilities.

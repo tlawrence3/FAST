@@ -1,11 +1,11 @@
 package FAST;
-use 5.006;
+use 5.10.1;
 use strict;
 use Carp;
 use warnings FATAL => 'all';
 
 
-our $VERSION = '1.0';
+our $VERSION = '1.03';
 
 our $DEF_FORMAT  = "fasta";
 our $DEF_LOGNAME = "FAST.log.txt";
@@ -40,7 +40,7 @@ FAST - FAST Analysis of Sequences Toolbox
 
 =head1 VERSION
 
-Version 1.00
+Version 1.03
 
 =head1 SYNOPSIS
 
@@ -59,7 +59,7 @@ BioPerl to users in an easy-to-learn command-line paradigm.
 
 =head1 UTILITIES
 
-FAST 1.0 contains the following utilities. Each has its own man page.
+FAST 1.0x contains the following utilities. Each has its own man page.
 
 =over 4
 
@@ -156,7 +156,7 @@ automatically be notified of progress on your bug as I make changes.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2014 David H. Ardell.
+Copyright 2015 David H. Ardell.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a

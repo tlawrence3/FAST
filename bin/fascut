@@ -4,7 +4,7 @@ use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
-use List::Gen qw/range/;
+use FAST::List::Gen qw/range/; ## version 0.974 with changes to tests not not fail w perl >= 5.19.0.
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
@@ -249,15 +249,15 @@ while ($IN or @ARGV) {
 	  }
 	}
 	elsif ($by) {
-	  push @newdata,@olddata[@{ List::Gen::range ($b,$e,$by) }];
+	  push @newdata,@olddata[@{ FAST::List::Gen::range ($b,$e,$by) }];
 	  if ($selector eq 'seq' && $format eq 'fastq'){
-	    push @newqual,@oldqual[@{ List::Gen::range ($b,$e,$by) }];
+	    push @newqual,@oldqual[@{ FAST::List::Gen::range ($b,$e,$by) }];
 	  }
 	}
 	else {
-	  push @newdata,@olddata[@{ List::Gen::range ($b,$e) }];
+	  push @newdata,@olddata[@{ FAST::List::Gen::range ($b,$e) }];
 	  if ($selector eq 'seq' && $format eq 'fastq'){
-	    push @newqual,@oldqual[@{ List::Gen::range ($b,$e) }];
+	    push @newqual,@oldqual[@{ FAST::List::Gen::range ($b,$e) }];
 	  }
 	}
       }
