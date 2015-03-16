@@ -107,7 +107,7 @@ while ($IN or @ARGV) {
 	print "\n";
       }
       else {
-	my $olddesc = $seq->desc();
+	my $olddesc = $seq->desc() || '';
 	$seq->desc(join $join,$olddesc,"length:$length");     
 	print $OUT $seq;
       }
