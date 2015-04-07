@@ -131,6 +131,8 @@ while ($IN or @ARGV) {
 			      )
 			     );
 	  }
+
+	  ## TODO: handle context for split features, right now it just dies.
 	  
 	  if ($context and $feat->start > $feat->end) {
 	    $feat->start(($feat->start + $context > $seqobj->length ? $seqobj->length : $feat->start + $context));
@@ -192,7 +194,7 @@ are printed.
 Options specific to B<gbfcut>:
   B<-q>, B<--qualifier>=<string>          search features for qualifer values by regular expressions
   B<-i>, B<--insensitive>                 case-insensitive pattern matching for qualifier regex matching 
-  B<-k>, B<--key>=<string>                restrict search to features whose keys match regex <string>. 
+  B<-k>, B<--key>=<regex>                 restrict search to features whose keys match regex <regex>. 
   B<-j>, B<--join>=<string>               use <string> to join feature annotations in descriptions
   B<-c>, B<--context>=<int>               include <int> positions of sequence context for each sequence output
 
@@ -219,14 +221,14 @@ reformat other formats to and from multifasta.
 =over 8
 
 =item B<-q> <qualifier>[=^]<perl-regex>,
-      B<--qualifier> [qualifier][=^]<perl-regex>
+      B<--qualifier>=<qualifier>[=^]<perl-regex>
 
 Filter only features that have a specified qualifier and for each
 qualifier, at least one value that either matches (=) or no value that
 matches (^) their corresponding perl-regexes. Examples of qualifiers:
-'product', 'note', 'gene', 'db_xref'. Multiple qualifier options are
-allowed; features will be printed for which all qualifier expressions
-are true.
+'product', 'note', 'gene', 'db_xref'. Multiple qualifier option
+instances are allowed for the same command; features will be printed
+for which all qualifier expressions are true.
 
 =item B<-i>,
       B<--case-insensitive>
@@ -305,7 +307,7 @@ Output the 5' and 3' UTR sequences:
 
 =over 8
 
-B<gbfcut> -p UTR t/data/AF194338.1.gb
+B<gbfcut> -k UTR t/data/AF194338.1.gb
 
 =back
 
@@ -313,7 +315,15 @@ Output all sequences under the feature "exon" and add location labels:
 
 =over 8
 
-B<gbfcut> -lp exon t/data/AF194338.1.gb
+B<gbfcut> -k exon t/data/AF194338.1.gb
+
+=back
+
+Output all feature sequences with a "note" qualifier containing "telomere":
+
+=over 8
+
+B<gbfcut> -q note=telomere t/data/AF194338.1.gb
 
 =back
 
@@ -323,8 +333,26 @@ Output all feature sequences with an "organism" tag set to "Stylonychia lemnae":
 
 B<gbfcut> -q organism="Stylonychia lemnae" t/data/AF194338.1.gb
 
+=back
+
+Output all feature sequences with key "tRNA"
+
+=over 8
+
+B<gbfcut> -k tRNA t/data/mito-ascaris.gb
 
 =back
+
+Output all feature sequences with key "tRNA," with a qualifier
+"product" that has a value that matches the pattern "Ser" *and*
+a qualifier "note" that does *not* match the value  "AGN":
+
+=over 8
+
+B<gbfcut> -k tRNA -q product=Ser -q note^AGN t/data/mito-ascaris.gb
+
+=back
+
 
 
 =head1 SEE ALSO

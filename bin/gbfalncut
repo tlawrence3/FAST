@@ -66,7 +66,7 @@ pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
 
 pod2usage("$NAME: Expects at least three arguments: GenBank-file \'perl-reg-exp\' alignment-file. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 3));
-pod2usage("$NAME: Expects two arguments with input on STDIN: genbank-file \'perl-reg-exp\'. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 2);
+pod2usage("$NAME: Expects two arguments with input on STDIN: GenBank-file \'perl-reg-exp\'. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 2);
 
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
@@ -211,7 +211,7 @@ B<gbfalncut> - cut sites from alignments by regex-matching on features in an ann
 
 =head1 SYNOPSIS
 
-B<gbfalncut> [OPTIONS] ALIGNMENT-FILE GENBANK-FILE PERL-REGEX
+B<gbfalncut> [OPTIONS] GENBANK-FILE PERL-REGEX ALIGNMENT-FILE 
 
 =head1 DESCRIPTION
 
@@ -335,7 +335,7 @@ Print alignment of 5'UTRs
 
 =over 8
 
-B<gbfalncut> -K --verbose t/data/AF194338.1.gb 5.UTR t/data/ArdellEtAl03_ncbi_popset_32329588.fas
+B<gbfalncut> -k --verbose t/data/AF194338.1.gb 5.UTR t/data/ArdellEtAl03_ncbi_popset_32329588.fas
 
 =back
 
@@ -343,7 +343,7 @@ Print alignment of coding regions (CDS), remove sequences, degap and translate t
 
 =over 8
 
-B<gbfalncut> -K t/data/ArdellEtAl03_ncbi_popset_32329588.fas t/data/AF194338.1.gb CDS | fasgrep -v "(AF194|3496)" | fastr -snD "-" | fasxl -t 6
+B<gbfalncut> -k  t/data/AF194338.1.gb CDS t/data/ArdellEtAl03_ncbi_popset_32329588.fas | fasgrep -v "(AF194|3496)" | fastr -snD "-" | fasxl -t 6
 
 =back
 

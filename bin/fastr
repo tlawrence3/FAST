@@ -36,7 +36,6 @@ my $delete               = undef; # -D
 my $squash               = undef; # -S
 my $no_replace           = undef; # -n
 my $complement           = undef; # -c
-my $annotate             = undef; # -a
 my $join                 = $def_join_string; #-j
 my $degap                = undef; # --degap
 my $strict               = undef; # --strict implies "-sc $strict_symbols{$moltype} ($ambig_char || $ambig{$moltype})"
@@ -248,7 +247,6 @@ Options specific to B<fastr>:
   B<--iupac>                 map invalid nongap chars (to N/X by default)
   B<-N>, B<-X>, B<--ambig>=<char>  map ambig/invalid chars to <char>
   B<--degap>                 delete gap characters '-' 
-  B<-a>, B<--annotate>          encodes transformation and count in description 
   B<-j>, B<--join>=<string>     use <string> to join data annotation
 
 Options general to FAST:
@@ -341,8 +339,9 @@ with no other option except the --fastq option. Equivalent to:
 
 C<fastr -snD -- ->
 
-=item B<-a>
-      B<--ambig char>
+=item B<-N> <char>,
+      B<-X> <char>,
+      B<--ambig>=<char>
 
 Use <char> to replace illegal characters instead of "N" or "X" with
 B<--strict> or B<--iupac>

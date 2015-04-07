@@ -32,7 +32,7 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $base_order           = undef; #-b
-my $verbose             = undef; #--verbose
+my $verbose              = undef; #--verbose
 my $amino_order          = undef; #-o
 my $code                 = undef; #-c
 my $codes                = undef;
@@ -40,6 +40,7 @@ my $table                = undef; #-t // table output
 my $join                 = $def_join_string; # -j
 my $fastq                = undef;
 my $width                = undef;
+my $no_starts            = undef;
 my $precision            = 3;
 my $rscu                 = undef;
 my $summary              = undef;
@@ -62,6 +63,7 @@ GetOptions('help|h'         		 => \$help,
 						},
            'verbose'                     => \$verbose,
            'amino-order|o:s'             => \$amino_order, #optional option argument. If not given, "ARNDCQEGHILKMFPSTWYV*"
+           'no-starts|nostarts           => \$no_starts,
            'code|c=i'                    => \$code,
            'table|t'                     => \$table,
 	   'summary|s'                   => \$summary,
@@ -124,7 +126,7 @@ my $startcount = {}; ## start codons
 my $totalcount = {};
 my $totalstartcount = {}; ## start codons
 
-my $middlecodons = my $startcodons = my $stopcodons = my $ambiguous_middle = my $ambiguous_start = my $ambiguous_stop = my $bad_length = my $numseqs = my $stop_at_middle = my $stop_at_start = my $nonstop = 0;
+my $middlecodons = my $startcodons = my $stopcodons = my $ambiguous_middle = my $ambiguous_start = my $ambiguous_stop = my $bad_length = my $numseqs = my $stop_at_middle = my $stop_at_start = my $nonstop = my $odd_length = my $too_short = 0;
 
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
@@ -144,7 +146,12 @@ unless (@ARGV) {
 }
 
 if ($table) {
-  printf ":          USAGE     STARTS %${width}s %${width}s\n","RSCU","S-RSCU";
+  if ($no_starts) {
+    printf ":          USAGE %${width}s\n","RSCU";
+  }
+  else {
+    printf ":          USAGE     STARTS %${width}s %${width}s\n","RSCU","S-RSCU";
+  }
 }
 while ($IN or @ARGV) {
   if (@ARGV) {
@@ -163,41 +170,49 @@ while ($IN or @ARGV) {
   if ($IN) { 
     while (my $seq = $IN->next_seq()) {
       $count = {};
-      $startcount = {}; ## start codons
+      $startcount = {} unless ($no_starts); ## start codons
       $numseqs++;
       
       my $id=$seq->id();
       my $length = $seq->length(); ## is this slow?
       if ($length % 3) {
         warn "count_codons error_4: $id has length not of modulo 3, skipping this sequence.\n" if ($verbose);
-        $bad_length++;
+        $odd_length++;
       } 
+      if ($length % 3) {
+        warn "count_codons error_4: $id has length not of modulo 3, skipping this sequence.\n" if ($verbose);
+        $too_short++;
+      } 
+      
             
       my $seqseq = uc $seq->seq();
       ##    $seqseq =~ y/T/U/;
       my @bases = split//,$seqseq; 
+
+      unless ($no_starts) {      
+	## count start codons separately
+	my $startcodon = join "",splice(@bases, 0, 3);
+	my $aa = $geneticcode->translate($startcodon); 
+	if ($aa eq "X") { ## ambiguous amino acid from ambiguous base, bioperl can resolve IUPAC codes
+	  $ambiguous_start++;
+	}
+	elsif ($aa eq "*") {
+	  warn "count_codons error_5: $id starts in a stop codon.\n" if ($verbose);
+	  $stop_at_start++;
+	}
+	else { 
+	  $$startcount{$startcodon}++;
+	  $$totalstartcount{$startcodon}++;
+	  $startcodons++;
+	}
+      }	
       
-      ## count start codons separately
-      my $startcodon = join "",splice(@bases, 0, 3);
-      my $aa = $geneticcode->translate($startcodon); 
-      if ($aa eq "X") { ## ambiguous amino acid from ambiguous base, bioperl can resolve IUPAC codes
-	$ambiguous_start++;
-      }
-      elsif ($aa eq "*") {
-	warn "count_codons error_5: $id starts in a stop codon.\n" if ($verbose);
-	$stop_at_start++;
-      }
-      else { 
-	$$startcount{$startcodon}++;
-	$$totalstartcount{$startcodon}++;
-	$startcodons++;
-      }
+
+      next if (@bases < 3);
       
-      
-      
-      ## count stop codons together with others, but control them
+      ## count stop codons together with other middle codons but distinguish them for counting
       my $stopcodon = join "",splice(@bases, -3);
-      $aa = $geneticcode->translate($stopcodon); 
+      my $aa = $geneticcode->translate($stopcodon); 
       if ($aa eq "X") {
 	$ambiguous_stop++ 
       }
@@ -261,7 +276,7 @@ sub print_output {
   my $append_count = 0;
   my $sum;
   my %rscu = ();
-  my %startrscu = ();
+  my %startrscu = () unless ($no_starts);
   foreach my $aa (split //, "ARNDCQEGHILKMFPSTWYV*") {
     my @syns = @{$synonyms{$aa}};
     for (@syns) {
@@ -277,30 +292,36 @@ sub print_output {
     }
   }
   
-  # calculate RSCU for start codons
-  # only consider start codons actually seen
-  %startrscu  = %$startcount;
-  $sum = 0;
-  foreach my $codon (keys %startrscu) { 
-    $sum += $startrscu{$codon};
+  unless ($no_starts) {
+    # calculate RSCU for start codons
+    # only consider start codons actually seen
+    %startrscu  = %$startcount;
+    $sum = 0;
+    foreach my $codon (keys %startrscu) { 
+      $sum += $startrscu{$codon};
+    }
+    $sum ||= 1;
+    foreach my $codon (keys %startrscu) { 
+      $startrscu{$codon} /= $sum;
+    }
+    map {$sum+=$_} values %startrscu;
+    map {$_/$sum}  values %startrscu;
   }
-  $sum ||= 1;
-  foreach my $codon (keys %startrscu) { 
-    $startrscu{$codon} /= $sum;
-  }
-  map {$sum+=$_} values %startrscu;
-  map {$_/$sum}  values %startrscu;
-  
   my @annotations = ();
   if ($amino_order) { ## group output by amino acid
     foreach my $aa (split //, $amino_order) {
       foreach my $codon (@{$synonyms{$aa}}) {
 	$rscu{$codon} ||= 0;
-	$startrscu{$codon} ||= 0;
+	$startrscu{$codon} ||= 0 unless ($no_starts);
 	$$count{$codon} ||= 0;
-	$$startcount{$codon} ||= 0;
+	$$startcount{$codon} ||= 0 unless ($no_starts);
 	if ($table){
+	  unless ($no_starts) {
 	    printf("%s %s %10u %10u %${width}.${precision}f %${width}.${precision}f %s\n",$geneticcode->translate($codon),$codon,$$count{$codon},$$startcount{$codon},$rscu{$codon},$startrscu{$codon},$seqid);
+	  }
+	  else {
+	    printf("%s %s %10u %${width}.${precision}f %s\n",$geneticcode->translate($codon),$codon,$$count{$codon},$rscu{$codon},$seqid);
+	  }
 	}
 	else{ #annotate
 	  if ($rscu) {
@@ -319,11 +340,16 @@ sub print_output {
 	foreach my $third (@bases) { 
 	  my $codon = join "",$first,$second,$third;
 	  $rscu{$codon} ||= 0;
-	  $startrscu{$codon} ||= 0;
+	  $startrscu{$codon} ||= 0 unless ($no_starts);
 	  $$count{$codon} ||= 0;
-	  $$startcount{$codon} ||= 0;
+	  $$startcount{$codon} ||= 0 unless ($no_starts);
 	  if ($table){
-	    printf("%s %s %10u %10u %${width}.${precision}f %${width}.${precision}f %s\n",$geneticcode->translate($codon),$codon,$$count{$codon},$$startcount{$codon},$rscu{$codon},$startrscu{$codon},$seqid);
+	    unless ($no_starts) {
+	      printf("%s %s %10u %10u %${width}.${precision}f %${width}.${precision}f %s\n",$geneticcode->translate($codon),$codon,$$count{$codon},$$startcount{$codon},$rscu{$codon},$startrscu{$codon},$seqid);
+	    }
+	    else {
+	      printf("%s %s %10u %${width}.${precision}f %s\n",$geneticcode->translate($codon),$codon,$$count{$codon},$rscu{$codon},$seqid);
+	    }
 	  }
 	  else{ #annotate
 	    if ($rscu) {
@@ -342,7 +368,9 @@ sub print_output {
   }
 }
   
-  sub print_end_totals {    
+
+sub print_end_totals { 
+  unless ($no_starts) {
     printf "::--------------------------------------\n";
     printf ":1    %10u %10u            | unambiguous codons at tail (middle+end) and at start\n",$middlecodons,$startcodons;
     printf ":2    %10u %10u %10u | ambiguous   codons in middle, at start, and at end\n",$ambiguous_middle,$ambiguous_start,$ambiguous_stop;
@@ -353,6 +381,18 @@ sub print_output {
     printf "::--------------------------------------\n";
     printf ":5    %10u of %-10u            sequences had a length non-modulo 3 and were skipped.\n",$bad_length,$numseqs;
   }
+  else {
+    printf "::---------------------------\n";
+    printf ":1    %10u            | unambiguous codons\n",$middlecodons;
+    printf ":2    %10u %10u | ambiguous   codons in middles and ends\n",$ambiguous_middle,$ambiguous_stop;
+    printf "::                          |  (ambiguous codons are skipped)\n";
+    printf ":3    %10u            | stop        codons not at ends\n",$stop_at_middle;
+    printf ":4               %10u | stop        codons at end (included in line 1)\n",$stopcodons;
+    printf ":4               %10u | sense       codons at end (included in line 1)\n",$nonstop;
+    printf "::---------------------------\n";
+    printf ":5    %10u of %-10u          sequences had a length non-modulo 3 and were skipped.\n",$bad_length,$numseqs;    
+  }
+}
     
     
     __END__
@@ -374,11 +414,13 @@ individually, outputting raw codon frequencies appended to the
 description of each record, which allows sorting or filtering of data
 with other FAST tools. Optionally, B<fascodon -t> in "table-mode"
 outputs data in tabular format, followed by an aggregate summary of
-all the data on input.
+all the data on input. By default, start codons are analyzed
+separately, assuming that all sequences are at least two codons long.
 
 Options specific to B<fascodon>:
-  B<-r>, B<--rscu>                   output RSCU values rather than raw frequency counts
+  B<-r>, B<--rscu>                   annotate with RSCU values rather than raw frequency counts 
   B<-j>, B<--join>=<string>          use <string> to join tagged values in descriptions
+  B<--no-starts>                  do not analyze start codons separately
   B<-p>, B<--precision>=<int>        print RSCU with <int> digits after the decimal point 
   B<-w>, B<--width>=<int>            print frequencies in fields of width <int>
   B<-t>, B<--table>                  table-mode, outputs codon frequency table to STDOUT 
@@ -389,7 +431,7 @@ Options specific to B<fascodon>:
                                      optionally, only for amino acids in <string>, or if
                                      no argument, use default "ARNDCQEGHILKMFPSTWYV*";
   B<-c>, B<--code>=<int>             use NCBI genetic code tableID <int> to translate
-  B<--codes>                         print NCBI tableIDs of genetic codes for -c option
+  B<--codes>                      print NCBI tableIDs of genetic codes for -c option
   B<--verbose>                    issue warnings about coding properties to STDERR
 
 Options general to FAST:
