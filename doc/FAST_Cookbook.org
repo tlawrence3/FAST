@@ -1,4 +1,4 @@
-#+TITLE:FAST:Fast Analysis of Sequences Toolbox Cookbook
+#+TITLE: FAST: Fast Analysis of Sequences Toolbox Cookbook
 #+AUTHOR: Katherine C.H. Amrine \& David H. Ardell
 #+LANGUAGE:  en
 #+TEXT:      These examples are executable from the installation directory.
