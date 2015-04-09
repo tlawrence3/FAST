@@ -1,4 +1,4 @@
-% Fronteirs template Version 2.4 Generated 2014/03/12 %%%
+% Frontiers template Version 2.4 Generated 2014/03/12 %%%
 \documentclass{frontiersSCNS} % for Science articles
 
 %\setcitestyle{square}
@@ -157,7 +157,7 @@ Toolbox, modeled after the standard Unix toolkit~\citep{Peek2001}, now
 called Coreutils.  The FAST tools follow the Unix philosophy to ``do
 one thing and do it well'' and ``write programs to work
 together.''~\citep{Stutz2000}. FAST workflows are completely
-automated, no manual interventions to data are required.  FAST falls
+automated; no manual interventions to data are required.  FAST falls
 between a GUI and an API, because it is used through a Command-Line
 Interface (CLI).  Although the FAST tools are written in Perl using
 BioPerl packages~\citep{Stajich2002}, FAST users do not need to be
@@ -366,7 +366,7 @@ dependencies of FAST scripts were analyzed with the Cava packager
 
 Nearly all FAST utilities process sequence records inline and
 therefore have linear runtime complexity in the number of
-sequences. Exceptions are {\tt fassort } and {\tt fastail} which both
+sequences. Exceptions are {\tt fassort} and {\tt fastail} which both
 require some paging of data into temporary files. We performed
 benchmarking of FAST tools using randomly generated sequences of even
 composition sourced generated in Python and the {\tt Benchmark} v1.15
@@ -557,7 +557,7 @@ use see the section ``Composing Workflows in FAST'' in the sequel.
   the first example showing how to use two FAST tools together, in
   which two instances of the same sequence record data are sorted
   according to their sequences by {\tt fassort} and then redundant
-  copies are counted and removed by {\tt fasuniq}.
+  copies are counted and removed by {\tt fasuniq}:
 
 \begin{verbatim}
      fassort -s t/data/P450.fas t/data/P450.fas | fasuniq -c
@@ -825,7 +825,7 @@ contributions to the manuscript, reviewed the final version of the
 manuscript and agree to be accountable for its contents.
 
 \section*{Acknowledgement}
-We acknowledge Christopher Clark for help in establishing a git
+We acknowledge Christopher Clark for help in establishing a Git
 repository for FAST and Peter Becich for contributing some testing of
 the installer. D.H.A. gratefully acknowledges Professors Laura
 Landweber, Siv Andersson and Leif Kirsebom in whose laboratories the
@@ -874,3 +874,8 @@ Biology at UC Merced (DBI-1040962).
 
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
