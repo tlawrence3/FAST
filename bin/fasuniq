@@ -19,7 +19,8 @@ use constant { true => 1, false => 0 };
 ## DEFAULT OPTION VALUES
 my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
-my $def_delimiter = ":";
+my $def_join_string = $FAST::DEF_JOIN_STRING;
+my $def_concat_string = ":";
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -29,9 +30,9 @@ my $format               = $def_format;  # --format
 my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
-
+my $count                = undef; # -c
 my $concat               = undef;
-my $delimiter            = $def_delimiter;
+my $join                 = $def_join_string;
 my $description_match    = undef;
 my $id_match             = undef;
 
@@ -46,15 +47,18 @@ GetOptions('help|h'         		 => \$help,
 	   'log|l'                       => \$log,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
-
-	   'concat|c'                    => \$concat,
-	   'delimiter|d=s'               => \$delimiter,
-     'description|D'               => \$description_match,
-     'id|I'                        => \$id_match,
-     'fastq|q'                     => sub { $format = 'fastq'; },
+	   'count|c'                     => \$count,
+	   'concat:s'                    => \$concat, # optional option argument, default is def_concat_string
+	   'join|j=s'                    => \$join,
+	   'description|d'               => \$description_match,
+	   'identifier|i'                => \$id_match,
+	   'fastq|q'                     => sub { $format = 'fastq'; },
 
 	  ) 
   or pod2usage(2);
+
+$concat = ":" if (defined $concat and not $concat);
+$join = "\t" if ($join eq '\t');
 		  
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
@@ -108,16 +112,23 @@ while ($IN or @ARGV) {
 	next;
       }
       else { #not first sequence
-	my $seqseq = $seq->$match;
-	my $lastseqseq = $lastseq->$match;
+	my $seqdata = $seq->$match;
+	my $lastseqdata = $lastseq->$match;
 
-	if ($seqseq ne $lastseqseq) { #no repeat, or repeat is over
+	if ($seqdata ne $lastseqdata) { #no repeat, or repeat is over
 
 	  if ($concat and $repeat) { # repeat is over
 
-	    $lastseq->id(join $delimiter,@ids);
+	    $lastseq->id(join $concat,@ids);
 	    undef @ids;
 
+	  }
+
+	  if ($count) {
+	    my $olddesc = $lastseq->desc();
+	    $repeat = 0 unless (defined $repeat); 
+	    my $countstring = sprintf("count:%d",($repeat + 1));
+	    $lastseq->desc(join $join,$olddesc,$countstring);
 	  }
 
 	  undef $repeat;
@@ -137,22 +148,25 @@ while ($IN or @ARGV) {
 	    }
 	  }
 	  
-	  $repeat = 1;
+	  $repeat++;
 
 	}
 
       }
     }
     # handle last sequence
-    if ($repeat){
-      if ($concat) { # repeat is over
-	$lastseq->id(join $delimiter,@ids);
+    if ($repeat){ 
+      if ($concat) { 
+	$lastseq->id(join $concat,@ids);
       }
-      print $OUT $lastseq;
     }
-    else {
-      print $OUT $lastseq;
+    if ($count) {
+      my $olddesc = $lastseq->desc();
+      $repeat = 0 unless (defined $repeat); 
+      my $countstring = sprintf("count:%d",($repeat + 1));
+      $lastseq->desc(join $join,$olddesc,$countstring);
     }
+    print $OUT $lastseq;
     undef $IN;
   }
 }
@@ -174,20 +188,27 @@ B<fasuniq> [options] [MULTIFASTA-FILE]
 
 =head1 DESCRIPTION
 
-B<fasuniq> removes duplicate sequence records in a
-multifasta file or datastream. The sequences should be sorted 
-such as output from B<fassort -s>. Only the sequence data itself must be
-identical, not identifiers or descriptions. By default, the first
-matching sequence record in a series of matches (including identifier
-and description) is the one printed. IDs of adjacent duplicate sequence records 
-can be concatenated to the printed sequence using the -c, --concat option.
+B<fasuniq> eliminates redundant sequence records from the input. A
+redundant record is one in which a specific data field tests equal as
+a string against the same field in one or more records that
+immediately follow it in the input multifasta file or datastream. By
+default the actual sequences are compared, optionally identifiers or
+descriptions may be tested for equality. The data on input must be
+sorted with respect to the data being compared using, for example,
+B<fassort -s>. Only one field in sequence records is tested. By
+default, the last matching sequence record in a series of matches is
+the one printed. Identifiers of adjacent duplicate sequence records
+can be concatenated to the printed sequence using the --concat
+option. The count of redundant records may be annotated into sequence
+descriptions with the --count option.
 
 Options specific to fasuniq:
-  B<-c>, B<--concat>               concatenate identifiers 
-  B<-d>, B<--delimiter>=<string>   use <string> between identifers [:] 
-  B<-D>, B<--description>          match on description
-  B<-I>, B<--id>                   match on identifiers
-
+  B<-i>, B<--identifier>           test for string equality on identifiers
+  B<-d>, B<--description>          test for string equality on descriptions
+  B<-c>, B<--count>                annotate descriptions with counts of duplicates
+  B<-j>, B<--join>=<string>        use <string> as delimiter when appending count data, default " " 
+  B<--concat>:<string>          concatenate identifiers of duplicate records using ":" by default or <string> 
+ 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
   B<--man>             	           print full documentation
@@ -211,25 +232,34 @@ formats to and from multifasta.
 
 =over 8
 
-=item B<-c>,
-      B<--concat>
-
-Concatenate identifiers of repeated sequences in output 
-
-=item B<-d [string]>,
-      B<--delim=[string]>
-
-Use delimiter [string] to concatenate identifiers. Default is ":"
-
-=item B<-D>
+=item B<-d>,
       B<--description>
 
 Removes duplicate sequences by matching on descriptions.
 
-=item B<-I>
-      B<--id>
+=item B<-i>,
+      B<--identifier>
 
 Removes duplicate sequences by matching on identifiers.
+
+=item B<-c>,
+      B<--count>
+
+Annotate the number of redundant records into descriptions.
+
+=item B<-j [string]>,
+      B<--join=[string]>
+
+Use <string> to append count data to sequence record
+descriptions. Use with argument "\t" to indicate a tab-character.
+
+
+=item B<--concat>,
+      B<--concat=[string]>
+
+Concatenate identifiers of repeated sequences in output. Use delimiter
+[string] to concatenate identifiers. If none given, default is ":"
+
 
 =item B<-h>,
       B<--help>
@@ -288,7 +318,7 @@ Remove duplicate sequences and append concatnated IDs of duplicate sequences to 
 
 =over 8
 
-B<fassort -s> data1.fas | B<fasuniq -c>
+B<fassort -s> data1.fas | B<fasuniq --concat>
 
 =back
 

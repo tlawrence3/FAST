@@ -59,20 +59,20 @@
   supporting better transparency in biological data science. Interface
   self-consistency and conformity with conventions of GNU, Matlab,
   Perl, BioPerl, R and GenBank help make FAST easy and rewarding to
-  learn.  FAST automates numerical, text-based, sequence-based and
-  taxonomic searching, sorting, selection and transformation of
-  sequence records and alignment sites based on indices, ranges, tags
-  and feature annotations, and analytics for composition and codon
-  usage.  Automated content- and feature-based extraction of sites and
-  support for molecular population genetic statistics makes FAST
-  useful for molecular evolutionary analysis. FAST is portable, easy
-  to install and secure thanks to the relative maturity of its Perl
-  and BioPerl foundation, with stable releases posted to
-  CPAN. Development as well as a publicly accessible cookbook and wiki
-  are available on its Github repository at
+  learn.  FAST automates numerical, taxonomic, and text-based sorting,
+  selection and transformation of sequence records and alignment sites
+  based on content, index ranges, descriptive tags, annotated
+  features, and in-line calculated analytics, including composition
+  and codon usage.  Automated content- and feature-based extraction of
+  sites and support for molecular population genetic statistics makes
+  FAST useful for molecular evolutionary analysis. FAST is portable,
+  easy to install and secure thanks to the relative maturity of its
+  Perl and BioPerl foundations, with stable releases posted to
+  CPAN. Development as well as a publicly accessible Cookbook and Wiki
+  are available on the FAST GitHub repository at
   \url{https://github.com/tlawrence3/FAST}.  The default data exchange
   format in FAST is Multi-FastA (specifically, a restriction of
-  BioPerl FastA format).  Sanger and Illumina 1.8+ FASTQ formatted
+  BioPerl FastA format).  Sanger and Illumina 1.8+ FastQ formatted
   files are also supported. FAST makes it easier for non-programmer
   biologists to interactively investigate and control biological data
   at the speed of thought.\tiny \keyFont{
@@ -85,15 +85,14 @@
 
 Bioinformatic software for non-programmers is traditionally
 implemented for user convenience in monolithic applications with
-Graphical User Interfaces (GUIs)~\citep{Smith1994,stothard_sequence_2000,Rampp2006,
-  Librado01062009,waterhouse_jalview_2009,gouy2010seaview}.
-However, the monolithic application paradigm can today be easily
-outscaled by big biological data, particularly Next Generation
-Sequencing (NGS) ``big data'' at gigabyte and terabyte-scale, which
-are beyond what much last-generation software is designed to
-handle. Better empowerment of non-programmers for genome-scale
-analytics of big biological data has been achieved through web-based
-genome browser
+Graphical User Interfaces
+(GUIs)~\citep{Smith1994,stothard_sequence_2000,Rampp2006,
+  Librado01062009,waterhouse_jalview_2009,gouy2010seaview}.  However,
+the monolithic application paradigm is easily outscaled by today's big
+biological data, particularly Next Generation Sequencing (NGS) data at
+gigabyte- and terabyte-scales. Better empowerment of non-programmers
+for genome-scale analytics of big biological data has been achieved
+through web-based genome browser
 interfaces~\citep{Cunningham28012015,Rosenbloom28012015,Markowitz01012014}. On
 the other hand, for smaller datasets, sequence and alignment editor
 applications encourage manual manipulation of data, which is
@@ -141,9 +140,9 @@ bioinformatics work is only available to bioinformatics specialists
 and programmers through Application Programming Interfaces (APIs) such
 as BioPerl and Ensembl~\citep{Yates01012015}. 
 
-Both workflow design suites and programming APIs require dedication
-and time to learn.  There is need for bioinformatics software in
-between GUIs and APIs, that empowers non-programmer scientists and
+Yet workflow design suites and programming APIs require dedication and
+time to learn.  There is a need for more bioinformatics software
+in between GUIs and APIs, that empowers non-programmer scientists and
 researchers to interactively and reproducibly control, process and
 analyze their data without manual interventions. Closer inspection of
 data and interactive construction and control of data workflows makes
@@ -172,21 +171,22 @@ workshops~\citep{wilson_software_2014}.
 
 Unix command pipe-lines are the paradigmatic example of the ``pipes
 and filters'' design pattern that embodies serial processing of data
-through sequences of defined and reuseable computations. The ``pipes
+through sequences of modular and reuseable computations. The ``pipes
 and filters'' design pattern is a special case of component-based
 software engineering~\citep{mcilroy_mass-produced_1969} and a core
 paradigm in software
 architecture~\citep{garlan_introduction_1994}. The component-wise
-organization of FAST tools allows users to query and process
-biological sequence data using an infinite variety of short sequences
-of command combinations. Component-based software is easier to learn,
-maintain and extend. It also makes it easier for users to interactively develop
-new protocols through the modular extension and recombination of
-existing protocols. As shown from the examples below, non-trivial
-computations may be expressed on a single line of the printed
-page. Thus, FAST can help empower non-biologist programmers to
-develop and communicate powerful and reproducible bioinformatic
-workflows for scientific investigations and publishing.
+organization of FAST affords access to an infinite variety of
+customizable queries and workflows on biological sequence data using a
+small command vocabulary and combinatorial logic. Component-based
+software is easier to learn, maintain and extend. It also makes it
+easy for users to interactively develop new protocols through the
+modular extension and recombination of existing protocols. As shown
+from the examples below, non-trivial computations may be expressed on
+a single line of the printed page. Thus, FAST can help empower
+non-biologist programmers to develop and communicate powerful and
+reproducible bioinformatic workflows for scientific investigations and
+publishing.
 
 Open-source command-line utilities for bioinformatics such as the
 EMBOSS package~\citep{Rice2000}, the FASTX tools~\citep{fastx} or the
@@ -200,7 +200,10 @@ tools, but is not designed for serial composition. On the other hand,
 the Unix toolbox model has been used before in more or less more
 specialized bioinformatics applications such as the popular SAMTools
 suite~\citep{Li15082009} and in the processing of NMR
-data~\citep{delaglio1995nmrpipe}.
+data~\citep{delaglio1995nmrpipe}. A toolsuite called bp-utils, with a
+similar design philosophy and some overlapping functionality with
+FAST, has recently been released
+at~\url{http://diverge.hunter.cuny.edu/labwiki/Bioutils}.
 
 We have written extensive documentation for each FAST utility along
 with useful error messages following recommended
@@ -216,10 +219,11 @@ data streams as databases in which {\it records} correspond to single
 lines containing {\it fields} separated by {\it delimiters} such as
 commas, tabs, or strings of white-space characters.  FAST extends this
 paradigm to biological sequence data, allowing users to treat
-collections of files and streams of sequence records as databases for
-complex queries, transformations and analytics. The Coreutils model is
-generalized exactly by FAST because it models sequence record {\it
-  descriptions} as an ordered collection of fields (see below).
+collections of files and streams of multi-line sequence records as
+databases for complex queries, transformations and analytics. The
+Coreutils model is generalized exactly by FAST because it models
+sequence record {\it descriptions} as an ordered collection of {\it
+  description fields} (see below).
 
 Another design feature of Unix tools that also characterizes the FAST
 tools is their ability to accept input not only from one or more files
@@ -238,20 +242,23 @@ data, largely as implementated in BioPerl in the module {\tt
 
 In the FAST implementation of FastA format, multiple sequence records
 may appear in a single file or input stream. Sequence data may contain
-gap characters. The logical elements of a sequence record are its {\it
-  identifier}, its {\it description} and its {\it sequence}. The identifier
-(indicated with {\tt id} in the example below) and description ({\tt
-  desc}) together make the {\it identifier line} of a sequence record,
-which must begin with the sequence record start symbol {\tt >} on a
-single line. The description begins after the first block of
-white-space on this line (indicated with {\tt <space>}). The {\it
-  sequence} of a record appears immediately after its identifier line
-and may continue over multiple lines until the next record starts.
+gap characters. The logical elements (or fields) of a sequence record
+are its {\it identifier}, its {\it description} and its {\it
+  sequence}. The identifier (indicated with {\tt id} in the
+illustration below) and description ({\tt desc}) together make the
+{\it identifier line} of a sequence record, which must begin with the
+sequence record start symbol {\tt >} on a single line. The description
+begins after the first block of white-space on this line (indicated
+with {\tt <space>}). The {\it sequence} of a record appears
+immediately after its identifier line and may continue over multiple
+lines until the next record starts.
 
-In FAST, users may specify fields in sequence records using delimiters
-(indicated by {\tt <delim>}) quite generally using perl-style
-{\it regular expressions}. FAST uses one-based indexing of fields as
-indicated in this example:
+In FAST, users may alter how description fields are defined in
+sequence records by using Perl-style {\it regular expressions} to
+define delimiters (indicated by {\tt <delim>}). FAST uses one-based
+indexing of description fields.
+
+The FAST data model is illustrated as follows:
 
 \begin{verbatim}
 >seq1-id<space>seq1-desc-field1<delim>seq1-desc-field2<delim>...
@@ -280,7 +287,7 @@ e.g. \url{https://www.sanger.ac.uk/resources/software/gff/}) or an
 alternative ``name:value'' format that certain FAST tools themselves
 can append to sequence records. Support for tagged values in FAST makes it
 possible to operate on sequence records with unordered or
-heterogeneous field data in descriptions. 
+heterogeneous description fields.
 
 \subsection{Overview of the FAST Tools}
 
@@ -309,15 +316,16 @@ FAST is shown in Table~\ref{tab:01}.
     {\tt fashead} & order-based selection of records & {\tt head} & records \\
     {\tt fastail} & order-based selection of records &  {\tt tail}  & records \\
     {\tt fascut} & index-based selection and reordering of data  &    {\tt cut}  & sequences \\
-    {\tt gbfcut} & extract sequences by regex matching on features  & {\tt grep}  & features\\
+    {\tt gbfcut} & extract sequences by regex matching on features  & & features\\
     {\tt alncut} & selection of sites by content &  & sites \\
     {\tt gbfalncut} & selection of sites by features &  & sites \\
-    {\tt fasuniq} & remove or count redundant records & {\tt uniq} & records \\
  \hline
   \multicolumn{4}{l}{{\bf Transformation}} \\
   \hline    
    {\tt fassort} & numerical or text sorting of records  & {\tt sort} & identifiers\\
-    {\tt fastaxsort} & taxonomic sorting of records &  & identifiers \\
+    {\tt fastaxsort} & taxonomic sorting of records &  & identifiers
+    \\
+    {\tt fasuniq} & remove or count redundant records & {\tt uniq} & records \\
     {\tt faspaste} & merging of records &  {\tt paste} & sequences \\
     {\tt fastr} & character transformations on records & {\tt tr} & identifiers\\
     {\tt fassub} & regex substitutions on records &  & identifiers \\
@@ -343,8 +351,8 @@ The {\bf analysis} class is distinguished from the other classes
 because by default, these utilities output tables of plain-text data
 rather than sequence record data in FastA format. Two other tools,
 {\tt fasconvert} and {\tt gbfcut}, are designed to either input or
-output FastA format sequence records by default. It is this design
-feature that allows users to serially compose the FAST tools into
+output FastA format sequence records by default. Standardization of
+the FAST data model allows users to serially compose FAST tools into
 pipelines at the Unix command-line, which is indicated as the ``main
 workflow'' in the overview of the project shown in
 Figure~\ref{fig:01}.
@@ -483,7 +491,7 @@ each sequence, execute:
 \begin{verbatim}
      fascut -10..-1 t/data/P450.fas
 \end{verbatim}
-
+\\
 \item[\texttt{\textbf{ alncut}} ] implements content-based selection of
   sites in alignments including gap-free sites, non-allgap sites,
   variable or invariant sites and parsimoniously informative sites, or
@@ -495,15 +503,14 @@ each sequence, execute:
 \begin{verbatim}
      alncut -v t/data/popset_32329588.fas
 \end{verbatim}
-
 \noindent To print sites in which no more than two sequences contain
 gaps, execute: 
 
 \begin{verbatim}
      alncut -gf 2 t/data/popset_32329588.fas
 \end{verbatim}
-
-\item[\texttt{\textbf{ gbfcut}} ] Allows annotation-based
+\\
+\item[\texttt{\textbf{ gbfcut}} ] allows annotation-based
   sequence-extraction from GenBank format sequence files, useful for
   extracting all sequences that correspond to sets of the same type of
   annotated features in genome data. For example, to output \fp and
@@ -522,16 +529,18 @@ that is split over several exons:
      gbfcut -k CDS t/data/AF194338.1.gb
 \end{verbatim}
 
-\noindent More fine-grained queries of features is possible using
-qualifiers defined with the \verb|-q| option. If multiple qualifiers
-For example, compare the output of the following two commands:
+\noindent More fine-grained queries of features are possible using
+qualifiers defined with the \verb|-q| option. Multiple qualifiers may
+be provided at once, specifying the selection of records for which all
+qualifiers apply (conjunction).  For example, compare the output of
+the following two commands:
 
 \begin{verbatim}
      gbfcut -k tRNA t/data/mito-ascaris.gb
      gbfcut -k tRNA -q product=Ser -q note^AGN t/data/mito-ascaris.gb
 \end{verbatim}
 
-The second command queries for features with key ``tRNA'' containing
+\noindent The second command queries for features with key ``tRNA'' containing
 at least one qualifier ``/product'' whose value matches the string literal
 ``Ser'' and no qualifiers of type ``/note'' whose values match the
 string literal ``AGN.''
@@ -545,52 +554,83 @@ public data and sequence records, allowing users to query sites based
 on biological vocabularies of sequence features. For an example of its
 use see the section ``Composing Workflows in FAST'' in the sequel.
 \\
-\item[\texttt{\textbf{ fassort}} and \texttt{\textbf{fasuniq}} ] The
-  utility {\tt fassort} handles numerical and textual sorting of
-  sequence records by their components. Pages of data are sorted with
-  optimized routines in Perl {\tt Sort::Key} that if necessary are
+\item[\texttt{\textbf{ faspaste}} ] concatenates data from records
+  input oin parallel from multiple data-streams or files,
+  record-by-record. The user may paste data from the standard input
+  stream and from multiple input files, in an order defined by the
+  arguments. Records from standard input may be used multiple times in
+  concatenating data. Like in some implementions of the Unix tool {\tt
+    paste}, a hyphen input argument {\tt -} to {\tt faspaste} refers
+  to the standard input stream and may be used more than once as an
+  input argument. For maximum configurability, {\tt faspaste}
+  concatenates only one data field type ({\it i.e.} sequences or
+  descriptions) at a time. Users may select which data stream will
+  provide templates to receive concatenated data in output
+  records. For example, to paste sequences of corresponding records
+  from two data-files together and output them with the identifiers
+  and descriptions of the data in the first file, execute:
+
+\begin{verbatim}
+     faspaste data1.fas data2.fas
+\end{verbatim}
+  \noindent See the sequel for more advanced usage examples with {\tt
+    faspaste}.
+  \\
+\item[\texttt{\textbf{ fassort}} and \texttt{\textbf{fasuniq}} ] are
+  designed to be often used together in Unix pipelines. The {\tt
+    fassort} utility implements numerical and textual sorting of
+  sequence records by specific fields. The {\tt fasuniq} utility
+  removes (and optionally counts) records that are redundant with
+  respect to a specific field, such as sequences or identifiers. In
+  the implementation of {\tt fassort}, pages of data are sorted with
+  optimized routines in Perl {\tt Sort::Key} that, if necessary, are
   written to temporary files and merged with {\tt Sort::MergeSort}.
-  {\tt fasuniq} removes records that are duplicates with respect to a
-  specified component or field. Like its Unix Coreutil analog, {\tt
-    fasuniq} only compares subsequent records on input, usually
-  requiring that its input is sorted first by {\tt fassort}. Here is
-  the first example showing how to use two FAST tools together, in
-  which two instances of the same sequence record data are sorted
-  according to their sequences by {\tt fassort} and then redundant
-  copies are counted and removed by {\tt fasuniq}:
+  Like its Unix Coreutil analog {\tt uniq}, {\tt fasuniq} compares
+  only immediately successive input records. Therefore, users will
+  usually want to first sort data with {\tt fassort} before passing it
+  to {\tt fasuniq}. To illustrate, the following example combines and
+  sorts input records from two instances of the same file, and then
+  counts and removes each redundant record:
 
 \begin{verbatim}
      fassort -s t/data/P450.fas t/data/P450.fas | fasuniq -c
 \end{verbatim}
+  \noindent This example illustrates that the same file may be
+  specified as an input stream more than once to any FAST command.
 \\
-\item[\texttt{\textbf{ fastax} and \texttt{\textbf{fastaxsort}} ] implements taxonomic
-  searching and sorting of sequence records, whose records are already
-  annotated with NCBI taxonomic identifiers using taxonomic data from
-  NCBI taxonomy~\citep{Benson2009, Sayers2009}. For example, a query
-  of ``Metazoa'' would match records labeled {\it ``Homo sapiens''} or
-  {\it ``Drosophila melanogaster''} but not {\it ``Candida
-    albicans''}.  Taxonomic selections may be logically negated and/or
-  restricted to only those records containing valid NCBI taxonomic
-  identifiers. Purely for historical reasons, the internal
-  implementation of NCBI taxonomic data is custom to FAST rather than
-  the {\tt Bio::Taxonomy} libraries in BioPerl. A sample of data from
-  tRNAdb-CE~\citep{10.3389/fgene.2014.00114}, which includes taxonomic
-  names from NCBI Taxonomy, is included with the package.  After
-  downloading datafiles ``nodes.dmp'' and ``names.dmp'' from NCBI
-  Taxonomy, the following command filters sequences from Rhizobiales,
-  assuming that records are labeled with their species (and strain) of
-  origin in the third field of the description of the sample data file:
+\item[\texttt{\textbf{ fastax}} and \texttt{\textbf{fastaxsort}} ]
+  implement taxonomic searching and sorting of sequence records, whose
+  records are already annotated with NCBI taxonomic identifiers using
+  taxonomic data from NCBI taxonomy~\citep{Benson2009,
+    Sayers2009}. For example, a query of ``Metazoa'' would match
+  records labeled {\it ``Homo sapiens,''} {\it ``Drosophila
+    melanogaster,''} and ``Lepidoptera'' but not {\it ``Candida
+    albicans''} or ``Alphaproteobacteria.''  Taxonomic
+  selections may be logically negated and/or restricted to only those
+  records containing valid NCBI taxonomic identifiers. Purely for
+  historical reasons, the internal implementation of NCBI taxonomic
+  data is custom to FAST rather than the {\tt Bio::Taxonomy} libraries
+  in BioPerl. A sample of data from
+  tRNAdb-CE~\citep{10.3389/fgene.2014.00114}, in which data records
+  are annotated with valid NCBI taxonomic identifiers in specific
+  description fields, is included with the FAST installation package.
+  After downloading datafiles ``nodes.dmp'' and ``names.dmp'' from
+  NCBI Taxonomy, the following command filters sequences from
+  Rhizobiales, assuming that records are labeled with their species
+  (and strain) of origin in the third field of the description of the
+  sample data file:
 \begin{verbatim}
      fastax -f 3 -S " \| " nodes.dmp names.dmp \ 
       Rhizobiales t/data/tRNAdb-CE.sample2000.fas
 \end{verbatim}
 \\
-\item[\texttt{\textbf{ fastr} and \texttt{\textbf{fassub}} ] handles all
-  character-based transformations of sequence records including
+\item[\texttt{\textbf{ fastr}} and \texttt{\textbf{fassub}} ] handle,
+  respectively, character- and string-based transformations of
+  sequence records. The utility {\tt fastr} handles character-based
   transliterations, deletions and ``squashing'' (deletion of
-  consecutive repeats). The utility {\tt fastr} supports sequence
-  degapping and restriction or remapping of sequence data to strict or
-  IUPAC ambiguity alphabets. To lower-case all sequence characters,
+  consecutive repeats), sequence degapping, and restriction or
+  remapping of sequence data to strict or IUPAC ambiguity
+  alphabets. For example, to lower-case all sequence characters,
   execute:
 \begin{verbatim}
      fastr -s 'A-Z' 'a-z' t/data/P450.fas
@@ -599,10 +639,9 @@ use see the section ``Composing Workflows in FAST'' in the sequel.
  \begin{verbatim}
      fastr --degap t/data/P450.clustalw2.fas
 \end{verbatim}
-
-{\tt fassub} allows more arbitrary substitutions on sets of strings
-matched to Perl regexes, analogous to the Perl {\tt s///} substitution
-operator. Capture buffers may be used to refer to matched data in
+\noindent The utility {\tt fassub} allows more arbitrary substitutions on sets of strings
+matched to Perl regexes, implemented through direction of the Perl {\tt s///} substitution
+operator on specific fields. Capture buffers may be used to refer to matched data in
 substitutions, for example, to reverse the order of genus and species
 in a file in which scientific names occur in descriptions enclosed
 with square brackets:
@@ -610,7 +649,7 @@ with square brackets:
  \begin{verbatim}
      fassub -d '\[(\w+) (\w+)\]' '[$2 $1]' t/data/P450.fas
 \end{verbatim}
-
+\\
 \item[\texttt{\textbf{  fascomp, fasxl}} and \texttt{\textbf{fascodon}} ] provide for
 annotation and analytics of compositions, translations, and codon
 usage frequencies of sequence records (with start and stop codons
@@ -630,6 +669,7 @@ BioPerl, ultimately from NCBI Entrez, are supported.
   the code for these calculations has been reviewed and compared
   against calculations produced from DNASP~\citep{Librado01062009} as
   described previously~\citep{Ardell12082004}.
+\\
 \end{description}
 
 \begin{table}[!t]
@@ -671,7 +711,7 @@ First to see this data, we view it in the pager {\tt less} (press
 ``q'' to quit and ``space'' to page):
 
 \begin{verbatim}
-     less t/data/popset_32329588.fas
+      less t/data/popset_32329588.fas
 \end{verbatim}
 
 \noindent A key feature of the Unix shell allows users to recall previous
@@ -743,6 +783,22 @@ sliding-window analysis of Tajima's D:
 
 \section{Further FAST Workflow Examples}
 
+\subsection{Selecting sites from alignments by annotated features }
+
+Another example, that reproduces a published result
+from~\citep{Ardell03}, demonstrates the utility of combining {\tt
+  gbfalncut} with {\tt alnpi}, allowing users to select sites from
+alignments corresponding to features annotated on one of the sequences
+in a separate GenBank file. For example, to calculate a Tajima's $D$
+statistic for \fp UTRs, corresponding to the the last line in Table 1
+of that work, execute:
+
+\begin{verbatim}
+      gbfalncut -k t/data/ArdellEtAl03_ncbi_popset_32329588.fas \
+       t/data/AF194338.1.gb 5.UTR | fasgrep -v "(AF194|349[06])" \
+       | alncut -g | fastr --strict -N - | alnpi
+\end{verbatim}
+
 \subsection{Selecting sequences by encoded motifs }
 
 An advantage of the annotation approach in FAST is the ability to
@@ -778,13 +834,53 @@ into record descriptions, ultimately sorting records by
 their third-position adenosine contents, do:
 
 \begin{verbatim}
-fascut 1:-1:3 cds.fas | fascomp | fassort -nt comp_A
+fascut 3:-1:3 cds.fas | fascomp | fassort -nt comp_A
+\end{verbatim}
+\\
+\subsection{More advanced merging of data records}
+
+More advanced usage of {\tt faspaste} requires Unix pipelines. For
+example to join {\bf both} descriptions and sequences from two
+data-files, execute:
+
+\begin{verbatim}
+faspaste data1.fas data2.fas | faspaste -d - data2.fas
+\end{verbatim}
+
+\noindent The hyphen second argument (\verb|-|) to the second instance
+of {\tt faspaste} refers to the input received from standard input
+through the pipe. This example works because by default,  {\tt  faspaste} uses records from the first data stream 
+
+\noindent To prepend the first sequence of one file repeatedly to every sequence in another
+file, execute:
+
+\begin{verbatim}
+fashead -n 1 t/data/fasxl_test4.fas \ 
+  | faspaste -r - t/data/fasxl_test4.fas
+\end{verbatim}
+
+\noindent To prepend the first sequence of one file repeatedly to
+every other sequence in another file, using identifiers and
+descriptions from the second file in the output, execute:
+
+\begin{verbatim}
+fashead -n 1 t/data/fasxl_test3.fas \ 
+  | faspaste -r -R 2 - t/data/fasxl_test4.fas
 \end{verbatim}
 
 \section{Further Documentation and Usage Examples}
 
-A FAST Cookbook has been contributed by the authors and is available
-with the source code distribution or from the project GitHub
+Upon installation, FAST generates and installs a complete {\tt man}
+page for each FAST utility, which should be accessible by one or both
+of the following commands, {\it e.g.}:
+
+\begin{verbatim}
+      man fasgrep
+      perldoc fasgrep
+\end{verbatim}
+
+In addition, a FAST Cookbook has been contributed by the authors and is
+available with the source code distribution or from the project GitHub
 repository at \url{https://github.com/tlawrence3/FAST}.
 
 \section{Concluding Remarks and Future Directions}

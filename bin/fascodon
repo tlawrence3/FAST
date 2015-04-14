@@ -63,7 +63,7 @@ GetOptions('help|h'         		 => \$help,
 						},
            'verbose'                     => \$verbose,
            'amino-order|o:s'             => \$amino_order, #optional option argument. If not given, "ARNDCQEGHILKMFPSTWYV*"
-           'no-starts|nostarts           => \$no_starts,
+           'no-starts|nostarts'          => \$no_starts,
            'code|c=i'                    => \$code,
            'table|t'                     => \$table,
 	   'summary|s'                   => \$summary,

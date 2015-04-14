@@ -5,7 +5,7 @@ use Carp;
 use warnings FATAL => 'all';
 
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 our $DEF_FORMAT  = "fasta";
 our $DEF_LOGNAME = "FAST.log.txt";
