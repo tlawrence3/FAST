@@ -1,7 +1,7 @@
 FAST --- Fast Analysis of Sequences Toolbox
 ==============
 
-#### Version 1.0. February, 2015 ####
+#### Version 1.5. February, 2015 ####
 
 The FAST Analysis of Sequences Toolbox (FAST) is a set of Unix tools
 (for example fasgrep, fascut, fashead and fastr) for sequence
@@ -19,7 +19,7 @@ You do not need to know Perl or BioPerl to use FAST.
 UTILITIES
 ----------
 
-FAST 1.0 contains the following utilities. Each has its own man
+FAST 1.5 contains the following utilities. Each has its own man
 page. FAST utilities may be classifed as for annotation, selection,
 transformation, and analysis.
 
