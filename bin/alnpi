@@ -704,7 +704,7 @@ B<fasgrep> -v "(AF194|349[06])" t/data/ArdellEtAl03_ncbi_popset_32329588.fas | B
 
 Statistics for 5'UTRs, the last line in Table 1 of Ardell et al. (2003) Genetics 165:1761:
 
-B<gbfalncut> -k t/data/AF194338.1.gb 5.UTR t/data/ArdellEtAl03_ncbi_popset_32329588.fas | fasgrep -v "(AF194|349[06])" | B<fastr> --strict -a "-"  | B<alncut> -g | B<alnpi>
+B<gbfalncut> -k t/data/AF194338.1.gb 5.UTR t/data/ArdellEtAl03_ncbi_popset_32329588.fas | fasgrep -v "(AF194|349[06])" | B<fastr> --strict -N "-"  | B<alncut> -g | B<alnpi>
 
 
 =head1 SEE ALSO
