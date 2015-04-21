@@ -3,6 +3,7 @@
 
 %\setcitestyle{square}
 \usepackage{url,lineno}
+\usepackage{enumitem}
 \usepackage[english]{babel}
 
 \DeclareFontShape{OT1}{cmtt}{bx}{n}{<5><6><7><8><9><10><10.95><12><14.4><17.28><20.74><24.88>cmttb10}{}
@@ -798,9 +799,9 @@ statistic for \fp UTRs, corresponding to the the last line in Table 1
 of that work, execute:
 
 \begin{verbatim}
-      gbfalncut -k t/data/ArdellEtAl03_ncbi_popset_32329588.fas \
-       t/data/AF194338.1.gb 5.UTR | fasgrep -v "(AF194|349[06])" \
-       | fastr --strict -N - | alncut -g | alnpi
+      gbfalncut -k t/data/AF194338.1.gb 5.UTR \
+        t/data/popset_32329588.fas | fasgrep -v "(AF194|349[06])" \
+        | fastr --strict -N - | alncut -g | alnpi
 \end{verbatim}
 
 \subsection{Selecting sequences by encoded motifs }
@@ -940,7 +941,7 @@ NSF-DBI Postdoctoral Fellowship in Biological Informatics, an
 AY2009-2010 award from UC Merced's Graduate Research Council, a
 Chancellor's Award from UC Merced's second Chancellor Sung-Mo Kang,
  the NSF-funded URM program Undergraduate Research in Computational
-Biology at UC Merced (DBI-1040962) for support of K.T.K. and P.J.B.,,
+Biology at UC Merced (DBI-1040962) for support of K.T.K. and P.J.B.,
 and support of the UC Merced Library Open Access Fund Work Group.
 
 \bibliographystyle{frontiersinSCNS&ENG} % for Science and Engineering articles
@@ -956,12 +957,12 @@ and support of the UC Merced Library Open Access Fund Work Group.
   \arabic{figure}.}{ Overview of the first major release of FAST with
   data and workflow dependencies indicated.  Inputs to FAST tools are
   shown at the top of the figure with outputs at the bottom.  Outlined
-  in blue is the primary working model, in which Multifasta sequence
+  in blue is the primary working model, in which Multi-fastA sequence
   or alignment data is successively annotated, selected upon and
-  transformed into new Mutifasta sequence alignment data, or fed into
-  a utility in the {\bf analysis} category for tabular output of data
-  summaries. Many of the utilities in the {\bf annotation} category
-  are also optionally capable of tabular output.}
+  transformed into new Multi-fastA data, or fed into a utility in the
+  {\bf analysis} category for tabular output of data summaries. Many
+  of the utilities in the {\bf annotation} category are also
+  optionally capable of tabular output.}
 \end{figure}
 
 \begin{figure}
