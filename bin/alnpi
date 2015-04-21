@@ -700,11 +700,11 @@ processing data).
 Generate sliding window of Tajima's D, the data plotted in Fig. 4A of
 Ardell et al. (2003) Genetics 165:1761. The data files ship with FAST:
 
-B<fasgrep> -v "(AF194|349[06])" t/data/ArdellEtAl03_ncbi_popset_32329588.fas | B<alncut> -g | B<fastr> --strict -N - | B<alnpi> --window 100:25:d
+B<fasgrep> -v "(AF194|349[06])" t/data/ArdellEtAl03_ncbi_popset_32329588.fas | B<fastr> --strict -N - | B<alncut> -g | B<alnpi> --window 100:25:d
 
 Statistics for 5'UTRs, the last line in Table 1 of Ardell et al. (2003) Genetics 165:1761:
 
-B<gbfalncut> -k t/data/ArdellEtAl03_ncbi_popset_32329588.fas t/data/AF194338.1.gb 5.UTR | fasgrep -v "(AF194|349[06])" | B<alncut> -g | B<fastr> --strict -a "-" | B<alnpi>
+B<gbfalncut> -k t/data/ArdellEtAl03_ncbi_popset_32329588.fas t/data/AF194338.1.gb 5.UTR | fasgrep -v "(AF194|349[06])" | B<fastr> --strict -a "-"  | B<alncut> -g | B<alnpi>
 
 
 =head1 SEE ALSO

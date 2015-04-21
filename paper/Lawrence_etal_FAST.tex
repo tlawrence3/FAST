@@ -3,10 +3,11 @@
 
 %\setcitestyle{square}
 \usepackage{url,lineno}
-\usepackage{enumitem}
 \usepackage[english]{babel}
 
 \DeclareFontShape{OT1}{cmtt}{bx}{n}{<5><6><7><8><9><10><10.95><12><14.4><17.28><20.74><24.88>cmttb10}{}
+
+
 
 \newcommand{\tp}{$3^\prime${ }}
 \newcommand{\fp}{$5^\prime${ }}
@@ -101,7 +102,7 @@ increase reproducibility in the publishing of bioinformatic and
 biostatistical protocols it is important to facilitate the
 documentation and automation of data science workflows through scripts
 and literate programming facilities~\citep{knuth1984literate} such as
-emacs org-mode~\citep{delescluse_making_2012} that both completely
+emacs org-mode~\citep[\url{http://orgmode.org}, as demonstrated in, for example][]{delescluse_making_2012} that both completely
 document and encode scientific workflows for machine processing of
 biological data.
 
@@ -322,10 +323,10 @@ FAST is shown in Table~\ref{tab:01}.
  \hline
   \multicolumn{4}{l}{{\bf Transformation}} \\
   \hline    
-   {\tt fassort} & numerical or text sorting of records  & {\tt sort} & identifiers\\
-    {\tt fastaxsort} & taxonomic sorting of records &  & identifiers
+   {\tt fassort} & numerical or text sorting of records  & {\tt sort} & sequences\\
+    {\tt fastaxsort} & taxonomic sorting of records &  & descriptions
     \\
-    {\tt fasuniq} & remove or count redundant records & {\tt uniq} & records \\
+    {\tt fasuniq} & remove or count redundant records & {\tt uniq} & sequences \\
     {\tt faspaste} & merging of records &  {\tt paste} & sequences \\
     {\tt fastr} & character transformations on records & {\tt tr} & identifiers\\
     {\tt fassub} & regex substitutions on records &  & identifiers \\
@@ -412,8 +413,8 @@ within.
 Further implementation and usage details of individual FAST tools
 follows. Usage examples for individual tools refer to example data
 that ships with the FAST source-code installer, available from CPAN.
-The most recent version at the time of publication is 1.04, available
-from \url{http://search.cpan.org/~dhard/FAST-1.04/}. These usage
+The most recent version at the time of publication is 1.06, available
+from \url{http://search.cpan.org/~dhard/FAST-1.06/}. These usage
 examples should be able to run from within the installation directory
 after installation has completed.
 
@@ -744,41 +745,44 @@ this pipeline:
         | grep \>
 \end{verbatim}
 
-\noindent To avoid statistical complications for downstream analysis,
-we can extract only gap-free sites from the alignment using {\tt
-  alncut}, and verify that we reduced the size of the alignment using
-{\tt faswc}:
-
-\begin{verbatim}
-      fasgrep -v "(AF194|349[06])" t/data/popset_32329588.fas \
-        | alncut -g | faswc
-\end{verbatim}
-
-\noindent Molecular population genetic analyses are sensitive to the
-presence of ambiguous sequence characters, which we can check for by
-outputing a composition table:
+\noindent Sequencing ambiguities and gap-characters can introduce
+noise and uncertainty in the execution and documention of
+bioinformatic workflows. For some computations, for example in
+molecular population genetics, one may want to be conservative and
+remove ambiguity- and gap- containing sites from an alignment. We can
+check for ambiguities in our data by outputing a composition table:
  
 \begin{verbatim}
       fasgrep -v "(AF194|349[06])" t/data/popset_32329588.fas \ 
-        | alncut -g | fascomp --table
+        | fascomp --table
 \end{verbatim}
 
-\noindent To remap ambiguities to gap characters, which will cause
-them to be ignored by {\tt alnpi}, we use {\tt fastr} and check the
-result in {\tt fascomp}:
+\noindent To remap ambiguities to gap characters, with the intent of
+removing all sites containing either ambiguities or gaps, we may use
+{\tt fastr} to remap all non-strict DNA characters to gap (-) and
+verify the result using {\tt fascomp} again:
  
 \begin{verbatim}
       fasgrep -v "(AF194|349[06])" t/data/popset_32329588.fas \
-        | alncut -g | fastr --strict -N - | fascomp --table
+        | fastr --strict -N - | fascomp --table
+\end{verbatim}
+
+\noindent  Now, with confidence in our filtered data, we can confidently extract
+only gap-free sites from the alignment using {\tt alncut}, and verify
+that we reduced the size of the alignment with {\tt faswc}:
+
+\begin{verbatim}
+      fasgrep -v "(AF194|349[06])" t/data/popset_32329588.fas \
+        | fastr --strict -N - | alncut -g | faswc
 \end{verbatim}
 
 \noindent Finally, with confidence in the integrity of our pipeline
-developed so far, we pass the latest output to {\it alnpi} for
+developed so far, we pass the latest output to {\tt alnpi} for
 sliding-window analysis of Tajima's D:
  
 \begin{verbatim}
-      fasgrep -v "(AF194|349[06])" t/data/popset_32329588.fas \ 
-        | alncut -g | fastr --strict -N - | alnpi --window 100:25:d
+      fasgrep -v "(AF194|349[06])" t/data/popset_32329588.fas \
+        | fastr --strict -N - | alncut -g | alnpi --window 100:25:d
 \end{verbatim}
 
 \section{Further FAST Workflow Examples}
@@ -796,7 +800,7 @@ of that work, execute:
 \begin{verbatim}
       gbfalncut -k t/data/ArdellEtAl03_ncbi_popset_32329588.fas \
        t/data/AF194338.1.gb 5.UTR | fasgrep -v "(AF194|349[06])" \
-       | alncut -g | fastr --strict -N - | alnpi
+       | fastr --strict -N - | alncut -g | alnpi
 \end{verbatim}
 
 \subsection{Selecting sequences by encoded motifs }
@@ -849,10 +853,12 @@ faspaste data1.fas data2.fas | faspaste -d - data2.fas
 
 \noindent The hyphen second argument (\verb|-|) to the second instance
 of {\tt faspaste} refers to the input received from standard input
-through the pipe. This example works because by default,  {\tt  faspaste} uses records from the first data stream 
+through the pipe. This example works because by default, {\tt
+  faspaste} uses (``mutates'') records from the data stream named in
+its first argument to receive the data concatenated from all records.
 
-\noindent To prepend the first sequence of one file repeatedly to every sequence in another
-file, execute:
+\noindent To prepend the first sequence of one file repeatedly to
+every sequence in another file, execute:
 
 \begin{verbatim}
 fashead -n 1 t/data/fasxl_test4.fas \ 
@@ -922,18 +928,20 @@ manuscript and agree to be accountable for its contents.
 
 \section*{Acknowledgement}
 We acknowledge Christopher Clark for help in establishing a Git
-repository for FAST and Peter Becich for contributing some testing of
-the installer. D.H.A. gratefully acknowledges Professors Laura
-Landweber, Siv Andersson and Leif Kirsebom in whose laboratories the
-FAST tools were first developed as well as the Linnaeus Centre for
-Bioinformatics at Uppsala University.
+repository for FAST, as well as Julie Phillips and other Ardell lab
+members or students who used these tools and gave
+feedback. D.H.A. gratefully acknowledges Professors Laura Landweber,
+Siv Andersson and Leif Kirsebom in whose laboratories the FAST tools
+were first developed as well as the Linnaeus Centre for Bioinformatics
+at Uppsala University.
 
 \paragraph{Funding\textcolon} D.H.A. gratefully acknowledges an
-NSF-DBI Postdoctoral Fellowship in Biological Informatics and awards
-from UC Merced's Graduate Research Council and a Chancellor's Award
-from UC Merced's second Chancellor Sung-Mo Kang, as well as the
-NSF-funded program in Undergraduate Research in Computational
-Biology at UC Merced (DBI-1040962).
+NSF-DBI Postdoctoral Fellowship in Biological Informatics, an
+AY2009-2010 award from UC Merced's Graduate Research Council, a
+Chancellor's Award from UC Merced's second Chancellor Sung-Mo Kang,
+ the NSF-funded URM program Undergraduate Research in Computational
+Biology at UC Merced (DBI-1040962) for support of K.T.K. and P.J.B.,,
+and support of the UC Merced Library Open Access Fund Work Group.
 
 \bibliographystyle{frontiersinSCNS&ENG} % for Science and Engineering articles
 \bibliography{FAST}

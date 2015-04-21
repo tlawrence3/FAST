@@ -4,7 +4,6 @@
   \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
   \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
   \urlstyle{rm}\Url}\fi
-\providecommand{\selectlanguage}[1]{\relax}
 
 \bibitem[{\textbf{Benson et~al.}(2009)\textbf{Benson, Karsch-Mizrachi, Lipman,
   Ostell, and Sayers}}]{Benson2009}

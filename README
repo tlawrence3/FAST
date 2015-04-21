@@ -1,5 +1,8 @@
 FAST --- FAST Analysis of Sequences Toolbox
-Version 1.0. February, 2015
+Version 1.06. April 20, 2015, after acceptance in Frontiers in Genetics
+Version 1.05. April, 2015
+Version 1.00. February, 2015
+
 
 INTRODUCTION
 
@@ -118,17 +121,18 @@ You can also look for information at:
 
 CITING
 
-If you use FAST please, cite the FAST project (Lawrence et al. 2015)
-and Bioperl (Stajich et al. 2005). If you publish work that cites data
-provided in this FAST installer, please cite the authors of this data
-accordingly. For example, if you use the tRNAdb-CE data provided in
-this installer, please cite: Abe T, Inokuchi H, Yamada Y, Muto A,
-Iwasaki Y and Ikemura T (2014) tRNADB-CE: tRNA gene database
-well-timed in the era of big sequence data. Front. Genet. 5:114. doi:
-10.3389/fgene.2014.00114
+If you use FAST please, cite Lawrence et al. (2015). FAST: FAST Analysis of
+Sequences Toolbox in Frontiers in Genetics, and Stajich et al. (2002).
+BioPerl project. If you publish work that cites data provided in this FAST
+installer, please cite the authors of this data accordingly. For example, if
+you use the tRNAdb-CE data provided in this installer, please cite: Abe T,
+Inokuchi H, Yamada Y, Muto A, Iwasaki Y and Ikemura T (2014) tRNADB-CE: tRNA
+gene database well-timed in the era of big sequence data. Front. Genet.
+5:114. doi: 10.3389/fgene.2014.00114
 
 VERSION AND CHANGES
 
+1.05 -- Current version. Please see file Changes.
 1.0 -- First public release
 
 LICENSE AND COPYRIGHT

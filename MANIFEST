@@ -377,6 +377,9 @@ t/data/P450.clustalw2.fas
 t/data/P450.fas
 t/data/test.fq
 t/data/tRNAdb-CE.sample2000.fas
+t/data/flybase_fasta_100_cds.fas
+t/data/mito-ascaris.gb
+t/data/popset_32329588.fas
 t/lib/Test/Cmd.pm
 t/lib/Test/Cmd/Common.pm
 t/pod.t
