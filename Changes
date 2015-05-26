@@ -8,3 +8,10 @@ Revision history for FAST
 1.02    Removed some libraries that were causing permission problems: one involving Nexml from BioPerl 
         and the other Pod::Usage -- Pod::Usage listed as a dep for download from CPAN now
 1.03    Added use v5.10.1 in lib/FAST.pm and Makefile.pm because of "use parent" in FAST::Bio::SeqIO 
+
+1.05    Docfixes and edge-cases treated with new options in fasuniq, fascodon, and alnpi
+        fasuniq --no-starts suppresses separate tally of start codons
+	added fasuniq --count 
+1.06    DocFixes to alnpi 
+        Fix in name of symbolic link to the popset data-file in t/data. 
+	Release corresponding to acceptance in Frontiers in Genetics

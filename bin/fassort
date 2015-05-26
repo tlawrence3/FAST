@@ -326,7 +326,7 @@ Sort sequence records by their descriptions. If used in combination with the
 applied to their descriptions. 
 
 =item B<-s>,
-      B<--match-sequence> 		
+      B<--sequence> 		
 
 Sort sequence records by their sequences. If used in combination with the 
 -x, --regex option, sort records by values of a regex capture
@@ -453,7 +453,7 @@ Sort sequences by their third-position adenosine contents:
 
 =over 8
 
-B<fascut> 1:-1:3 cds.fas | B<fascomp> | B<fassort> -nt comp_A
+B<fascut> 3:-1:3 cds.fas | B<fascomp> | B<fassort> -nt comp_A
 
 =back
 
