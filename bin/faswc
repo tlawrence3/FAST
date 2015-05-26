@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/Users/travis/perl5/perlbrew/perls/perl-5.18.2/bin/perl -w
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
@@ -55,8 +55,8 @@ $format = lc ($format);
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 my $fromSTDIN = ((-t STDIN) ? false : true);
-pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input is from STDIN.\n") if ((-t STDIN) && (@ARGV == 0));
-pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $NAME -h for help.\n")      if (!(-t STDIN) && (@ARGV != 0));
+#pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input is from STDIN.\n") if ((-t STDIN) && (@ARGV == 0));
+#pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $NAME -h for help.\n")      if (!(-t STDIN) && (@ARGV != 0));
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
 
@@ -95,6 +95,21 @@ while ($IN or @ARGV) {
     undef $file;
   }
   if ($IN) { 
+    if ($format eq 'fastq') {
+    while (my $data = $IN->next_dataset) {
+      my $length;
+      unless ($characters_only) {
+	$numseqs++;
+	$numseqsfile++;
+      }
+      unless ($sequences_only) {
+	$length = length($data->{-seq});
+	$numchars += $length;
+	$numcharsfile += $length;
+      }
+    }
+  }
+    else {
     while (my $seq = $IN->next_seq()) {
       my $length;
       unless ($characters_only) {
@@ -107,6 +122,7 @@ while ($IN or @ARGV) {
 	$numcharsfile += $length;
       }
     }
+  }
     if ($file) {
       print join $join,
 	( (!$characters_only) ? sprintf("%10d",$numseqsfile) : ""),
