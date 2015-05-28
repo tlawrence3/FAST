@@ -1,0 +1,270 @@
+% Created 2014-06-16 Mon 07:38
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{soul}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}
+\providecommand{\alert}[1]{\textbf{#1}}
+\begin{document}
+
+
+
+\title{FAST:Fast Analysis of Sequences Toolbox Cookbook}
+\author{Katherine C.H. Amrine \& David H. Ardell}
+\date{16 June 2014}
+\maketitle
+
+\setcounter{tocdepth}{5}
+\tableofcontents
+\vspace*{1cm}
+These examples are executable from the installation directory.
+
+
+\section{Recipes}
+\label{sec-1}
+\section{Tutorials}
+\label{sec-2}
+\subsection{Prelude}
+\label{sec-2_1}
+\subsubsection{The FAST definition of "FastA format"}
+\label{sec-2_1_1}
+
+
+FastA format began with the FastA search utilities of William
+Pearson. For FAST, ``fasta format'' means what is conventionally called
+``multi-fasta'' format of sequence or alignment data, largely as
+implementated in BioPerl in the module \texttt{Bio::SeqIO::fasta}. 
+
+In the FAST implementation of ``fasta format'', multiple sequence
+records may appear in a single file or input stream. Sequence data may
+contain gap characters. The logical elements of a sequence record are
+its \emph{identifier}, \emph{description} and \emph{sequence}. The \emph{identifier}
+(indicated with \texttt{id} in the example here) and \emph{description} (\texttt{desc})
+together make the \emph{identifier line} of a sequence record, that must
+begin with the sequence record start symbol \texttt{>} on a single line. The
+\emph{description} begins after the first block of white-space on this line
+(indicated with \texttt{<space>}). The \emph{sequence} of a record
+appears immediately after its identifier line and may continue over
+multiple lines until the next record. 
+
+In FAST, the description may be broken into multiple \emph{fields} defined
+by a \emph{delimiter} (indicated with \texttt{<delim>}). FAST uses a ``one-based''
+indexing of fields as indicated here:
+
+\begin{verbatim}
+>seq1-id<space>seq1-desc-field1<delim>seq1-desc-field2<delim>...
+seq1-sequence
+seq1-sequence
+...
+seq1-sequence
+>seq2-id<space>seq2-desc-field1<delim>seq2-desc-field2<delim>...
+seq2-sequence
+seq2-sequence
+...
+seq2-sequence
+\end{verbatim}
+\subsubsection{Use \texttt{man} pages for full documentation}
+\label{sec-2_1_2}
+
+
+All FAST utilities follow UNIX conventions in having default and
+optional behaviors. For more information about how to use and modify
+the behavior of any FAST utility such as \texttt{faswc}, consult its manual
+page with \emph{e.g.}:
+
+\begin{verbatim}
+man faswc
+\end{verbatim}
+
+or alternatively:
+
+\begin{verbatim}
+perldoc faswc
+\end{verbatim}
+\subsection{Example 1: Prototyping a pipeline to cut, reverse complement, and translate a gene by coordinate from a genome}
+\label{sec-2_2}
+\subsubsection{Calculating sequence length}
+\label{sec-2_2_1}
+
+
+Chromosome 1 from the \emph{Saccharomyces cerevisiae} genome is available
+in \texttt{t/data/chr01.fsa}. By default, \texttt{faswc} calculates the lengths of
+sequence records on its input, and outputs its input, augmenting
+sequence descriptions with its calculations using the tag (or name)
+\texttt{length} and a (name,value) separator \texttt{:}, as in \texttt{length:872}. We can
+therefore easily obtain the length of this chromosome sequence as
+follows:
+
+\begin{verbatim}
+faswc t/data/chr01.fsa | egrep ">"
+\end{verbatim}
+
+Alternatively, \texttt{faswc -c} will output the length of the chromosome
+directly to \texttt{STDOUT}:
+
+\begin{verbatim}
+faswc -c t/data/chr01.fsa
+\end{verbatim}
+\subsubsection{Cut out a subsequence by coordinate with \texttt{fascut}}
+\label{sec-2_2_2}
+
+
+\texttt{fascut} will cut a subsequence by coordinate. For example, suppose we
+know that the location of gene \texttt{YAR030C} in yeast chromosome 1 begins
+186512 and ends 186853 on the minus strand. Let's cut this from our
+chromosome. The following code will extract this subsequence in fasta
+format to \texttt{STDOUT}:
+
+\begin{verbatim}
+fascut 186512..186853 t/data/chr01.fsa
+\end{verbatim}
+\subsubsection{Computing reverse complement of a sequence with \texttt{fasrc}}
+\label{sec-2_2_3}
+
+
+Knowing that this is on the minus strand, we need to obtain the
+reverse complement of this sequence.  \texttt{fasrc} will compute this.  The
+following code will take the output of \texttt{fascut} as its input and
+return the reverse complemeht in fasta file to \texttt{STDOUT}:
+
+\begin{verbatim}
+fascut 186512..186853 t/data/chr01.fsa | fasrc
+\end{verbatim}
+\subsubsection{Translating a sequence with \texttt{fasxl}}
+\label{sec-2_2_4}
+
+
+To translate this sequence, we extend the pipeline with the \texttt{fasxl} utility:
+
+\begin{verbatim}
+fascut 186512..186853 t/data/chr01.fsa | fasrc | fasxl
+\end{verbatim}
+
+Examine the output, we will see that the peptide starts with a
+methionine, and ends with a stop codon, indicated by the \texttt{*} character
+by default. 
+\subsubsection{Computing codon usage with \texttt{fascodon}}
+\label{sec-2_2_5}
+
+
+If we are interested in the codon usage of our gene, we can edit the
+last command-line (by typing \texttt{up-arrow} on most UNIX shells) and
+replace \texttt{fasxl} with \texttt{fascodon} at the end of our pipeline. \texttt{fascodon}
+outputs a space-delimited table indicating the normalized counts of
+each codon with information on starts and stops. With the following
+code, we can see that the most frequently used codon in this example
+is \texttt{AAT} (encoding an Asparagine)
+
+\begin{verbatim}
+fascut 186512..186853 t/data/chr01.fsa | fasrc | fascodon
+\end{verbatim}
+\subsubsection{Computing base composition with \texttt{fascomp}}
+\label{sec-2_2_6}
+
+
+\texttt{fascomp} will return the base/protein composition of a sequence. If
+we are interested in the normalized base composition of the first
+chromosome, we can run the following:
+
+\begin{verbatim}
+fascomp -n t/data/chr01.fsa
+\end{verbatim}
+\subsection{Example 2: Reformatting, selecting and transforming alignments in FAST}
+\label{sec-2_3}
+\subsubsection{Reformatting alignment data with \texttt{fasconvert}}
+\label{sec-2_3_1}
+
+
+A file with protein sequences that match a search for ``P450'' is
+available in \texttt{t/data/P450.fas} under the FAST installation
+directory. Another file contains this data aligned using \texttt{clustalw}
+with the name \texttt{P450.clustalw2.aln}. The \texttt{fasconvert} tool can convert
+from fasta to many formats, or from many formats to fasta, including
+clustalw to fasta as showin in the following example
+
+\begin{verbatim}
+fasconvert -i clustalw -f t/data/P450.clustalw2.aln
+\end{verbatim}
+
+The previous command automatically saves its output to an output file
+saves output to the same basename and an extension of \texttt{.fas}. The
+\texttt{faswc} utility will append sequence lengths to the sequence
+descriptions. To look at the length of all sequences, use the
+following code.
+
+\begin{verbatim}
+faswc t/data/P450.clustalw2.fas | head -1
+\end{verbatim}
+
+which outputs \texttt{length:557} to \texttt{STDOUT}.
+\subsubsection{Selecting sequences with \texttt{fasgrep}}
+\label{sec-2_3_2}
+
+
+We can subset the output in many ways to get information we are
+interested in, for example, if we want to get the original sequence
+with the gi number ``86475799'', we can use \texttt{fasgrep}, which will pull
+out sequences that match a Perl regular expression. By default,
+\texttt{fasgrep} attempts to match sequence identifiers:
+
+\begin{verbatim}
+fasgrep "86475799" P450.fas
+\end{verbatim}
+
+We can retrieve the aligned version of this sequence as it has the
+same identifier
+
+\begin{verbatim}
+fasgrep "86475799" P450.clustalw2.fas
+\end{verbatim}
+\subsubsection{Reformatting gap characters with \texttt{fastr}}
+\label{sec-2_3_3}
+
+
+\texttt{fastr} may be useful when we must change specific characters based on
+the requirements of a bioinformatic program. For example, to reformat
+gap characters in a fasta-format alignment from ``-'' to ``.''.
+
+\begin{verbatim}
+fastr -s "-" "." P450.clustalw2.fas
+\end{verbatim}
+\subsubsection{Degapping sites with \texttt{alndegap}}
+\label{sec-2_3_4}
+
+
+\texttt{alndegap} allows for editing of alignments based on their gap
+profile. To remove sites with at least one gap in all sequences, we
+can do the following:
+
+\begin{verbatim}
+alndegap -a P450clustalw2.clustalw.fas
+\end{verbatim}
+
+We can then determine the length of the alignment by looking at the
+first identifier for your output after running the following:
+
+\begin{verbatim}
+alndegap -a P450clustalw2.clustalw.fas | faswc | head -1 | cut -f2 -d" "
+\end{verbatim}
+
+And if we are interested in retaining only unique sequences, 
+\emph{fasuniq} appended to the output will collapse duplicate sequences to
+one, appending all of the identifiers to one large identifier. 
+
+\begin{verbatim}
+alndegap -a P450clustalw2.clustalw.fas | faslen | fasuniq
+\end{verbatim}
+
+\end{document}
