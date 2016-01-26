@@ -1,7 +1,7 @@
 FAST --- Fast Analysis of Sequences Toolbox
 ==============
 
-#### Version 1.5. February, 2015 ####
+#### Version 1.6. Apr 21, 2015 ####
 
 The FAST Analysis of Sequences Toolbox (FAST) is a set of Unix tools
 (for example fasgrep, fascut, fashead and fastr) for sequence
