@@ -1,3 +1,5 @@
+[![Github All Releases](https://img.shields.io/github/downloads/atom/atom/total.svg)](https://github.com/tlawrence3/FAST)
+
 FAST --- Fast Analysis of Sequences Toolbox
 ==============
 
@@ -19,7 +21,7 @@ You do not need to know Perl or BioPerl to use FAST.
 UTILITIES
 ----------
 
-FAST 1.5 contains the following utilities. Each has its own man
+FAST 1.6 contains the following utilities. Each has its own man
 page. FAST utilities may be classifed as for annotation, selection,
 transformation, and analysis.
 
