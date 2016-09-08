@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ## April 23, 2014: DHA completed new implementation of fassort
 ## uses Mergesort when going over a memory limit
@@ -8,6 +8,7 @@ use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
+use warnings;
 use strict;
 use Sort::Key qw/ keysort_inplace nkeysort_inplace rkeysort_inplace rnkeysort_inplace / ;
 #use Devel::Size qw/ total_size /;

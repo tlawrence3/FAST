@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
@@ -6,6 +6,7 @@ use FAST;
 use FAST::Bio::SeqIO;
 use FAST::Bio::PrimarySeq;
 use FAST::Bio::Tools::MySeqStats;
+use warnings;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
