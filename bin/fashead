@@ -64,11 +64,7 @@ $join = "\t" if ($join eq '\t');
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 
-my $fromSTDIN = ((-t STDIN) ? false : true);
-
-pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN) && !(@ARGV));
-
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
 my $append_file_name = ($append and (!($fromSTDIN) and @ARGV > 0));
 

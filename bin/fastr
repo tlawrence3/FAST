@@ -94,20 +94,13 @@ my $delete_or_squash = ($delete || $squash);
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
 pod2usage("$NAME: with --strict or --iupac, no other options except --ambig, --fastq, or FAST generic options are allowed.\n")      
   if ( ($iupac_or_strict) &&  ($delete_or_squash || $complement || $description || $sequence || $no_replace || $degap));  
 pod2usage("$NAME: with --degap, no other options except --fastq, or FAST generic options allowed.\n")      
   if ( ($degap) &&  ($iupac_or_strict || $delete_or_squash || $complement || $description || $sequence || $no_replace ));  
-pod2usage("$NAME: expects 2 arguments, 1 with --no-replace/-n, if input on STDIN.\n")        if (!(-t STDIN) && !($iupac_or_strict || $degap) && !($no_replace) && @ARGV != 2);
-pod2usage("$NAME: expects >= 3 arguments, 2 with --no-replace/-n, if input from file\n")     if ( (-t STDIN) && !($iupac_or_strict || $degap) && !($no_replace) && @ARGV  < 3);
-pod2usage("$NAME: expects 1 argument with --no-replace/-n if input on STDIN.\n")          if (!(-t STDIN) && !($iupac_or_strict || $degap) &&  ($no_replace) && @ARGV != 1);
-pod2usage("$NAME: expects >= 2 arguments with --no-replace/-n if input from file\n")         if ( (-t STDIN) && !($iupac_or_strict || $degap) &&  ($no_replace) && @ARGV  < 2);
-pod2usage("$NAME: with --strict, --iupac or --degap expects zero arguments if input on STDIN.\n")          if (!(-t STDIN) &&  ($iupac_or_strict || $degap) && @ARGV  > 0);
-pod2usage("$NAME: with --strict, --iupac or --degap expects at least one argument if input from file.\n")  if ( (-t STDIN) &&  ($iupac_or_strict || $degap) && @ARGV == 0);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 my ($selector,$type);
 if ($iupac_or_strict) {

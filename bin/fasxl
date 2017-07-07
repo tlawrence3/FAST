@@ -116,9 +116,6 @@ if ($tables) {
   die;
 }
 
-my $fromSTDIN = ((-t STDIN) ? false : true);
-pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input from STDIN.\n") if (!($fromSTDIN) && (@ARGV == 0));
-pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN.\n") if ($fromSTDIN && (@ARGV != 0));
 pod2usage("$NAME: Options --annotate/-a and --keep/-k are incompatible.\n") if ($annotate && $keep);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 

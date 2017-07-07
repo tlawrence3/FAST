@@ -74,10 +74,6 @@ pod2usage(-verbose => 2) if $man;
 
 $join = "\t" if ($join eq '\t');
 
-my $fromSTDIN = ((-t STDIN) ? false : true);
-
-pod2usage("$NAME: Requires at least one argument unless connected to standard input. Try \"perldoc $NAME\"") if (!$fromSTDIN && @ARGV < 1);
-pod2usage("$NAME: Requires zero arguments if connected to standard input. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV > 0);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 

@@ -72,11 +72,8 @@ pod2usage(-verbose => 2) if $man;
 #Sequence Length = 542 nt; Size = 1746 bytes; 3.22 bytes/nt
 $memory_limit = $memory_limit / 3.22; #convert memory to # of nt/aa
 
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects at least one input filename or glob. Try \"perldoc $NAME\"") if (!($fromSTDIN) && !(@ARGV));
-
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
 my $append_file_name = ($append and (!($fromSTDIN) and @ARGV > 0));
 

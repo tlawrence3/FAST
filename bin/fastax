@@ -64,17 +64,14 @@ GetOptions('help|h'         		 => \$help,
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
 unless ($tax_id_mode) {
-  pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\", a taxonomic query, and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 4));
-  pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\" and a taxonomic query when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 3);
+  pod2usage("$NAME: expects path to \"nodes.dmp\", path to \"names.dmp\", and a taxonomic query.\n") if (@ARGV < 3);
 }
 else {
-  pod2usage("$NAME: in --tax-id-mode, expects path to \"nodes.dmp\", a taxonomic query, and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
-  pod2usage("$NAME: in --tax-id-mode, expects path to \"nodes.dmp\" and a taxonomic query when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+  pod2usage("$NAME: in --tax-id-mode, expects path to \"nodes.dmp\", and a taxonomic query.\n") if (@ARGV < 2);
 }
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 my $query; 
 my $numquery; 

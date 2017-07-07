@@ -59,12 +59,10 @@ GetOptions('help|h'         		 => \$help,
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects at least three arguments when input from file.\n") if ( (-t STDIN) && (@ARGV < 3));
-pod2usage("$NAME: expects exactly two arguments when input on STDIN.\n")    if (!(-t STDIN) &&  @ARGV != 2);
+pod2usage("$NAME: expects at least two arguments.\n") if (@ARGV < 2);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 my $re_string = shift @ARGV;
 my $string = shift @ARGV;

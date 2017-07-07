@@ -99,11 +99,8 @@ $memory_limit = $memory_limit / 3.22; #convert memory to # of nt/aa
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
-pod2usage("$NAME: Requires at least one argument file1 [file2…fileN] unless taking input from STDIN.\n") if ((-t STDIN) && (@ARGV < 1));
-pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN.\n") if (!(-t STDIN) && @ARGV != 0);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
 my $split_re = ' ';
 if ($split_on_regex) {
