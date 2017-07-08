@@ -65,12 +65,10 @@ GetOptions('help|h'         		 => \$help,
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects one range-string argument and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 2));
-pod2usage("$NAME: expects one range-string argument when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 1);
+pod2usage("$NAME: expects one range-string argument.\n") if (@ARGV == 0);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
 
 ##PARSE MULTICOORDS

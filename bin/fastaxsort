@@ -71,18 +71,15 @@ $join = "\t" if ($join eq '\t');
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
 unless ($tax_id_mode) {
-  pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file, path to NCBI \"names.dmp\" file, and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 3));
-  pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file and path to NCBI \"names.dmp\" file when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 2);
+  pod2usage("$NAME: expects path to NCBI \"nodes.dmp\" file and path to NCBI \"names.dmp\" file.\n") if (@ARGV < 2);
 }
 else {
-  pod2usage("$NAME: in tax-id-mode, expects path to NCBI \"nodes.dmp\" file and at least one input filename or glob.\n") if (!($fromSTDIN) && (@ARGV < 2));
-  pod2usage("$NAME: in tax-id-mode, expects path to NCBI \"nodes.dmp\" file when input is on STDIN.\n") if ($fromSTDIN && @ARGV != 1);
+  pod2usage("$NAME: in tax-id-mode, expects path to NCBI \"nodes.dmp\" file.\n") if (@ARGV == 0);
 }
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 my $nodesfile;
 my $namesfile;

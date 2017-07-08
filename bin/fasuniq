@@ -64,12 +64,6 @@ $join = "\t" if ($join eq '\t');
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
 
-if (!(-t STDIN) and (@ARGV != 0)) {
-  pod2usage("$0: Requires exactly zero arguments when taking input from STDIN. Try $NAME -h for help."); 
-}
-elsif ((-t STDIN) and (@ARGV != 1)) {
-  pod2usage("$0: Requires exactly one argument unless taking input from STDIN. Try $NAME -h for help.");
-}
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 my $match = 'seq';

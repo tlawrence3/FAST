@@ -79,12 +79,10 @@ GetOptions('help|h'         		 => \$help,
 		  
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: Requires at least two arguments RANGES FILE [FILE2...]. Try $NAME -h for help.") if ((-t STDIN) && (@ARGV < 2));
-pod2usage("$NAME: Requires exactly one argument RANGES when reading from STDIN. Try $NAME -h for help.") if (!(-t STDIN) && @ARGV != 1);
+pod2usage("$NAME: Requires at least one argument RANGES. Try $NAME -h for help.") if (@ARGV == 0);
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log); 
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 
 
 my $RANGES = shift @ARGV;
 my @RANGES = undef;

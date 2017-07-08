@@ -103,8 +103,6 @@ if ($man) {
   print_help_header();
   pod2usage(-verbose => 2); 
 }
-pod2usage("$NAME: Requires exactly zero arguments when taking input from STDIN. Try $NAME -h for help.") if (!(-t STDIN) and (@ARGV != 0));
-pod2usage("$NAME: Requires at least one argument when using with --files or -f option. Try $NAME -h for help.") if ((-t STDIN) and $files and @ARGV == 0);
 pod2usage("$NAME: Either option --input <format>/-i <format> or option --output <format>/-o <format> must be used. Try $NAME -h for help.") unless ($input or $output);
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 

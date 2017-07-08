@@ -65,11 +65,8 @@ GetOptions('help|h'         		 => \$help,
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: expects at least one input filename or glob unless reading standard input. Try \"perldoc $NAME\"") if (!$fromSTDIN and !(@ARGV));
-pod2usage("$NAME: fastq format requires -d or -i option. Try \"perldoc $NAME\"") if ($format eq 'fastq' and not ($description or $identifier));
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
 my ($selector,$type);
 if ($description) {

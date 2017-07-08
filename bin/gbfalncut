@@ -64,10 +64,8 @@ GetOptions('help|h'         		 => \$help,
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
 
-my $fromSTDIN = ((-t STDIN) ? false : true);
 
-pod2usage("$NAME: Expects at least three arguments: GenBank-file \'perl-reg-exp\' alignment-file. Try \"perldoc $NAME\"") if (!($fromSTDIN) && (@ARGV < 3));
-pod2usage("$NAME: Expects two arguments with input on STDIN: GenBank-file \'perl-reg-exp\'. Try \"perldoc $NAME\"") if ($fromSTDIN && @ARGV != 2);
+pod2usage("$NAME: Expects at least two arguments, GenBank-file \'perl-reg-exp\'. Try \"man $NAME\"") if (@ARGV < 2);
 
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log); 

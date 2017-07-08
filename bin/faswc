@@ -55,11 +55,8 @@ $format = lc ($format);
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
-my $fromSTDIN = ((-t STDIN) ? false : true);
-#pod2usage("$NAME: Requires at least one argument FILE [FILE2…FILEN] unless input is from STDIN.\n") if ((-t STDIN) && (@ARGV == 0));
-#pod2usage("$NAME: Requires exactly zero arguments if input is from STDIN. Try $NAME -h for help.\n")      if (!(-t STDIN) && (@ARGV != 0));
 
-&FAST::log($logname, $DATE, $COMMAND, $comment, $fromSTDIN) if ($log);
+&FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 my $IN;
