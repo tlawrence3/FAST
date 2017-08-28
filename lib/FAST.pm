@@ -5,7 +5,7 @@ use Carp;
 use warnings FATAL => 'all';
 
 
-our $VERSION = '1.06';
+our $VERSION = '1.07';
 
 our $DEF_FORMAT  = "fasta";
 our $DEF_LOGNAME = "FAST.log.txt";
@@ -40,7 +40,7 @@ FAST - FAST Analysis of Sequences Toolbox
 
 =head1 VERSION
 
-Version 1.03
+Version 1.07
 
 =head1 SYNOPSIS
 
