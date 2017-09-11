@@ -1,3 +1,5 @@
+[![Github All Releases](https://img.shields.io/github/downloads/tlawrence3/FAST/total.svg)]()
+
 FAST --- Fast Analysis of Sequences Toolbox
 ==============
 
