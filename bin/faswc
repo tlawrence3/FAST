@@ -3,7 +3,8 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
-use FAST::Bio::SeqIO;
+use FAST::Bio::PrimarySeq;
+use FAST::Bio::Seq;
 use warnings;
 use strict;
 
@@ -44,13 +45,25 @@ sub readfq {
 		$qual .= $_;
 		if (length($qual) >= length($seq)) {
 			$aux->[0] = undef;
-			return ($name, $seq, $qual);
+			my @header = split / /, $name, 2;
+			if (scalar @header == 2){
+			    return ($header[0], $header[0], $seq, $qual);
+		        }
+		        else{
+			    return ($name, undef, $seq, $qual);
+		        }
 		}
 	}
 	$aux->[1] = 1;
-	return ($name, $seq);
+	my @header = split / /, $name, 2;
+	if (scalar @header == 2){
+	    return ($header[0], $header[0], $seq, $qual);
+        }
+	else{
+	    return ($name, undef, $seq, $qual);
+	}
 }
-$VERSION = $FAST::VERSION; 
+$VERSION = $FAST::VERSION;
 $DESC    = "tally sequences and sequence characters";
 $NAME    = $0;
 $NAME    =~ s/^.*\///;
@@ -73,14 +86,14 @@ my $log                  = undef;        # -l
 my $logname              = $def_logname; # -L
 my $comment              = undef;        # -C
 my $sequences_only       = undef;        # -s
-my $characters_only      = undef;        # -c 
+my $characters_only      = undef;        # -c
 my $join                 = $def_join_string; # -j
 
-GetOptions('help|h'         		 => \$help, 
+GetOptions('help|h'         		 => \$help,
 	   'man'            		 => \$man,
-	   'moltype|m=s'                 => sub{  my (undef,$val) = @_; 
-						  die "$NAME: --moltype or -m option argument must be \"dna\", \"rna\" or \"protein\"" 
-						    unless $val =~ /dna|rna|protein/i; 
+	   'moltype|m=s'                 => sub{  my (undef,$val) = @_;
+						  die "$NAME: --moltype or -m option argument must be \"dna\", \"rna\" or \"protein\""
+						    unless $val =~ /dna|rna|protein/i;
 						  $moltype = $val;
 						},
 	   'format=s'                    => \$format,
@@ -90,9 +103,9 @@ GetOptions('help|h'         		 => \$help,
 	   'sequences|s'                 => \$sequences_only,
 	   'characters|c'                => \$characters_only,
            'fastq|q'                     => sub { $format = 'fastq'; },
-	  ) 
+	  )
   or exit(1);
-		  
+
 $format = lc ($format);
 
 pod2usage(-verbose => 1) if $help;
@@ -111,7 +124,6 @@ my $file;
 my $numseqsfile;
 my $numcharsfile;
 my @aux = undef;
-
 while ($IN or @ARGV) {
   if (@ARGV) {
     $file = shift (@ARGV);
@@ -125,30 +137,52 @@ while ($IN or @ARGV) {
   else {
     undef $file;
   }
-  if ($IN) { 
+  if ($IN) {
     if ($IN == 1) {
-    while (my ($name, $seq, $qual) = readfq(\*STDIN, \@aux)) {
+    while (my ($name, $desc, $seq, $qual) = readfq(\*STDIN, \@aux)) {
       my $length;
+      my $seqobj;
+      my $qualobj;
+      my $seqfinal;
+      if ($qual){
+	 $seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+         $qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
+         $seq = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);
+      }
+      else{
+	 $seq = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+      }
       unless ($characters_only) {
 	$numseqs++;
 	$numseqsfile++;
       }
       unless ($sequences_only) {
-	$length = length($seq);
+	$length = $seqfinal->length();
 	$numchars += $length;
 	$numcharsfile += $length;
       }
     }
   }
     else {
-    while (my ($name, $seq, $qual) = readfq($IN, \@aux)) {
+    while (my ($name, $desc, $seq, $qual) = readfq($IN, \@aux)) {
       my $length;
+      my $seqobj;
+      my $qualobj;
+      my $seqfinal;
+      if ($qual){
+	 $seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+         $qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
+         $seqfinal = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);
+      }
+      else{
+	 $seqfinal = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+      }
       unless ($characters_only) {
 	$numseqs++;
 	$numseqsfile++;
       }
       unless ($sequences_only) {
-	$length = length($seq);
+	$length = length($seqfinal);
 	$numchars += $length;
 	$numcharsfile += $length;
       }
@@ -195,10 +229,10 @@ Options general to FAST:
   -B<h>, B<--help>                  	 print a brief help message
   B<--man>             	           print full documentation
   B<--version>                         print version
-  B<-l>, B<--log>                         create/append to logfile	
+  B<-l>, B<--log>                         create/append to logfile
   -B<L>, B<--logname>=<string>            use logfile name <string>
   -B<C>, B<--comment>=<string>            save comment <string> to log
-  B<--format>=<format>                 use alternative format for input  
+  B<--format>=<format>                 use alternative format for input
   B<--moltype>=<[dna|rna|protein]>     specify input sequence type
   B<-q>, B<--fastq>                       use fastq format as input and output
 =head1 INPUT AND OUTPUT
@@ -206,19 +240,19 @@ Options general to FAST:
 B<faswc> is part of FAST, the FAST Analysis of Sequences Toolbox, based
 on Bioperl. Most core FAST utilities expect input and return output in
 multifasta format. Input can occur in one or more files or on
-STDIN. Output occurs to STDOUT.  
+STDIN. Output occurs to STDOUT.
 
 =head1 OPTIONS
 
 =over 8
 
 
-=item B<-s>, 
+=item B<-s>,
       B<--sequences>
 
 Output tallies of sequences only by file and/or in total.
 
-=item B<-c>, 
+=item B<-c>,
       B<--characters>
 
 Output tallies of sequence characters only by file and/or in total.
@@ -253,7 +287,7 @@ Use [string] as the name of the logfile. Default is "FAST.log.txt".
 
 Include comment [string] in logfile. No comment is saved by default.
 
-=item B<--format=[format]> 		  
+=item B<--format=[format]>
 
 Use alternative format for input. See man page for "faslen" for
 allowed formats. This is for convenience; the FAST tools are designed
@@ -261,7 +295,7 @@ to exchange data in Fasta format, and "fasta" is the default format
 for this tool.
 
 =item B<-m [dna|rna|protein]>,
-      B<--moltype=[dna|rna|protein]> 		  
+      B<--moltype=[dna|rna|protein]>
 
 Specify the type of sequence on input (should not be needed in most
 cases, but sometimes Bioperl cannot guess and complains when
@@ -278,7 +312,7 @@ Use fastq format as input and output.
 
 Count the number of sequences in data1.fas and data2.fas and the total:
 
-=over 8  
+=over 8
 
 B<faswc> -s data1.fas data2.fas
 
@@ -296,7 +330,7 @@ Introduction and cookbook for FAST
 
 =item L<The FAST Home Page|http://compbio.ucmerced.edu/ardell/FAST>"
 
-=back 
+=back
 
 =head1 CITING
 
