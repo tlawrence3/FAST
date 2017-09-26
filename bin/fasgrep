@@ -137,15 +137,14 @@ else { # $field < 0
 
 
 my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
+
+##############
 my $IN;
-unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
-    }
+unless (@ARGV){ 
+    $IN =1; 
 }
+
+##############
 
 while ($IN or @ARGV) {
   if (@ARGV) {
@@ -154,15 +153,23 @@ while ($IN or @ARGV) {
       warn "$NAME: Could not find file $file. Skipping.\n";
       next;
     }
-    elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
-    }
-    else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
-    }
+   
+   open($IN, "<",$file) or die "Could not open file $file.";
   }
-  if ($IN) { 
-    while (my $seq = $IN->next_seq()) {
+  
+  ##########################################under construction
+  if ($IN) { #change the input logic,
+  
+  
+    while (my ($name, $desc, $seq, $qual)= readfq()) { 
+    
+    ######create the bio objects#######
+    
+    
+    
+#############################################
+  
+  #leave all code alone after this 
       my $data = $seq->id();
       $data = $seq->seq()  if ($sequence);
       $data = $seq->desc() if ($description);
@@ -194,7 +201,59 @@ while ($IN or @ARGV) {
 }
 
 
+sub readfq {
+	my ($fh, $aux) = @_;
+	@$aux = [undef, 0] if (!(@$aux));
+	return if ($aux->[1]);
+	if (!($aux->[0])) {
+		while (<$fh>) {
+			chomp;
+			if (substr($_, 0, 1) eq '>' || substr($_, 0, 1) eq '@') {
+				$aux->[0] = $_;
+				last;
+			}
+		}
+		if (!($aux->[0])) {
+			$aux->[1] = 1;
+			return;
+		}
+	}
+	my $name = /^.(\S+)/? $1 : '';
+	my $seq = '';
+	my $c;
+	$aux->[0] = undef;
+	while (<$fh>) {
+		chomp;
+		$c = substr($_, 0, 1);
+		last if ($c eq '>' || $c eq '@' || $c eq '+');
+		$seq .= $_;
+	}
+	$aux->[0] = $_;
+	$aux->[1] = 1 if (!($aux->[0]));
+	return ($name, $seq) if ($c ne '+');
+	my $qual = '';
+	while (<$fh>) {
+		chomp;
+		$qual .= $_;
+		if (length($qual) >= length($seq)) {
+			$aux->[0] = undef;
+			my @header = split / / , $name, 2; #split into id and desc
+			return ($header[0],$header[1], $seq, $qual);
+		}
+	}
+	$aux->[1] = 1;
+	my @header = split / / , $name, 2; #split into id and desc 
+	return ($header[0],$header[1], $seq);
+}
 
+my @aux = undef;
+my ($name, $seq, $qual);
+my ($n, $slen, $qlen) = (0, 0, 0);
+while (($name, $seq, $qual) = readfq(\*STDIN, \@aux)) {
+	++$n;
+	$slen += length($seq);
+	$qlen += length($qual) if ($qual);
+}
 __END__
 
 =head1 NAME
