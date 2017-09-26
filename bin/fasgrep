@@ -157,19 +157,29 @@ while ($IN or @ARGV) {
    open($IN, "<",$file) or die "Could not open file $file.";
   }
   
-  ##########################################under construction
-  if ($IN) { #change the input logic,
+  ##########################################
+  if ($IN ==1) { #changes the input logic
   
+    while (my ($name, $desc, $seq, $qual)= readfq(\*STDIN, \@aux)) { 
+    
+    ######create the bio objects######
+    
+      my $length;
+      my $seqobj;
+      my $qualobj;
+      my $seqfinal;
+      if ($qual){
+	 	$seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+        $qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
+        $seq = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);	 
+      }
+      else{
+	 $seq = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+      }
+    
+   ###########################################
   
-    while (my ($name, $desc, $seq, $qual)= readfq()) { 
-    
-    ######create the bio objects#######
-    
-    
-    
-#############################################
-  
-  #leave all code alone after this 
+  #This section of code does not need updating:#
       my $data = $seq->id();
       $data = $seq->seq()  if ($sequence);
       $data = $seq->desc() if ($description);
