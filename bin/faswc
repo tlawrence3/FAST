@@ -3,11 +3,66 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
-use FAST::Bio::SeqIO;
+use FAST::Bio::PrimarySeq;
+use FAST::Bio::Seq;
 use warnings;
 use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
+sub readfq {
+	my ($fh, $aux) = @_;
+	@$aux = [undef, 0] if (!(@$aux));
+	return if ($aux->[1]);
+	if (!($aux->[0])) {
+		while (<$fh>) {
+			chomp;
+			if (substr($_, 0, 1) eq '>' || substr($_, 0, 1) eq '@') {
+				$aux->[0] = $_;
+				last;
+			}
+		}
+		if (!($aux->[0])) {
+			$aux->[1] = 1;
+			return;
+		}
+	}
+	my $name = /^.(\S+)/? $1 : '';
+	my $seq = '';
+	my $c;
+	$aux->[0] = undef;
+	while (<$fh>) {
+		chomp;
+		$c = substr($_, 0, 1);
+		last if ($c eq '>' || $c eq '@' || $c eq '+');
+		$seq .= $_;
+	}
+	$aux->[0] = $_;
+	$aux->[1] = 1 if (!($aux->[0]));
+	return ($name, $seq) if ($c ne '+');
+	my $qual = '';
+	while (<$fh>) {
+		chomp;
+		$qual .= $_;
+		if (length($qual) >= length($seq)) {
+			$aux->[0] = undef;
+			my @header = split / /, $name, 2;
+			if (scalar @header == 2){
+			    return ($header[0], $header[0], $seq, $qual);
+		        }
+		        else{
+			    return ($name, undef, $seq, $qual);
+		        }
+		}
+	}
+	$aux->[1] = 1;
+	my @header = split / /, $name, 2;
+	if (scalar @header == 2){
+	    return ($header[0], $header[0], $seq, $qual);
+        }
+	else{
+	    return ($name, undef, $seq, $qual);
+	}
+}
 $VERSION = $FAST::VERSION; 
 $DESC    = "tally sequences and sequence characters";
 $NAME    = $0;
@@ -58,15 +113,9 @@ pod2usage(-verbose => 2) if $man;
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
-my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 my $IN;
 unless (@ARGV) {
-    if ($moltype) {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format, '-alphabet' => $moltype);
-    }
-    else {
-	$IN = FAST::Bio::SeqIO->new(-fh => *STDIN{IO}, '-format' => $format);
-    }
+	$IN = 1;
 }
 
 my $numseqs;
@@ -74,6 +123,7 @@ my $numchars;
 my $file;
 my $numseqsfile;
 my $numcharsfile;
+my @aux = undef;
 while ($IN or @ARGV) {
   if (@ARGV) {
     $file = shift (@ARGV);
@@ -82,40 +132,57 @@ while ($IN or @ARGV) {
       warn "$NAME: Could not find file $file. Skipping.\n";
       next;
     }
-    elsif ($moltype) {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format, '-alphabet' => $moltype);
-    }
-    else {
-      $IN = FAST::Bio::SeqIO->new(-file => $file, '-format' => $format);
-    }
+    open($IN, "<", $file) or die "Could not open file $file.";
   }
   else {
     undef $file;
   }
   if ($IN) { 
-    if ($format eq 'fastq') {
-    while (my $data = $IN->next_dataset) {
+    if ($IN == 1) {
+    while (my ($name, $desc, $seq, $qual) = readfq(\*STDIN, \@aux)) {
       my $length;
+      my $seqobj;
+      my $qualobj;
+      my $seqfinal;
+      if ($qual){
+	 $seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+         $qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
+         $seq = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);	 
+      }
+      else{
+	 $seq = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+      }
       unless ($characters_only) {
 	$numseqs++;
 	$numseqsfile++;
       }
       unless ($sequences_only) {
-	$length = length($data->{-seq});
+	$length = $seqfinal->length();
 	$numchars += $length;
 	$numcharsfile += $length;
       }
     }
   }
     else {
-    while (my $seq = $IN->next_seq()) {
+    while (my ($name, $desc, $seq, $qual) = readfq($IN, \@aux)) {
       my $length;
+      my $seqobj;
+      my $qualobj;
+      my $seqfinal;
+      if ($qual){
+	 $seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+         $qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
+         $seqfinal = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);	 
+      }
+      else{
+	 $seqfinal = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+      }
       unless ($characters_only) {
 	$numseqs++;
 	$numseqsfile++;
       }
       unless ($sequences_only) {
-	$length = $seq->length();
+	$length = length($seqfinal);
 	$numchars += $length;
 	$numcharsfile += $length;
       }
@@ -123,8 +190,8 @@ while ($IN or @ARGV) {
   }
     if ($file) {
       print join $join,
-	( (!$characters_only) ? sprintf("%10d",$numseqsfile) : ""),
-	  ( (!$sequences_only ) ? sprintf("%10d",$numcharsfile) : ""),
+	( (!$characters_only) ? sprintf("%15d",$numseqsfile) : ""),
+	  ( (!$sequences_only ) ? sprintf("%15d",$numcharsfile) : ""),
 	    " $file\n";
     }
     undef $IN;
@@ -132,8 +199,8 @@ while ($IN or @ARGV) {
 }
 
 print join $join,
-  ( (!$characters_only) ? sprintf("%10d",$numseqs) : ""),
-  ( (!$sequences_only ) ? sprintf("%10d",$numchars) : ""),
+  ( (!$characters_only) ? sprintf("%15d",$numseqs) : ""),
+  ( (!$sequences_only ) ? sprintf("%15d",$numchars) : ""),
   " total\n";
 
 __END__
