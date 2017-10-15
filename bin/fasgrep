@@ -5,6 +5,7 @@ use Pod::Usage;
 use FAST;
 use FAST::Bio::SeqIO;
 use FAST::Bio::Tools::SeqPattern ();
+use IO::String;
 use warnings;
 use strict;
 
@@ -95,15 +96,18 @@ my $re_string;
 
 if ($iupac_ambiguity_expand_regex_nuc  and not $revcom_iupac_ambiguity_expand_regex_nuc) {
   $sequence = true;
-  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->expand;
+  #$re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->expand;
+  $re_string = IO::String->new($arg)->expand;
 }
 elsif ($revcom_iupac_ambiguity_expand_regex_nuc) {
   $sequence = true;
-  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->revcom(1)->str;
+  #$re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->revcom(1)->str;
+  $re_string = IO::String->new($arg)->revcom(1)->str;
 }
 elsif ($iupac_ambiguity_expand_regex_prot) {
   $sequence = true;
-  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Protein')->expand;
+  #$re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Protein')->expand;
+  $re_string = IO::String->new($arg)->expand;
 }
 
 else {
@@ -136,15 +140,13 @@ else { # $field < 0
 }
 
 
-my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
-
-##############
+#my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
+my $OUT = IO::String->new($format);	
 my $IN;
 unless (@ARGV){ 
     $IN =1; 
 }
 
-##############
 
 while ($IN or @ARGV) {
   if (@ARGV) {
@@ -157,34 +159,39 @@ while ($IN or @ARGV) {
    open($IN, "<",$file) or die "Could not open file $file.";
   }
   
-  ##########################################
   if ($IN ==1) { #changes the input logic
   
     while (my ($name, $desc, $seq, $qual)= readfq(\*STDIN, \@aux)) { 
     
-    ######create the bio objects######
-    
+   
       my $length;
       my $seqobj;
       my $qualobj;
       my $seqfinal;
       if ($qual){
-	 	$seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
-        $qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
-        $seq = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);	 
+	    #$seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+        $seqobj = ($seq,$name,$desc);
+        
+        #$qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
+        $qualobj = ($qual,$name);
+        
+        #$seq = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);	 
+        $seq = ($seqobj,$qualobj);
       }
       else{
-	 $seq = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+	 #$seq = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+     $seq = ($seq, $name, $desc);
       }
     
-   ###########################################
-  
-  #This section of code does not need updating:#
-      my $data = $seq->id();
-      $data = $seq->seq()  if ($sequence);
-      $data = $seq->desc() if ($description);
+      #my $data = $seq->id();
+      my $data = $seq[1];
+      #$data = $seq->seq()  if ($sequence);
+      $data = $seq[0] if ($sequence);
+      #$data = $seq->desc() if ($description);
+      $data = $seq[2] if ($description);
       if ($field) {
-	 my $desc = $seq->desc();
+	 #my $desc = $seq->desc();
+     my $desc = $seq[2];
 	 my @fields;
 	 if ($split_on_regex) {
 	   @fields = split $split_re,$desc;
@@ -195,8 +202,9 @@ while ($IN or @ARGV) {
 	$data = $fields[$index];
       }
       if ($tag) {
-	my $desc = $seq->desc();
-	my $re = qr/$tag[:=](\S+)/p;
+	#my $desc = $seq->desc();
+	my $desc = $seq[2];
+    my $re = qr/$tag[:=](\S+)/p;
 	if ($desc =~ $re) {
 	  $data = $1;
 	}
