@@ -96,18 +96,17 @@ my $re_string;
 
 if ($iupac_ambiguity_expand_regex_nuc  and not $revcom_iupac_ambiguity_expand_regex_nuc) {
   $sequence = true;
-  #$re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->expand;
-  $re_string = IO::String->new($arg)->expand;
+  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->expand;
+  
 }
 elsif ($revcom_iupac_ambiguity_expand_regex_nuc) {
   $sequence = true;
-  #$re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->revcom(1)->str;
-  $re_string = IO::String->new($arg)->revcom(1)->str;
+  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Dna')->revcom(1)->str;
+  
 }
 elsif ($iupac_ambiguity_expand_regex_prot) {
   $sequence = true;
-  #$re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Protein')->expand;
-  $re_string = IO::String->new($arg)->expand;
+  $re_string = new FAST::Bio::Tools::SeqPattern(-SEQ => $arg, -TYPE =>'Protein')->expand;
 }
 
 else {
@@ -140,8 +139,7 @@ else { # $field < 0
 }
 
 
-#my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);
-my $OUT = IO::String->new($format);	
+my $OUT = FAST::Bio::SeqIO->newFh('-format' => $format);	
 my $IN;
 unless (@ARGV){ 
     $IN =1; 
