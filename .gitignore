@@ -21,3 +21,4 @@ HOWTO
 *~
 *.orig
 *.save
+.DS_Store
