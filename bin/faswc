@@ -3,8 +3,6 @@ use POSIX;
 use Getopt::Long qw(:config bundling require_order auto_version);
 use Pod::Usage;
 use FAST;
-use FAST::Bio::PrimarySeq;
-use FAST::Bio::Seq;
 use warnings;
 use strict;
 
@@ -47,7 +45,7 @@ sub readfq {
 			$aux->[0] = undef;
 			my @header = split / /, $name, 2;
 			if (scalar @header == 2){
-			    return ($header[0], $header[0], $seq, $qual);
+			    return ($header[0], $header[1], $seq, $qual);
 		        }
 		        else{
 			    return ($name, undef, $seq, $qual);
@@ -57,7 +55,7 @@ sub readfq {
 	$aux->[1] = 1;
 	my @header = split / /, $name, 2;
 	if (scalar @header == 2){
-	    return ($header[0], $header[0], $seq, $qual);
+	    return ($header[0], $header[1], $seq, $qual);
         }
 	else{
 	    return ($name, undef, $seq, $qual);
@@ -141,23 +139,14 @@ while ($IN or @ARGV) {
     if ($IN == 1) {
     while (my ($name, $desc, $seq, $qual) = readfq(\*STDIN, \@aux)) {
       my $length;
-      my $seqobj;
-      my $qualobj;
-      my $seqfinal;
-      if ($qual){
-	 $seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
-         $qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
-         $seq = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);
-      }
-      else{
-	 $seq = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
-      }
+      #my $seqfinal = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+      
       unless ($characters_only) {
 	$numseqs++;
 	$numseqsfile++;
       }
       unless ($sequences_only) {
-	$length = $seqfinal->length();
+	$length = length($seq);
 	$numchars += $length;
 	$numcharsfile += $length;
       }
@@ -166,23 +155,14 @@ while ($IN or @ARGV) {
     else {
     while (my ($name, $desc, $seq, $qual) = readfq($IN, \@aux)) {
       my $length;
-      my $seqobj;
-      my $qualobj;
-      my $seqfinal;
-      if ($qual){
-	 $seqobj = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
-         $qualobj = FAST::Bio::Seq::PrimaryQual->new(-qual => $qual, -id => $name);
-         $seqfinal = FAST::Bio::Seq::SeqWithQuality->new(-seq => $seqobj, -qual => $qualobj);
-      }
-      else{
-	 $seqfinal = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
-      }
+      #my $seqfinal = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
+      
       unless ($characters_only) {
 	$numseqs++;
 	$numseqsfile++;
       }
       unless ($sequences_only) {
-	$length = length($seqfinal);
+	$length = length($seq);
 	$numchars += $length;
 	$numcharsfile += $length;
       }
