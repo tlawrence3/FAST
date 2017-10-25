@@ -8,7 +8,9 @@ use strict;
 
 use vars qw($VERSION $DESC $NAME $COMMAND $DATE);
 sub readfq {
-	my ($fh, $aux) = @_;
+    	my @aux = undef;
+	my $aux = \@aux;
+	my $fh = shift(@_);
 	@$aux = [undef, 0] if (!(@$aux));
 	return if ($aux->[1]);
 	if (!($aux->[0])) {
@@ -121,7 +123,6 @@ my $numchars;
 my $file;
 my $numseqsfile;
 my $numcharsfile;
-my @aux = undef;
 while ($IN or @ARGV) {
   if (@ARGV) {
     $file = shift (@ARGV);
@@ -137,9 +138,8 @@ while ($IN or @ARGV) {
   }
   if ($IN) {
     if ($IN == 1) {
-    while (my ($name, $desc, $seq, $qual) = readfq(\*STDIN, \@aux)) {
+    while (my ($name, $desc, $seq, $qual) = readfq(\*STDIN)) {
       my $length;
-      #my $seqfinal = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
       
       unless ($characters_only) {
 	$numseqs++;
@@ -153,9 +153,8 @@ while ($IN or @ARGV) {
     }
   }
     else {
-    while (my ($name, $desc, $seq, $qual) = readfq($IN, \@aux)) {
+    while (my ($name, $desc, $seq, $qual) = readfq($IN)) {
       my $length;
-      #my $seqfinal = FAST::Bio::PrimarySeq->new(-seq => $seq, -id  => $name, -desc => $desc);
       
       unless ($characters_only) {
 	$numseqs++;
