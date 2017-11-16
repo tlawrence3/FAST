@@ -38,7 +38,15 @@ sub readfq {
 	}
 	$aux->[0] = $_;
 	$aux->[1] = 1 if (!($aux->[0]));
-	return ($name, $seq) if ($c ne '+');
+	if ($c ne '+'){
+	   my @header = split / /, $name, 2;
+	   if (scalar @header == 2){
+	     return ($header[0], $header[1], $seq, undef);
+           }
+           else{
+	     return ($name, undef, $seq, undef);
+	   }
+	}
 	my $qual = '';
 	while (<$fh>) {
 		chomp;
