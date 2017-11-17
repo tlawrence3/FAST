@@ -29,6 +29,7 @@ doc/FAST_Cookbook.tex
 doc/org2html
 doc/org2pdf
 lib/FAST.pm
+lib/FAST/Parser.pm
 lib/FAST/Bio/Align/AlignI.pm
 lib/FAST/Bio/AlignIO.pm
 lib/FAST/Bio/AlignIO/arp.pm
