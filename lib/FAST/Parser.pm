@@ -7,9 +7,7 @@ use Exporter qw(import);
 our @EXPORT_OK = qw(readfq);
 
 sub readfq {
-    	my @aux = undef;
-	my $aux = \@aux;
-	my $fh = shift(@_);
+	my ($fh, $aux) = @_;
 	@$aux = [undef, 0] if (!(@$aux));
 	return if ($aux->[1]);
 	if (!($aux->[0])) {

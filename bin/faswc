@@ -62,7 +62,7 @@ my $IN;
 unless (@ARGV) {
 	$IN = 1;
 }
-
+my @aux = undef;
 my $numseqs;
 my $numchars;
 my $file;
@@ -83,7 +83,7 @@ while ($IN or @ARGV) {
   }
   if ($IN) {
     if ($IN == 1) {
-    while (my ($name, $desc, $seq, $qual) = readfq(\*STDIN)) {
+    while (my ($name, $desc, $seq, $qual) = readfq(\*STDIN, \@aux)) {
       my $length;
       
       unless ($characters_only) {
@@ -98,7 +98,7 @@ while ($IN or @ARGV) {
     }
   }
     else {
-    while (my ($name, $desc, $seq, $qual) = readfq($IN)) {
+    while (my ($name, $desc, $seq, $qual) = readfq($IN, \@aux)) {
       my $length;
       
       unless ($characters_only) {
