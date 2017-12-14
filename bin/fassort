@@ -51,7 +51,7 @@ my $tag            = undef;  # -t
 my $reverse             = undef;  # -r
 my $numeric             = undef;  # -n
 
-my $memory_limit        = 524288;  # -M; one-quarter GB
+my $memory_limit        = 1073741824;  # -M; one GB
 my $fastq                = undef;
 
 
