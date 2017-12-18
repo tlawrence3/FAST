@@ -25,7 +25,7 @@ my $def_format  = $FAST::DEF_FORMAT;  #7/1/13 "fasta";
 my $def_logname = $FAST::DEF_LOGNAME; #7/1/13 "FAST.log.txt";
 my $def_join_string =  $FAST::DEF_JOIN_STRING;
 my $def_print_num = 10;
-my $memory_limit  = 524288; # -M 512KB
+my $memory_limit  = 2000000000; # -M 2GB
 
 ## OPTION VARIABLES
 my $man                  = undef;  # --man
@@ -75,7 +75,7 @@ $memory_limit = $memory_limit / 3.22; #convert memory to # of nt/aa
 
 &FAST::log($logname, $DATE, $COMMAND, $comment) if ($log);
 
-my $append_file_name = ($append and (!($fromSTDIN) and @ARGV > 0));
+my $append_file_name = ($append and @ARGV > 0);
 
 my $OUT = FAST::Bio::SeqIO->newFh(-fh => *STDOUT{IO}, '-format' => $format);
 my $IN;
