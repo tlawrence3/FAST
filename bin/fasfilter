@@ -255,6 +255,7 @@ Options specific to B<fasfilter>:
   B<-x>, B<--regex>=<regex>               filter on value of a regex capture
   B<-S>, B<--split-on-regex>=<regex>      split description for field-based filtering using regex 
   B<-v>, B<--negate>                      print records whose values fall outside of all specified ranges
+  B<-M>, B<--modulus>=<int>               print records whose values are a multiple of the integer argument >= 2
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
