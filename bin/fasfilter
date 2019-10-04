@@ -36,9 +36,9 @@ my $field          = undef;  # -f
 my $tag            = undef;  # -t 
 my $regex          = undef;  # -x
 my $split_on_regex       = $def_split_on_regex;   # -S 
+my $modulus        = undef;  # -M
 
-
-my $negate                = undef;  # -v
+my $negate               = undef;  # -v
 my $fastq                = undef;
 
 
@@ -55,6 +55,11 @@ GetOptions('help|h'         		 => \$help,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
 	   'negate|v'                    => \$negate,
+	   'modulus|M=i'                   => sub{ my (undef,$val) = @_; 
+	   					 die "$NAME: --modulus or -M option expects integer argument >= 2, you gave $val\n" 
+						    unless $val >= 2; 
+						  $modulus = $val;
+						},
 
            'description|d'               => \$description,
 	   'field|f=i'                   => sub{  my (undef,$val) = @_; 
@@ -181,6 +186,9 @@ while ($IN or @ARGV) {
     while (my $seq = $IN->next_seq()) {
       my $val = &$valf($seq);
       my $pass   = undef;
+      if ($modulus and $val % $modulus != 0){
+      	next;
+      }
       foreach my $interval (@intervals) {
 	my ($L,$U) = @$interval;
 	if (((not defined $U) && $val >= $L) || ((not defined $L) && $val <= $U) || (defined $U && defined $L && $val >= $L && $val <= $U)){
@@ -245,6 +253,7 @@ Options specific to B<fasfilter>:
   B<-x>, B<--regex>=<regex>               filter on value of a regex capture
   B<-S>, B<--split-on-regex>=<regex>      split description for field-based filtering using regex 
   B<-v>, B<--negate>                      print records whose values fall outside of all specified ranges
+  B<-M>, B<--modulus>=<int>               print records whose values are a multiple of the integer argument >= 2
 
 Options general to FAST:
   B<-h>, B<--help>                  	 print a brief help message
