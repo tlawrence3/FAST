@@ -55,9 +55,9 @@ GetOptions('help|h'         		 => \$help,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
 	   'negate|v'                    => \$negate,
-	   'modulus|M'                   => sub{ my (undef,$val) = @_; 
+	   'modulus|M=i'                   => sub{ my (undef,$val) = @_; 
 	   					 die "$NAME: --modulus or -M option expects integer argument >= 2, you gave $val\n" 
-						    unless $val >= 2 and int($val) == $val; 
+						    unless $val >= 2; 
 						  $modulus = $val;
 						},
 
