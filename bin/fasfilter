@@ -36,9 +36,9 @@ my $field          = undef;  # -f
 my $tag            = undef;  # -t 
 my $regex          = undef;  # -x
 my $split_on_regex       = $def_split_on_regex;   # -S 
+my $modulus        = undef;  # -M
 
-
-my $negate                = undef;  # -v
+my $negate               = undef;  # -v
 my $fastq                = undef;
 
 
@@ -55,6 +55,11 @@ GetOptions('help|h'         		 => \$help,
 	   'logname|L=s'                 => \$logname,
 	   'comment|C=s'                 => \$comment,
 	   'negate|v'                    => \$negate,
+	   'modulus|M'                   => sub{ my (undef,$val) = @_; 
+	   					 die "$NAME: --modulus or -M option expects integer argument >= 2\n" 
+						    unless $val >= 2; 
+						  $modulus = $val;
+						},
 
            'description|d'               => \$description,
 	   'field|f=i'                   => sub{  my (undef,$val) = @_; 
@@ -183,6 +188,9 @@ while ($IN or @ARGV) {
     while (my $seq = $IN->next_seq()) {
       my $val = &$valf($seq);
       my $pass   = undef;
+      if ($modulus and $val % $modulus != 0){
+      	next;
+      }
       foreach my $interval (@intervals) {
 	my ($L,$U) = @$interval;
 	if (((not defined $U) && $val >= $L) || ((not defined $L) && $val <= $U) || (defined $U && defined $L && $val >= $L && $val <= $U)){
