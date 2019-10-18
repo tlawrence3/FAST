@@ -76,7 +76,7 @@ You can also follow INSTALLATION instructions below, but you may need to
 first run these commands to install FAST dependencies:
 
 ```bash 
-perl -MPCAN -e 'install Sort::Key'
+perl -MCPAN -e 'install Sort::Key'
 perl -MCPAN -e 'install Sort::MergeSort'
 perl -MCPAN -e 'install Bit::Vector'
 perl -MCPAN -e 'install Test::More'
